@@ -8,7 +8,7 @@ from datetime import date, timedelta
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, Form, Request
-from fastapi.responses import JSONResponse, RedirectResponse
+from fastapi.responses import FileResponse, JSONResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from starlette.middleware.sessions import SessionMiddleware
@@ -99,6 +99,13 @@ def render(request: Request, name: str, **ctx):
 @app.get("/favicon.ico", include_in_schema=False)
 async def favicon():
     return RedirectResponse("/static/favicon.svg", status_code=301)
+
+
+@app.get("/sw.js", include_in_schema=False)
+async def service_worker():
+    # Served from the site root so its scope covers every page (a file under /static/ could not).
+    return FileResponse(os.path.join(HERE, "static", "sw.js"), media_type="application/javascript",
+                        headers={"Cache-Control": "no-cache"})
 
 
 @app.get("/health")
