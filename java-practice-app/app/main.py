@@ -164,7 +164,9 @@ def _send_password_changed(email: str) -> None:
 
 
 def is_admin(user) -> bool:
-    return bool(user) and user["email"].lower() in ADMIN_EMAILS
+    """Admin = an account whose email is listed in ADMIN_EMAILS AND whose email address is confirmed,
+    so nobody can gain access just by registering an admin address they do not own."""
+    return bool(user) and bool(user["email_verified"]) and user["email"].lower() in ADMIN_EMAILS
 
 
 def render(request: Request, name: str, status_code: int = 200, **ctx):
