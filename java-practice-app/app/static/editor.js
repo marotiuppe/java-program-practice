@@ -338,6 +338,104 @@
     }
   }
 
+  /* ---------------- sample tests (coding questions) ---------------- */
+  function el(tag, cls, text) {
+    const e = document.createElement(tag);
+    if (cls) e.className = cls;
+    if (text !== undefined) e.textContent = text;
+    return e;
+  }
+  function textBlock(title, text) {
+    const d = el('div');
+    d.appendChild(el('h4', '', title));
+    d.appendChild(el('pre', '', text === '' ? '(empty)' : text));
+    return d;
+  }
+  function markSolvedUi() {
+    solveBtn.dataset.status = 'solved';
+    solveBtn.textContent = 'Mark unsolved';
+  }
+
+  const testBtn = document.getElementById('test');
+  const testsBox = document.getElementById('tests');
+  async function runSamples() {
+    testBtn.disabled = true;
+    testsBox.hidden = false;
+    testsBox.textContent = 'Compiling and running the samples...';
+    try {
+      const res = await post('/api/test', { day: day, q: q, code: code.value });
+      testsBox.textContent = '';
+      if (res.stage === 'compile') {
+        testsBox.appendChild(el('div', 'summary bad', 'Compilation failed'));
+        const pre = el('pre', 'output err', res.error);
+        testsBox.appendChild(pre);
+      } else if (res.stage !== 'tests') {
+        testsBox.appendChild(el('div', 'summary bad', res.error || 'Something went wrong.'));
+      } else {
+        const passed = res.results.filter((r) => r.pass).length;
+        const total = res.results.length;
+        testsBox.appendChild(el('div', 'summary ' + (res.all_passed ? 'ok' : 'bad'),
+          res.all_passed ? 'All ' + total + ' samples passed - marked solved.' : passed + ' of ' + total + ' samples passed'));
+        let opened = false;
+        res.results.forEach((r) => {
+          const d = el('details');
+          if (!r.pass && !opened) { d.open = true; opened = true; }
+          const s = el('summary');
+          s.appendChild(el('span', 'tag ' + (r.pass ? 'pass' : 'fail'), r.pass ? 'PASS' : 'FAIL'));
+          s.appendChild(el('span', '', 'Sample ' + r.n));
+          d.appendChild(s);
+          const detail = el('div', 'detail');
+          detail.appendChild(textBlock('Input', r.input.replace(/\n$/, '')));
+          detail.appendChild(textBlock('Expected output', r.expected));
+          detail.appendChild(textBlock('Your output', r.actual));
+          if (r.stderr) detail.appendChild(textBlock('Errors', r.stderr));
+          d.appendChild(detail);
+          testsBox.appendChild(d);
+        });
+        if (res.all_passed) { markSolvedUi(); flash('Marked solved'); }
+      }
+    } catch (e) {
+      if (e.message !== 'login') testsBox.textContent = 'Could not reach the server. It may be waking up - try again in a moment.';
+    } finally {
+      testBtn.disabled = false;
+    }
+  }
+  if (testBtn) testBtn.addEventListener('click', runSamples);
+
+  /* ---------------- predict-the-output check ---------------- */
+  const checkBtn = document.getElementById('check');
+  if (checkBtn) {
+    const answer = document.getElementById('predict');
+    const pmsg = document.getElementById('predict-msg');
+    const setMsg = (text, cls) => { pmsg.textContent = text; pmsg.className = 'pmsg ' + (cls || ''); };
+    checkBtn.addEventListener('click', async () => {
+      checkBtn.disabled = true;
+      setMsg('Checking...');
+      try {
+        const res = await post('/api/predict', { day: day, q: q, answer: answer.value });
+        if (res.error) setMsg(res.error, 'bad');
+        else if (res.correct) { setMsg('Correct! Marked solved.', 'ok'); markSolvedUi(); }
+        else setMsg('Not quite. Re-trace the code line by line and try again.', 'bad');
+      } catch (e) {
+        if (e.message !== 'login') setMsg('Could not reach the server.', 'bad');
+      } finally {
+        checkBtn.disabled = false;
+      }
+    });
+    document.getElementById('reveal').addEventListener('click', async () => {
+      if (!confirm('Show the real output? This counts as giving up on this question.')) return;
+      try {
+        const res = await post('/api/predict', { day: day, q: q, reveal: true });
+        if (res.error) { setMsg(res.error, 'bad'); return; }
+        out.className = 'output';
+        out.textContent = 'Actual output:\n' + res.expected;
+        setMsg('');
+      } catch (e) {
+        if (e.message !== 'login') setMsg('Could not reach the server.', 'bad');
+      }
+    });
+  }
+
   runBtn.addEventListener('click', run);
   document.getElementById('save').addEventListener('click', async () => {
     try { await save(); flash('Saved'); } catch (e) { flash('Save failed'); }

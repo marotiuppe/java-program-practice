@@ -12,8 +12,8 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from starlette.middleware.sessions import SessionMiddleware
 
-from . import content, db
-from .runner import run_java
+from . import content, db, grading, stats
+from .runner import run_java, run_java_batch
 
 logging.basicConfig(level=logging.INFO)
 log = logging.getLogger("app")
@@ -177,8 +177,14 @@ async def dashboard(request: Request):
         state = "done" if s == 5 else "partial" if (s or a) else "todo"
         days.append({"n": n, "title": day["title"], "solved": s, "attempted": a, "state": state})
     total = sum(d["solved"] for d in days)
+    streak = stats.compute(db.get_active_dates(user["id"]))
     return render(
-        request, "dashboard.html", days=days, level_label=content.CONTENT[level]["label"], total_solved=total
+        request,
+        "dashboard.html",
+        days=days,
+        level_label=content.CONTENT[level]["label"],
+        total_solved=total,
+        streak=streak,
     )
 
 
@@ -226,14 +232,100 @@ async def api_run(request: Request):
     user = current_user(request)
     if not user:
         return JSONResponse({"error": "Please log in."}, status_code=401)
-    now = time.monotonic()
-    if now - _last_run.get(user["id"], 0) < 1.5:
+    if not _throttle(user["id"], 1.5):
         return JSONResponse({"stage": "busy", "ok": False, "error": "Slow down a little."}, status_code=429)
-    _last_run[user["id"]] = now
     body = await request.json()
     code = str(body.get("code", ""))
     stdin_text = str(body.get("stdin", ""))
+    db.touch_activity(user["id"], stats.today_str())
     return JSONResponse(await run_java(code, stdin_text))
+
+
+def _throttle(user_id: int, gap: float) -> bool:
+    """Simple per-user rate limit. Returns False when the call came too soon after the last one."""
+    now = time.monotonic()
+    if now - _last_run.get(user_id, 0) < gap:
+        return False
+    _last_run[user_id] = now
+    return True
+
+
+@app.post("/api/test")
+async def api_test(request: Request):
+    """Run the learner's code against the sample cases printed in the question."""
+    user = current_user(request)
+    if not user:
+        return JSONResponse({"error": "Please log in."}, status_code=401)
+    if not _throttle(user["id"], 3):
+        return JSONResponse({"stage": "busy", "ok": False, "error": "Slow down a little."}, status_code=429)
+    body = await request.json()
+    try:
+        day, q = int(body["day"]), int(body["q"])
+    except (KeyError, ValueError, TypeError):
+        return JSONResponse({"error": "Bad request."}, status_code=400)
+    _, question = _get_question(user["level"], day, q)
+    if not question or not question["samples"]:
+        return JSONResponse({"error": "This question has no sample cases to test."}, status_code=404)
+    code = str(body.get("code", ""))[:50_000]
+    samples = question["samples"]
+    res = await run_java_batch(code, [s["input"] for s in samples])
+    if res.get("stage") != "tests":
+        return JSONResponse(res)
+    items = []
+    for n, (sample, r) in enumerate(zip(samples, res["results"]), start=1):
+        items.append({
+            "n": n,
+            "pass": bool(r["ok"] and grading.same(r["stdout"], sample["output"])),
+            "input": sample["input"],
+            "expected": sample["output"],
+            "actual": r["stdout"],
+            "stderr": r["stderr"],
+            "timed_out": r["timed_out"],
+        })
+    all_passed = all(i["pass"] for i in items)
+    db.save_progress(user["id"], user["level"], day, q, code, "solved" if all_passed else None, True)
+    db.touch_activity(user["id"], stats.today_str())
+    return {"stage": "tests", "results": items, "all_passed": all_passed}
+
+
+_predict_cache = {}
+
+
+async def _expected_output(level: str, day: int, q: int, question: dict):
+    """The real output of a predict-the-output snippet, computed once by running it on the server."""
+    key = (level, day, q)
+    if key in _predict_cache:
+        return _predict_cache[key]
+    res = await run_java(question["starter"], "")
+    if res.get("stage") == "run" and res.get("ok"):
+        _predict_cache[key] = res["stdout"]
+        return res["stdout"]
+    return None
+
+
+@app.post("/api/predict")
+async def api_predict(request: Request):
+    user = current_user(request)
+    if not user:
+        return JSONResponse({"error": "Please log in."}, status_code=401)
+    body = await request.json()
+    try:
+        day, q = int(body["day"]), int(body["q"])
+    except (KeyError, ValueError, TypeError):
+        return JSONResponse({"error": "Bad request."}, status_code=400)
+    _, question = _get_question(user["level"], day, q)
+    if not question or question["kind"] != "predict":
+        return JSONResponse({"error": "Not a predict-the-output question."}, status_code=404)
+    expected = await _expected_output(user["level"], day, q, question)
+    if expected is None:
+        return JSONResponse({"error": "Could not evaluate this snippet right now. Try again."}, status_code=503)
+    db.touch_activity(user["id"], stats.today_str())
+    if body.get("reveal"):
+        db.set_status(user["id"], user["level"], day, q, "attempted")
+        return {"revealed": True, "expected": expected}
+    correct = grading.same(str(body.get("answer", ""))[:5000], expected)
+    db.set_status(user["id"], user["level"], day, q, "solved" if correct else "attempted")
+    return {"correct": correct}
 
 
 @app.post("/api/save")
@@ -254,4 +346,5 @@ async def api_save(request: Request):
         return JSONResponse({"error": "Bad status."}, status_code=400)
     code = str(body.get("code", ""))[:50_000]
     db.save_progress(user["id"], user["level"], day, q, code, status, bool(body.get("ran")))
+    db.touch_activity(user["id"], stats.today_str())
     return {"ok": True}

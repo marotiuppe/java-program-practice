@@ -118,54 +118,100 @@ def _run_process(cmd, cwd, env, stdin_path, stdout_path, stderr_path, timeout):
             return -1, True
 
 
+def _prep(tmp: str, code: str):
+    """Write Main.java into tmp and return (src_path, env, drop_privileges)."""
+    os.chmod(tmp, 0o755)
+    drop = _IS_POSIX and os.getuid() == 0
+    if drop:
+        os.chown(tmp, RUNNER_UID, RUNNER_UID)
+    src = os.path.join(tmp, "Main.java")
+    with open(src, "w", encoding="utf-8") as f:
+        f.write(code)
+    if drop:
+        os.chown(src, RUNNER_UID, RUNNER_UID)
+    env = {"PATH": os.environ.get("PATH", ""), "HOME": tmp, "LANG": "C.UTF-8", "TMPDIR": tmp, "TEMP": tmp, "TMP": tmp}
+    if os.environ.get("SYSTEMROOT"):  # Windows (local development) needs this to start the JVM
+        env["SYSTEMROOT"] = os.environ["SYSTEMROOT"]
+    return src, env, drop
+
+
+def _compile(tmp: str, src: str, env: dict):
+    """Returns None on success, or a compile-failure result dict."""
+    empty = os.path.join(tmp, "empty.txt")
+    open(empty, "w").close()
+    out_path = os.path.join(tmp, "cout.txt")
+    err_path = os.path.join(tmp, "cerr.txt")
+    rc, timed_out = _run_process(
+        [_exe("javac"), *_javac_flags(), "-d", tmp, src], tmp, env, empty, out_path, err_path, COMPILE_TIMEOUT
+    )
+    if timed_out:
+        return {"stage": "compile", "ok": False, "error": "Compilation timed out."}
+    if rc != 0:
+        msg = _read_capped(err_path) or _read_capped(out_path)
+        return {"stage": "compile", "ok": False, "error": msg.replace(tmp + os.sep, "")}
+    return None
+
+
+def _run_one(tmp: str, env: dict, drop: bool, stdin_text: str, tag: int) -> dict:
+    in_path = os.path.join(tmp, f"stdin_{tag}.txt")
+    out_path = os.path.join(tmp, f"out_{tag}.txt")
+    err_path = os.path.join(tmp, f"err_{tag}.txt")
+    with open(in_path, "w", encoding="utf-8") as f:
+        f.write(stdin_text)
+    if drop:
+        os.chown(in_path, RUNNER_UID, RUNNER_UID)
+    rc, timed_out = _run_process(
+        [_exe("java"), *JAVA_FLAGS, f"-Djava.io.tmpdir={tmp}", "-cp", tmp, "Main"],
+        tmp, env, in_path, out_path, err_path, RUN_TIMEOUT
+    )
+    result = {
+        "ok": rc == 0 and not timed_out,
+        "stdout": _read_capped(out_path),
+        "stderr": _read_capped(err_path),
+        "exit_code": rc,
+        "timed_out": timed_out,
+    }
+    if timed_out:
+        result["stderr"] += f"\nTime limit exceeded ({RUN_TIMEOUT}s)."
+    return result
+
+
 def _execute(code: str, stdin_text: str) -> dict:
     tmp = tempfile.mkdtemp(prefix="jrun_")
     try:
-        os.chmod(tmp, 0o755)
-        if _IS_POSIX and os.getuid() == 0:
-            os.chown(tmp, RUNNER_UID, RUNNER_UID)
-        src = os.path.join(tmp, "Main.java")
-        with open(src, "w", encoding="utf-8") as f:
-            f.write(code)
-        in_path = os.path.join(tmp, "stdin.txt")
-        with open(in_path, "w", encoding="utf-8") as f:
-            f.write(stdin_text)
-        if _IS_POSIX and os.getuid() == 0:
-            for p in (src, in_path):
-                os.chown(p, RUNNER_UID, RUNNER_UID)
-        env = {"PATH": os.environ.get("PATH", ""), "HOME": tmp, "LANG": "C.UTF-8"}
-        out_path = os.path.join(tmp, "out.txt")
-        err_path = os.path.join(tmp, "err.txt")
-        empty = os.path.join(tmp, "empty.txt")
-        open(empty, "w").close()
-
-        # 1) compile
-        rc, timed_out = _run_process(
-            [_exe("javac"), *_javac_flags(), "-d", tmp, src], tmp, env, empty, out_path, err_path, COMPILE_TIMEOUT
-        )
-        if timed_out:
-            return {"stage": "compile", "ok": False, "error": "Compilation timed out."}
-        if rc != 0:
-            msg = _read_capped(err_path) or _read_capped(out_path)
-            return {"stage": "compile", "ok": False, "error": msg.replace(tmp + os.sep, "")}
-
-        # 2) run
-        rc, timed_out = _run_process(
-            [_exe("java"), *JAVA_FLAGS, "-cp", tmp, "Main"], tmp, env, in_path, out_path, err_path, RUN_TIMEOUT
-        )
-        result = {
-            "stage": "run",
-            "ok": rc == 0 and not timed_out,
-            "stdout": _read_capped(out_path),
-            "stderr": _read_capped(err_path),
-            "exit_code": rc,
-            "timed_out": timed_out,
-        }
-        if timed_out:
-            result["stderr"] += f"\nTime limit exceeded ({RUN_TIMEOUT}s)."
+        src, env, drop = _prep(tmp, code)
+        failed = _compile(tmp, src, env)
+        if failed:
+            return failed
+        result = _run_one(tmp, env, drop, stdin_text, 0)
+        result["stage"] = "run"
         return result
     finally:
         shutil.rmtree(tmp, ignore_errors=True)
+
+
+def _execute_batch(code: str, stdins: list) -> dict:
+    """Compile once, then run the program once per stdin text."""
+    tmp = tempfile.mkdtemp(prefix="jrun_")
+    try:
+        src, env, drop = _prep(tmp, code)
+        failed = _compile(tmp, src, env)
+        if failed:
+            return failed
+        return {"stage": "tests", "results": [_run_one(tmp, env, drop, s, i) for i, s in enumerate(stdins)]}
+    finally:
+        shutil.rmtree(tmp, ignore_errors=True)
+
+
+async def _guarded(fn, *args) -> dict:
+    try:
+        await asyncio.wait_for(_slot.acquire(), timeout=25)
+    except asyncio.TimeoutError:
+        return {"stage": "busy", "ok": False, "error": "Server is busy running other programs. Try again shortly."}
+    try:
+        return await asyncio.to_thread(fn, *args)
+    finally:
+        _slot.release()
 
 
 async def run_java(code: str, stdin_text: str) -> dict:
@@ -173,11 +219,10 @@ async def run_java(code: str, stdin_text: str) -> dict:
         return {"stage": "compile", "ok": False, "error": "Code is too large."}
     if len(stdin_text.encode()) > MAX_STDIN_BYTES:
         return {"stage": "compile", "ok": False, "error": "Input is too large."}
-    try:
-        await asyncio.wait_for(_slot.acquire(), timeout=25)
-    except asyncio.TimeoutError:
-        return {"stage": "busy", "ok": False, "error": "Server is busy running other programs. Try again shortly."}
-    try:
-        return await asyncio.to_thread(_execute, code, stdin_text)
-    finally:
-        _slot.release()
+    return await _guarded(_execute, code, stdin_text)
+
+
+async def run_java_batch(code: str, stdins: list) -> dict:
+    if len(code.encode()) > MAX_CODE_BYTES:
+        return {"stage": "compile", "ok": False, "error": "Code is too large."}
+    return await _guarded(_execute_batch, code, stdins)

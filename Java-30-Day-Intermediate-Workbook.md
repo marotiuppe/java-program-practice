@@ -836,7 +836,7 @@ abstract class Person implements Greeter {
     }
 }
 
-class Student extends Person implements Greeter {
+class Student extends Person {
     int roll = 7;
 
     Student(String n) {
@@ -851,7 +851,7 @@ class Student extends Person implements Greeter {
 
     @Override
     public String greet() {
-        return Greeter.super.greet() + " (roll " + roll + ")";
+        return super.greet() + " (roll " + roll + ")";
     }
 }
 

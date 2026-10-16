@@ -15,6 +15,9 @@ LEVELS = {
 DAY_RE = re.compile(r"^## Day (\d+) — (.+?)\s*$", re.M)
 Q_RE = re.compile(r"^### Question (\d): (.+?)\s*$", re.M)
 JAVA_RE = re.compile(r"```java\n(.*?)```", re.S)
+BLOCK_RE = re.compile(r"```\n(.*?)```", re.S)
+INPUT_RE = re.compile(r"\s*Input:")
+OUTPUT_RE = re.compile(r"\s*Output:")
 
 SKELETON = """import java.util.*;
 
@@ -39,6 +42,25 @@ def _clean(text: str) -> str:
     while text.endswith("---"):
         text = text[:-3].rstrip()
     return text
+
+
+def _parse_samples(body: str) -> list:
+    """Sample cases are fenced blocks holding an `Input:` part followed by an `Output:` part."""
+    samples = []
+    for block in BLOCK_RE.findall(body):
+        lines = block.rstrip("\n").split("\n")
+        in_idx = next((i for i, line in enumerate(lines) if INPUT_RE.match(line)), None)
+        if in_idx is None:
+            continue
+        out_idx = next((i for i in range(in_idx + 1, len(lines)) if OUTPUT_RE.match(lines[i])), None)
+        if out_idx is None:
+            continue
+        in_first = INPUT_RE.sub("", lines[in_idx], count=1).strip()
+        out_first = OUTPUT_RE.sub("", lines[out_idx], count=1).strip()
+        in_lines = ([in_first] if in_first else []) + lines[in_idx + 1:out_idx]
+        out_lines = ([out_first] if out_first else []) + lines[out_idx + 1:]
+        samples.append({"input": "\n".join(in_lines) + "\n", "output": "\n".join(out_lines)})
+    return samples
 
 
 def _md(text: str) -> str:
@@ -71,6 +93,8 @@ def _parse_level(path: pathlib.Path) -> dict:
                 "category": qm.group(2),
                 "html": _md(body),
                 "starter": starter,
+                "kind": {4: "predict", 5: "debug"}.get(qnum, "code"),
+                "samples": _parse_samples(body) if qnum <= 3 else [],
             }
         day = int(m.group(1))
         days[day] = {

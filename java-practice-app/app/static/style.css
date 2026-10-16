@@ -97,3 +97,23 @@ form.inline{display:inline}
 .bar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:10px 0}
 .output{min-height:120px;max-height:320px;overflow:auto;margin:0;padding:10px;background:var(--bg);border:1px solid var(--line);border-radius:6px;white-space:pre-wrap;font:13px ui-monospace,Consolas,monospace}
 .output.err{color:var(--err)}
+
+/* sample tests, predict box, stats */
+.stats{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));margin:6px 0 20px}
+.stat{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:12px 14px;box-shadow:var(--shadow)}
+.stat b{display:block;font-size:26px;line-height:1.1;color:var(--accent)}
+.stat span{font-size:12px;color:var(--muted)}
+.predict{margin-bottom:12px}
+.predict textarea{display:block;width:100%;margin-top:4px;padding:8px;font:13px ui-monospace,Consolas,monospace;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--fg)}
+.pmsg{font-weight:600}.pmsg.ok{color:var(--ok)}.pmsg.bad{color:var(--err)}
+.small{font-size:12px;margin:4px 0 0}
+.tests{margin:0 0 10px;border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.tests .summary{padding:8px 12px;font-weight:600;background:var(--accent-soft)}
+.tests .summary.ok{color:var(--ok)}.tests .summary.bad{color:var(--err)}
+.tests details{border-top:1px solid var(--line)}
+.tests summary{cursor:pointer;padding:6px 12px;display:flex;gap:8px;align-items:center}
+.tests .tag{font-size:11px;font-weight:700;padding:1px 8px;border-radius:99px;border:1px solid currentColor}
+.tests .tag.pass{color:var(--ok)}.tests .tag.fail{color:var(--err)}
+.tests .detail{display:grid;gap:8px;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));padding:6px 12px 12px}
+.tests .detail h4{margin:0 0 2px;font-size:12px;color:var(--muted);font-weight:600}
+.tests .detail pre{margin:0;padding:6px 8px;background:var(--bg);border:1px solid var(--line);border-radius:6px;white-space:pre-wrap;word-break:break-word;font:12px ui-monospace,Consolas,monospace;max-height:160px;overflow:auto}

@@ -14,6 +14,19 @@
     {{ question.html | safe }}
   </section>
   <section class="pane">
+    {% if question.kind == 'predict' %}
+    <div class="predict">
+      <label>Your predicted output
+        <textarea id="predict" rows="6" spellcheck="false" placeholder="Type exactly what the program prints, line by line"></textarea>
+      </label>
+      <div class="bar">
+        <button id="check" class="primary">Check answer</button>
+        <button id="reveal" class="link">Reveal output</button>
+        <span id="predict-msg" class="pmsg"></span>
+      </div>
+      <p class="muted small">Try to predict first. Running the code below shows the real output.</p>
+    </div>
+    {% endif %}
     <div class="editor-wrap">
       <pre id="gutter" aria-hidden="true">1</pre>
       <div id="code-area" class="code-area">
@@ -29,11 +42,13 @@
     </label>
     <div class="bar">
       <button id="run" class="primary">Run (Ctrl+Enter)</button>
+      {% if question.samples %}<button id="test">Run samples ({{ question.samples | length }})</button>{% endif %}
       <button id="save">Save</button>
       <button id="solve" data-status="{{ status }}">{{ 'Mark unsolved' if status == 'solved' else 'Mark solved' }}</button>
       <button id="reset" class="link">Reset code</button>
       <span id="msg" class="muted"></span>
     </div>
+    <div id="tests" class="tests" hidden></div>
     <pre id="output" class="output" aria-live="polite">Output appears here. The first run after the server has been idle can take a while.</pre>
   </section>
 </div>

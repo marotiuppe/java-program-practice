@@ -41,6 +41,11 @@ CREATE TABLE IF NOT EXISTS progress (
     updated_at INTEGER NOT NULL,
     PRIMARY KEY (user_id, level, day, qnum)
 );
+CREATE TABLE IF NOT EXISTS activity (
+    user_id INTEGER NOT NULL,
+    day TEXT NOT NULL,
+    PRIMARY KEY (user_id, day)
+);
 """
 
 SCHEMA_PG = [
@@ -61,6 +66,11 @@ SCHEMA_PG = [
         attempts INTEGER NOT NULL DEFAULT 0,
         updated_at BIGINT NOT NULL,
         PRIMARY KEY (user_id, level, day, qnum)
+    )""",
+    """CREATE TABLE IF NOT EXISTS activity (
+        user_id BIGINT NOT NULL,
+        day TEXT NOT NULL,
+        PRIMARY KEY (user_id, day)
     )""",
 ]
 
@@ -178,3 +188,42 @@ def save_progress(user_id, level, day, qnum, code, status, count_attempt):
                 "WHERE user_id = ? AND level = ? AND day = ? AND qnum = ?",
                 (new_status, code, 1 if count_attempt else 0, now, user_id, level, day, qnum),
             )
+
+
+_RANK = {"todo": 0, "attempted": 1, "solved": 2}
+
+
+def set_status(user_id, level, day, qnum, status, count_attempt=True):
+    """Raise the status (todo < attempted < solved) and count an attempt; never lowers it.
+    The saved code is left untouched."""
+    now = int(time.time())
+    with connect() as c:
+        row = _x(c,
+            "SELECT status FROM progress WHERE user_id = ? AND level = ? AND day = ? AND qnum = ?",
+            (user_id, level, day, qnum),
+        ).fetchone()
+        if row is None:
+            _x(c,
+                "INSERT INTO progress (user_id, level, day, qnum, status, code, attempts, updated_at) "
+                "VALUES (?, ?, ?, ?, ?, '', ?, ?)",
+                (user_id, level, day, qnum, status, 1 if count_attempt else 0, now),
+            )
+        else:
+            new_status = status if _RANK[status] > _RANK[row["status"]] else row["status"]
+            _x(c,
+                "UPDATE progress SET status = ?, attempts = attempts + ?, updated_at = ? "
+                "WHERE user_id = ? AND level = ? AND day = ? AND qnum = ?",
+                (new_status, 1 if count_attempt else 0, now, user_id, level, day, qnum),
+            )
+
+
+def touch_activity(user_id: int, date_str: str) -> None:
+    """Record that the user practiced on this calendar date (YYYY-MM-DD in the app timezone)."""
+    with connect() as c:
+        _x(c, "INSERT INTO activity (user_id, day) VALUES (?, ?) ON CONFLICT DO NOTHING", (user_id, date_str))
+
+
+def get_active_dates(user_id: int) -> list:
+    with connect() as c:
+        rows = _x(c, "SELECT day FROM activity WHERE user_id = ?", (user_id,)).fetchall()
+    return [r["day"] for r in rows]
