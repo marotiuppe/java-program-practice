@@ -87,3 +87,29 @@ On Linux a **seccomp filter** (`app/sandbox.py`) also stops learner code from op
 ## Reminder emails
 
 Opt-in only (account page, or the checkbox at onboarding). At most one email per user per day, sent after `REMINDER_HOUR` (default 18) in the user's timezone: a streak nudge, one note after 3 days away and one after 14, and a Sunday recap. Needs the Gmail settings above plus `APP_BASE_URL` (so links point at your site). Optional: `REMINDER_HOUR`, `REMINDER_MAX_PER_RUN` (default 100), `REMINDER_CHECK_SECONDS` (default 1800). Sent mail is de-duplicated through the events table, so restarts never resend.
+
+## Backups and restore
+
+Learner data lives in Postgres (Neon). Two independent safety nets:
+
+1. **Neon's own history.** In the Neon console, open your project, then *Branches* → *Restore*, and pick a point in time. The free plan keeps a short history window, so treat it as protection against a recent mistake, not a long-term backup.
+2. **Your own copy, with this repo's tool.** From a machine that has the repo and Python:
+
+   ```
+   pip install -r requirements.txt
+   DATABASE_URL="<your Neon connection string>" python tools/db_backup.py dump backup-YYYY-MM-DD.json
+   ```
+
+   Do this weekly (and before risky changes). The file contains password hashes and learners' code, so store it somewhere private, not in git.
+
+**To restore** into a new, empty database (create a new Neon project or database first):
+
+```
+DATABASE_URL="<connection string of the EMPTY database>" python tools/db_backup.py restore backup-YYYY-MM-DD.json
+```
+
+Then point the Render service's `DATABASE_URL` at it and redeploy. The tool refuses to restore into a database that already has users. The dump and restore round trip was tested on SQLite and on a real Postgres 16 server (accounts, saved code, new sign-ups after restore all work); it has not yet been run against Neon itself, so do one trial restore into a spare Neon database before you rely on it.
+
+## Automated checks
+
+`.github/workflows/ci.yml` runs on every push: question tests against reference solutions, the 90 Predict snippets (twice each, to catch flaky output), compile-error help against real javac, the network sandbox, and a smoke test of the main flows. Run any of them locally from `java-practice-app/` with `python tools/<name>.py` (needs JDK 17+; `smoke_test.py` also accepts `SMOKE_DATABASE_URL` to test against a throwaway Postgres).

@@ -100,8 +100,8 @@ Goal: know that it works, and hear about problems fast.
 - [x] **0.3 Admin page (M).** Protected by an admin flag: user count, daily active users, reports list with "resolved", hardest questions (most attempts, lowest solve rate). *Outcome:* one page that answers "how is it going?"
 - [x] **0.4 Event logging (S).** Lightweight `events` table (signup, first_run, run, samples_pass, day_complete, return_visit). *Outcome:* the metrics in section 5 can be computed.
 - [x] **0.5 Error monitoring (S).** Structured logs for 500s and runner failures; optionally a free error tracker. *Outcome:* a failed run leaves a trace you can find.
-- [ ] **0.6 Continuous checks (M).** GitHub Action on every push: run `validate_tests.py`, the Predict snippet check, and a smoke test. *Outcome:* a broken question or build fails the push.
-- [ ] **0.7 Database backup note (S).** Document the Neon backup/restore steps and test a restore once. *Outcome:* a written, tested recovery path.
+- [x] **0.6 Continuous checks (M).** GitHub Action on every push: run `validate_tests.py`, the Predict snippet check, and a smoke test. *Outcome:* a broken question or build fails the push. *(Workflow at .github/workflows/ci.yml; the scripts pass locally in the Docker image, but the workflow itself has not run on GitHub yet, so watch the first run.)*
+- [x] **0.7 Database backup note (S).** Document the Neon backup/restore steps and test a restore once. *Outcome:* a written, tested recovery path. *(tools/db_backup.py plus README steps; the round trip is tested on SQLite and real Postgres 16. Still to do: one trial restore into a spare Neon database.)*
 
 ### Phase 1 — Mobile-first experience *(1–2 weeks)*
 Goal: practising on a phone feels natural. This should come early — the audience likely studies on phones.
