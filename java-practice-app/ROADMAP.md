@@ -95,7 +95,7 @@ Each task lists an **outcome** you can check. Phases are ordered by value and de
 ### Phase 0 — Stabilize the live site *(1 week)*
 Goal: know that it works, and hear about problems fast.
 
-- [ ] **0.1 Live smoke test (S).** Sign up, run Java, Run samples, Predict, redeploy and confirm data survives. *Outcome:* checklist in the README, all green on the deployed URL (JDK 21 with `--release 17`).
+- [x] **0.1 Live smoke test (S).** Sign up, run Java, Run samples, Predict, redeploy and confirm data survives. *Outcome:* checklist in the README, all green on the deployed URL (JDK 21 with `--release 17`).
 - [x] **0.2 "Report an issue" button (S).** On every question: category (wrong sample / unclear / broken code / other), optional note, auto-attach question id and the learner's code. Store in a `reports` table. *Outcome:* reports appear in the database.
 - [x] **0.3 Admin page (M).** Protected by an admin flag: user count, daily active users, reports list with "resolved", hardest questions (most attempts, lowest solve rate). *Outcome:* one page that answers "how is it going?"
 - [x] **0.4 Event logging (S).** Lightweight `events` table (signup, first_run, run, samples_pass, day_complete, return_visit). *Outcome:* the metrics in section 5 can be computed.

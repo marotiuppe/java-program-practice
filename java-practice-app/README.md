@@ -49,3 +49,18 @@ e.g. from Neon; when unset the app uses a local SQLite file at `DB_PATH`), `DB_P
 `JAVA_FLAGS`, `COMPILE_TIMEOUT`, `RUN_TIMEOUT`, `KEEPALIVE_URL`, `KEEPALIVE_SECONDS`, `RUNNER_UID`.
 
 `ADMIN_EMAILS` (comma-separated emails allowed to open `/admin`: user counts, event totals, issue reports, hardest questions).
+
+
+## Live smoke test (run after every deploy)
+
+Tick each item on the deployed URL. Use a throwaway account.
+
+- [ ] `/health` returns `{"status":"ok"}`.
+- [ ] Sign up with a new email; you land on the level page.
+- [ ] Pick a level; the dashboard shows a "Start" button.
+- [ ] Open Day 1 Q1, press **Run**; output appears (JDK 21 compiling with `--release 17`).
+- [ ] Press **Run samples** on a question that has them; results show pass/fail per sample.
+- [ ] On a Predict question, **Check answer** and **Reveal output** both respond.
+- [ ] **Save**, reload the page; your code is still there.
+- [ ] **Report an issue** sends; the report shows on `/admin` (if your email is in `ADMIN_EMAILS`).
+- [ ] Redeploy (or restart) the service, log in again; the account, progress and code survived.
