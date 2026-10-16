@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% block title %}Day {{ day.n }} · Q{{ question.q }}{% endblock %}
+{% block content %}
+<div class="qhead">
+  <a href="/day/{{ day.n }}">&larr; Day {{ day.n }}: {{ day.title }}</a>
+  <span>
+    {% if question.q > 1 %}<a href="/day/{{ day.n }}/q/{{ question.q - 1 }}">Prev</a>{% endif %}
+    {% if question.q < 5 %}<a href="/day/{{ day.n }}/q/{{ question.q + 1 }}">Next</a>{% endif %}
+  </span>
+</div>
+<div class="split">
+  <section class="pane prose">
+    <h2>Question {{ question.q }}: {{ question.category }}</h2>
+    {{ question.html | safe }}
+  </section>
+  <section class="pane">
+    <div class="editor-wrap">
+      <pre id="gutter" aria-hidden="true">1</pre>
+      <div id="code-area" class="code-area">
+        <pre id="hl" aria-hidden="true"></pre>
+        <textarea id="code" spellcheck="false" autocapitalize="off" autocomplete="off" autocorrect="off" wrap="off"
+          data-level="{{ level }}" data-day="{{ day.n }}" data-q="{{ question.q }}"
+          data-has-saved="{{ '0' if status == 'todo' else '1' }}">{{ saved_code }}</textarea>
+        <div id="ac" class="ac" hidden></div>
+      </div>
+    </div>
+    <label class="stdin-label">Input (stdin)
+      <textarea id="stdin" rows="3" spellcheck="false" placeholder="Program input goes here"></textarea>
+    </label>
+    <div class="bar">
+      <button id="run" class="primary">Run (Ctrl+Enter)</button>
+      <button id="save">Save</button>
+      <button id="solve" data-status="{{ status }}">{{ 'Mark unsolved' if status == 'solved' else 'Mark solved' }}</button>
+      <button id="reset" class="link">Reset code</button>
+      <span id="msg" class="muted"></span>
+    </div>
+    <pre id="output" class="output" aria-live="polite">Output appears here. The first run after the server has been idle can take a while.</pre>
+  </section>
+</div>
+<script>const STARTER = {{ question.starter | tojson }};</script>
+<script src="/static/javalang.js"></script>
+<script src="/static/editor.js"></script>
+{% endblock %}

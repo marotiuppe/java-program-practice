@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block title %}Choose level{% endblock %}
+{% block content %}
+<section class="card">
+  <h1>Choose your level</h1>
+  <p class="muted">Each level is a 30-day plan with 5 questions a day. Your progress is saved separately for each level.</p>
+  <form method="post" action="/level" class="levels">
+    {% for key, info in levels.items() %}
+      <button name="level" value="{{ key }}" class="level {{ 'current' if key == current else '' }}">
+        <strong>{{ info[0] }}</strong>
+        <span>{{ {'beginner': 'Syntax, loops, strings, arrays, basic OOP', 'intermediate': 'OOP in depth, collections, algorithms, Java 17, streams', 'advanced': 'Data structures, graphs, DP, concurrency, design'}[key] }}</span>
+      </button>
+    {% endfor %}
+  </form>
+</section>
+{% endblock %}

@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block title %}Dashboard{% endblock %}
+{% block content %}
+<h1>{{ level_label }} — 30-day plan</h1>
+<p class="muted">{{ total_solved }} of 150 questions solved.</p>
+<div class="grid">
+  {% for d in days %}
+    <a class="day {{ d.state }}" href="/day/{{ d.n }}">
+      <span class="num">Day {{ d.n }}</span>
+      <span class="ttl">{{ d.title }}</span>
+      <span class="cnt">{{ d.solved }}/5 solved</span>
+    </a>
+  {% endfor %}
+</div>
+{% endblock %}

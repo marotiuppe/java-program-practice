@@ -1,0 +1,183 @@
+"""Compiles and runs a single-file Java program (class Main) with limits.
+
+Safety layers: fresh temp dir, wall-clock timeouts, resource limits, scrubbed
+environment, output captured to size-capped files, and (when started as root in the
+container) the child drops to an unprivileged uid. It does NOT block network access.
+"""
+import asyncio
+import os
+import shutil
+import signal
+import subprocess
+import tempfile
+
+JAVA_BIN_DIR = os.environ.get("JAVA_BIN_DIR", "")  # empty -> use PATH
+_JAVAC_BASE = "-J-Xmx192m -J-XX:+UseSerialGC -J-XX:TieredStopAtLevel=1 -encoding UTF-8 -proc:none"
+_javac_flags_cache = None
+JAVA_FLAGS = os.environ.get(
+    "JAVA_FLAGS", "-Xmx96m -Xss1m -XX:+UseSerialGC -XX:TieredStopAtLevel=1 -Xshare:auto"
+).split()
+
+COMPILE_TIMEOUT = int(os.environ.get("COMPILE_TIMEOUT", "30"))
+RUN_TIMEOUT = int(os.environ.get("RUN_TIMEOUT", "10"))
+MAX_CODE_BYTES = 50_000
+MAX_STDIN_BYTES = 20_000
+MAX_OUTPUT_BYTES = 20_000
+RUNNER_UID = int(os.environ.get("RUNNER_UID", "10001"))
+
+# One Java process at a time: the free plan has ~512 MB of RAM.
+_slot = asyncio.Semaphore(1)
+_IS_POSIX = os.name == "posix"
+
+
+def _exe(name: str) -> str:
+    if JAVA_BIN_DIR:
+        return os.path.join(JAVA_BIN_DIR, name)
+    return name
+
+
+def _javac_major() -> int:
+    """Major version of the javac in use (8, 11, 17, ...), or 0 if it cannot be determined."""
+    try:
+        r = subprocess.run([_exe("javac"), "-version"], capture_output=True, text=True, timeout=20)
+        text = (r.stdout + r.stderr).strip()  # e.g. "javac 17.0.9" or "javac 1.8.0_311"
+        ver = text.split()[-1]
+        parts = ver.split(".")
+        return int(parts[1]) if parts[0] == "1" else int(parts[0])
+    except Exception:
+        return 0
+
+
+def _javac_flags() -> list:
+    """--release 17 only exists on javac 17+; older compilers (e.g. JDK 8) reject it."""
+    global _javac_flags_cache
+    if _javac_flags_cache is None:
+        override = os.environ.get("JAVAC_FLAGS")
+        if override:
+            _javac_flags_cache = override.split()
+        else:
+            flags = _JAVAC_BASE.split()
+            if _javac_major() >= 17:
+                flags += ["--release", "17"]
+            _javac_flags_cache = flags
+    return _javac_flags_cache
+
+
+def _preexec():
+    import resource
+
+    resource.setrlimit(resource.RLIMIT_CPU, (20, 20))
+    resource.setrlimit(resource.RLIMIT_FSIZE, (2_000_000, 2_000_000))
+    resource.setrlimit(resource.RLIMIT_NPROC, (256, 256))
+    if os.getuid() == 0:
+        os.setgroups([])
+        os.setgid(RUNNER_UID)
+        os.setuid(RUNNER_UID)
+
+
+def _kill(proc: subprocess.Popen) -> None:
+    try:
+        if _IS_POSIX:
+            os.killpg(proc.pid, signal.SIGKILL)
+        else:
+            proc.kill()
+    except Exception:
+        pass
+
+
+def _read_capped(path: str) -> str:
+    try:
+        with open(path, "rb") as f:
+            data = f.read(MAX_OUTPUT_BYTES + 1)
+    except FileNotFoundError:
+        return ""
+    text = data[:MAX_OUTPUT_BYTES].decode("utf-8", errors="replace")
+    if len(data) > MAX_OUTPUT_BYTES:
+        text += "\n... output truncated ..."
+    return text
+
+
+def _run_process(cmd, cwd, env, stdin_path, stdout_path, stderr_path, timeout):
+    with open(stdin_path, "rb") as fin, open(stdout_path, "wb") as fout, open(stderr_path, "wb") as ferr:
+        proc = subprocess.Popen(
+            cmd,
+            cwd=cwd,
+            env=env,
+            stdin=fin,
+            stdout=fout,
+            stderr=ferr,
+            start_new_session=_IS_POSIX,
+            preexec_fn=_preexec if _IS_POSIX else None,
+        )
+        try:
+            proc.wait(timeout=timeout)
+            return proc.returncode, False
+        except subprocess.TimeoutExpired:
+            _kill(proc)
+            proc.wait()
+            return -1, True
+
+
+def _execute(code: str, stdin_text: str) -> dict:
+    tmp = tempfile.mkdtemp(prefix="jrun_")
+    try:
+        os.chmod(tmp, 0o755)
+        if _IS_POSIX and os.getuid() == 0:
+            os.chown(tmp, RUNNER_UID, RUNNER_UID)
+        src = os.path.join(tmp, "Main.java")
+        with open(src, "w", encoding="utf-8") as f:
+            f.write(code)
+        in_path = os.path.join(tmp, "stdin.txt")
+        with open(in_path, "w", encoding="utf-8") as f:
+            f.write(stdin_text)
+        if _IS_POSIX and os.getuid() == 0:
+            for p in (src, in_path):
+                os.chown(p, RUNNER_UID, RUNNER_UID)
+        env = {"PATH": os.environ.get("PATH", ""), "HOME": tmp, "LANG": "C.UTF-8"}
+        out_path = os.path.join(tmp, "out.txt")
+        err_path = os.path.join(tmp, "err.txt")
+        empty = os.path.join(tmp, "empty.txt")
+        open(empty, "w").close()
+
+        # 1) compile
+        rc, timed_out = _run_process(
+            [_exe("javac"), *_javac_flags(), "-d", tmp, src], tmp, env, empty, out_path, err_path, COMPILE_TIMEOUT
+        )
+        if timed_out:
+            return {"stage": "compile", "ok": False, "error": "Compilation timed out."}
+        if rc != 0:
+            msg = _read_capped(err_path) or _read_capped(out_path)
+            return {"stage": "compile", "ok": False, "error": msg.replace(tmp + os.sep, "")}
+
+        # 2) run
+        rc, timed_out = _run_process(
+            [_exe("java"), *JAVA_FLAGS, "-cp", tmp, "Main"], tmp, env, in_path, out_path, err_path, RUN_TIMEOUT
+        )
+        result = {
+            "stage": "run",
+            "ok": rc == 0 and not timed_out,
+            "stdout": _read_capped(out_path),
+            "stderr": _read_capped(err_path),
+            "exit_code": rc,
+            "timed_out": timed_out,
+        }
+        if timed_out:
+            result["stderr"] += f"\nTime limit exceeded ({RUN_TIMEOUT}s)."
+        return result
+    finally:
+        shutil.rmtree(tmp, ignore_errors=True)
+
+
+async def run_java(code: str, stdin_text: str) -> dict:
+    if len(code.encode()) > MAX_CODE_BYTES:
+        return {"stage": "compile", "ok": False, "error": "Code is too large."}
+    if len(stdin_text.encode()) > MAX_STDIN_BYTES:
+        return {"stage": "compile", "ok": False, "error": "Input is too large."}
+    try:
+        await asyncio.wait_for(_slot.acquire(), timeout=25)
+    except asyncio.TimeoutError:
+        return {"stage": "busy", "ok": False, "error": "Server is busy running other programs. Try again shortly."}
+    try:
+        return await asyncio.to_thread(_execute, code, stdin_text)
+    finally:
+        _slot.release()
