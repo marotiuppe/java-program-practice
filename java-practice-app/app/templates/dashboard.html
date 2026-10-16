@@ -4,6 +4,13 @@
 <h1>{{ level_label }} — 30-day plan</h1>
 <div class="overall"><span class="muted">{{ total_solved }} of 150 questions solved</span>
   <div class="meter"><i style="width:{{ (total_solved * 100 / 150) | round(1) }}%"></i></div></div>
+{% if next_q %}
+<div class="continue">
+  <a class="btn-continue" href="/day/{{ next_q.day }}/q/{{ next_q.q }}">{{ 'Continue' if started else 'Start' }}: Day {{ next_q.day }} · Question {{ next_q.q }} &rarr;</a>
+</div>
+{% else %}
+<p class="muted">You have solved every question in this level. Well done!</p>
+{% endif %}
 <div class="stats">
   <div class="stat"><b>{{ streak.current }}</b><span>day streak{% if streak.current and not streak.today %} (practice today to keep it){% endif %}</span></div>
   <div class="stat"><b>{{ streak.longest }}</b><span>longest streak</span></div>

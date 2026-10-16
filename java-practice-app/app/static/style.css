@@ -124,3 +124,7 @@ form.inline{display:inline}
 .mock-time{font:700 20px ui-monospace,Consolas,monospace;color:var(--accent)}
 .mock.low .mock-time{color:var(--warn)}
 .mock.over{background:color-mix(in srgb,var(--err) 14%,var(--card))}.mock.over .mock-time{color:var(--err)}
+
+.continue{margin:12px 0}
+.btn-continue{display:inline-block;padding:12px 20px;border-radius:8px;background:var(--accent);color:var(--accent-fg);font-weight:600;text-decoration:none}
+.btn-continue:hover{filter:brightness(1.08)}

@@ -165,9 +165,10 @@ async def dashboard(request: Request):
     level = user["level"]
     if level not in content.CONTENT:
         return RedirectResponse("/level", status_code=303)
-    solved, attempted = {}, {}
+    solved, attempted, solved_set = {}, {}, set()
     for row in db.get_progress(user["id"], level):
         if row["status"] == "solved":
+            solved_set.add((row["day"], row["qnum"]))
             solved[row["day"]] = solved.get(row["day"], 0) + 1
         elif row["status"] == "attempted":
             attempted[row["day"]] = attempted.get(row["day"], 0) + 1
@@ -182,10 +183,21 @@ async def dashboard(request: Request):
         request,
         "dashboard.html",
         days=days,
+        next_q=_next_unsolved(user["level"], solved_set),
+        started=bool(solved_set or attempted),
         level_label=content.CONTENT[level]["label"],
         total_solved=total,
         streak=streak,
     )
+
+
+def _next_unsolved(level: str, solved_set: set):
+    """(day, q) of the first question in plan order that is not solved yet, or None when all are."""
+    for n, day in sorted(content.CONTENT[level]["days"].items()):
+        for q in sorted(day["questions"]):
+            if (n, q) not in solved_set:
+                return {"day": n, "q": q}
+    return None
 
 
 def _get_question(level: str, day: int, q: int):
