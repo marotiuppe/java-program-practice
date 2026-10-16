@@ -1,6 +1,6 @@
 /* Service worker: caches the app shell and visited pages so question text can be read offline.
    Running code still needs the server. Bump VERSION to drop old caches after a change here. */
-const VERSION = 'v1';
+const VERSION = 'v2';
 const STATIC = 'static-' + VERSION;
 const PAGES = 'pages-' + VERSION;
 const SHELL = ['/static/style.css', '/static/editor.js', '/static/javalang.js', '/static/tabs.js',
@@ -40,17 +40,41 @@ self.addEventListener('fetch', (e) => {
   }
 
   if (req.mode === 'navigate') {
-    // network first so progress is always current; fall back to the last copy when offline
-    e.respondWith(fetch(req).then((r) => {
+    // network first so progress is always current; fall back to the last copy when offline.
+    // If the server takes more than WAKE_AFTER_MS (a sleeping free instance), show a friendly
+    // "waking up" page that polls /health and reloads as soon as the server answers.
+    const network = fetch(req).then((r) => {
       if (r.ok && !r.redirected && /^\/(day\/|dashboard)/.test(url.pathname)) {
         const copy = r.clone();
         caches.open(PAGES).then((c) => c.put(req, copy));
       }
       return r;
-    }).catch(async () => (await caches.match(req)) || new Response(
-      '<!doctype html><meta name="viewport" content="width=device-width,initial-scale=1"><title>Offline</title>' +
-      '<body style="font-family:system-ui;padding:24px"><h1>You are offline</h1>' +
-      '<p>This page has not been saved on this device yet. Reconnect and open it once to read it offline.</p></body>',
-      { status: 503, headers: { 'Content-Type': 'text/html; charset=utf-8' } })));
+    });
+    const wake = new Promise((resolve) => setTimeout(() => resolve(wakingPage()), WAKE_AFTER_MS));
+    e.respondWith(Promise.race([network, wake]).catch(async () => (await caches.match(req)) || offlinePage()));
   }
 });
+
+const WAKE_AFTER_MS = 5000;
+const html = (body, status) => new Response(body, {
+  status: status || 200, headers: { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-store' },
+});
+
+function offlinePage() {
+  return html('<!doctype html><meta name="viewport" content="width=device-width,initial-scale=1"><title>Offline</title>' +
+    '<body style="font-family:system-ui;padding:24px"><h1>You are offline</h1>' +
+    '<p>This page has not been saved on this device yet. Reconnect and open it once to read it offline.</p></body>', 503);
+}
+
+function wakingPage() {
+  return html('<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">' +
+    '<title>Waking up…</title><body style="font-family:system-ui;max-width:420px;margin:12vh auto;padding:24px;text-align:center">' +
+    '<h1>Waking up the server…</h1>' +
+    '<p>The free server naps when nobody is using it. It usually takes under a minute to start.</p>' +
+    '<p id="t" style="font-size:32px;font-weight:700;margin:12px 0">0s</p>' +
+    '<p id="m" style="color:#667085">Your progress is safe. This page will reload by itself.</p>' +
+    '<script>var n=0,t=document.getElementById("t");setInterval(function(){n++;t.textContent=n+"s"},1000);' +
+    'function poll(){fetch("/health",{cache:"no-store"}).then(function(r){if(r.ok)location.reload();else setTimeout(poll,3000)})' +
+    '.catch(function(){setTimeout(poll,3000)})}poll();' +
+    'setTimeout(function(){document.getElementById("m").textContent="Taking longer than usual. Still trying…"},90000);</script></body>');
+}
