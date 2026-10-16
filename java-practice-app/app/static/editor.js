@@ -200,6 +200,8 @@
     if (sel) sel.scrollIntoView({ block: 'nearest' });
   }
 
+  const TOUCH = window.matchMedia('(pointer: coarse)').matches;
+
   function positionAc() {
     const cs = getComputedStyle(code);
     const lh = lineHeight(), cw = charWidth();
@@ -210,7 +212,11 @@
     let x = padL + col * cw - code.scrollLeft;
     let y = padT + (line + 1) * lh - code.scrollTop;
     const w = ac.offsetWidth, h = ac.offsetHeight;
-    if (y + h > area.clientHeight) y = Math.max(0, y - lh - h);
+    if (TOUCH) {
+      // Prefer above the caret line so neither the finger nor the keyboard hides the list.
+      const above = y - lh - h;
+      y = above >= 0 ? above : Math.min(y, Math.max(0, area.clientHeight - h));
+    } else if (y + h > area.clientHeight) y = Math.max(0, y - lh - h);
     x = Math.max(0, Math.min(x, area.clientWidth - w - 4));
     ac.style.left = x + 'px';
     ac.style.top = y + 'px';

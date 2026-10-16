@@ -179,3 +179,9 @@ form.inline{display:inline}
   body.typing .symbols{position:fixed;left:0;right:0;bottom:var(--kb,0px);z-index:30;margin:0;padding:4px 6px;background:var(--card);border-top:1px solid var(--line)}
   body.typing .actions{display:none}
 }
+
+/* ---- touch autocomplete (roadmap 1.4) ---- */
+@media (pointer:coarse){
+  .ac{max-height:176px;max-width:min(420px,calc(100vw - 48px));font-size:15px;-webkit-overflow-scrolling:touch}
+  .ac .item{min-height:44px;align-items:center;padding:4px 10px}
+}
