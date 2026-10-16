@@ -24,6 +24,8 @@ MESSAGES = {
     "deleted": "Account deleted.",
     "badconfirm": "Deletion cancelled: the email you typed did not match.",
     "protected": "Admin accounts (and your own) cannot be deleted from here.",
+    "testok": "Test email sent. Check the inbox (and spam folder) of your admin address.",
+    "testfail": "The test email could not be sent. See 'Last email error' below.",
     "resolved": "Report marked resolved.",
     "reopened": "Report reopened.",
 }
@@ -372,6 +374,20 @@ async def activity(request: Request, event: str = ""):
 
 
 # ---------------------------------------------------------------- system
+@router.post("/system/test-email")
+async def test_email(request: Request):
+    """Send a test message to the admin's own address, so email settings can be checked in one click."""
+    import asyncio
+
+    user, bad = _guard(request)
+    if bad:
+        return bad
+    ok = mailer.configured() and await asyncio.to_thread(
+        mailer.send, user["email"], "Java Practice test email",
+        "This is a test email from the Java Practice admin page.\nIf you can read this, email sending works.\n")
+    return RedirectResponse(f"/admin/system?msg={'testok' if ok else 'testfail'}", status_code=303)
+
+
 @router.get("/system")
 async def system(request: Request):
     user, bad = _guard(request)
@@ -398,4 +414,5 @@ async def system(request: Request):
         ("Version", (os.environ.get("RENDER_GIT_COMMIT") or "unknown")[:7]),
         ("Python", platform.python_version()),
     ]
-    return _render(request, "admin_system.html", page="system", info=info)
+    return _render(request, "admin_system.html", page="system", info=info, mail_ready=mailer.configured(),
+                   last_mail_error=mailer.last_error)

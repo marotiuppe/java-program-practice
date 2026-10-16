@@ -7,5 +7,10 @@
     {% for k, v in info %}<tr><td>{{ k }}</td><td>{{ v }}</td></tr>{% endfor %}
   </table>
 </div>
+{% if flash %}<p class="{{ 'error' if 'could not' in flash else 'notice' }}">{{ flash }}</p>{% endif %}
+{% if last_mail_error %}<p class="error"><b>Last email error:</b> {{ last_mail_error }}</p>{% endif %}
+{% if mail_ready %}
+<form method="post" action="/admin/system/test-email"><button>Send a test email to me</button></form>
+{% endif %}
 <p class="muted small">If Email sending says "NOT configured", set SMTP_USER and SMTP_PASSWORD on Render. If Sandbox does not say "on", learner code can reach the network, so fix that before promoting the site.</p>
 {% endblock %}

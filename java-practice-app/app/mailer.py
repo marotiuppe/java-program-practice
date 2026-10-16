@@ -32,6 +32,7 @@ MAIL_FROM = os.environ.get("MAIL_FROM", "") or SMTP_USER
 MEMORY = os.environ.get("MAIL_BACKEND") == "memory"
 
 outbox = []  # only used when MAIL_BACKEND=memory
+last_error = ""  # why the most recent send failed ("" if it worked); shown on the admin System page
 
 
 def configured() -> bool:
@@ -45,7 +46,8 @@ def backend() -> str:
     if BREVO_API_KEY and MAIL_FROM:
         return f"Brevo HTTP API, sending as {parseaddr(MAIL_FROM)[1]}"
     if SMTP_USER and SMTP_PASSWORD:
-        return f"SMTP {SMTP_HOST}:{SMTP_PORT} as {SMTP_USER} (blocked on Render's free plan)"
+        note = " (this port is blocked on Render's free plan)" if SMTP_PORT in (25, 465, 587) else ""
+        return f"SMTP {SMTP_HOST}:{SMTP_PORT} as {SMTP_USER}{note}"
     return "not configured"
 
 
@@ -58,12 +60,18 @@ def _send_brevo(to: str, subject: str, body: str, headers: dict | None) -> bool:
     req = urllib.request.Request(
         BREVO_URL, data=json.dumps(payload).encode(), method="POST",
         headers={"api-key": BREVO_API_KEY, "content-type": "application/json", "accept": "application/json"})
+    global last_error
     try:
         with urllib.request.urlopen(req, timeout=20) as r:
-            return 200 <= r.status < 300
+            ok = 200 <= r.status < 300
+            last_error = "" if ok else f"Brevo answered HTTP {r.status}"
+            return ok
     except urllib.error.HTTPError as exc:
-        log.error("Brevo rejected %r to %s: HTTP %s %s", subject, to, exc.code, exc.read()[:300])
-    except Exception:
+        detail = exc.read()[:300].decode("utf-8", "replace")
+        last_error = f"Brevo rejected the message: HTTP {exc.code} {detail}"
+        log.error("Brevo rejected %r to %s: HTTP %s %s", subject, to, exc.code, detail)
+    except Exception as exc:
+        last_error = f"{type(exc).__name__}: {exc}"
         log.exception("could not send %r to %s through Brevo", subject, to)
     return False
 
@@ -85,11 +93,22 @@ def send(to: str, subject: str, body: str, headers: dict | None = None) -> bool:
     for name, value in (headers or {}).items():
         msg[name] = value
     msg.set_content(body)
+    global last_error
     try:
-        with smtplib.SMTP_SSL(SMTP_HOST, SMTP_PORT, context=ssl.create_default_context(), timeout=20) as s:
+        ctx = ssl.create_default_context()
+        if SMTP_PORT == 465:  # implicit TLS
+            conn = smtplib.SMTP_SSL(SMTP_HOST, SMTP_PORT, context=ctx, timeout=20)
+        else:  # 587 / 2525 / ...: connect in plain text, then upgrade with STARTTLS before logging in
+            conn = smtplib.SMTP(SMTP_HOST, SMTP_PORT, timeout=20)
+            conn.ehlo()
+            conn.starttls(context=ctx)
+            conn.ehlo()
+        with conn as s:
             s.login(SMTP_USER, SMTP_PASSWORD)
             s.send_message(msg)
+        last_error = ""
         return True
-    except Exception:
+    except Exception as exc:
+        last_error = f"{type(exc).__name__}: {exc}"
         log.exception("could not send %r to %s", subject, to)
         return False
