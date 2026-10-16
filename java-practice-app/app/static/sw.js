@@ -1,6 +1,6 @@
 /* Service worker: caches the app shell and visited pages so question text can be read offline.
    Running code still needs the server. Bump VERSION to drop old caches after a change here. */
-const VERSION = 'v6';
+const VERSION = 'v7';
 const STATIC = 'static-' + VERSION;
 const PAGES = 'pages-' + VERSION;
 const SHELL = ['/static/style.css', '/static/editor.js', '/static/javalang.js', '/static/tabs.js', '/static/celebrate.js',

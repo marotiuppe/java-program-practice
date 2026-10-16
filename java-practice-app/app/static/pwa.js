@@ -17,6 +17,22 @@
       }
     });
   }
+  // Hamburger menu on phones
+  const toggle = document.getElementById('nav-toggle');
+  const menu = document.getElementById('main-nav');
+  if (toggle && menu) {
+    const setOpen = (open) => {
+      menu.classList.toggle('open', open);
+      toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+    };
+    toggle.addEventListener('click', () => setOpen(!menu.classList.contains('open')));
+    menu.addEventListener('click', (e) => { if (e.target.closest('a')) setOpen(false); });
+    document.addEventListener('click', (e) => {
+      if (!menu.contains(e.target) && !toggle.contains(e.target)) setOpen(false);
+    });
+    document.addEventListener('keydown', (e) => { if (e.key === 'Escape') { setOpen(false); toggle.focus(); } });
+    window.matchMedia('(min-width: 761px)').addEventListener('change', () => setOpen(false));
+  }
   let deferred = null;
   const btn = document.getElementById('install-app');
   window.addEventListener('beforeinstallprompt', (e) => {

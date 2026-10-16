@@ -261,3 +261,21 @@ form.inline{display:inline}
 .plan-list li{margin:4px 0;break-inside:avoid}
 details.card summary{cursor:pointer}
 @media (max-width:700px){.hero h1{font-size:30px}}
+
+/* ---- header: current page + hamburger menu on phones ---- */
+.top nav a.active{background:var(--accent-soft);color:var(--accent);font-weight:600}
+.nav-toggle{display:none}
+@media (max-width:760px){
+  .top.has-menu .nav-toggle{display:inline-flex;flex-direction:column;justify-content:center;gap:5px;width:44px;height:44px;padding:0 11px;margin-left:auto}
+  .nav-toggle span{display:block;height:2px;background:var(--fg);border-radius:2px;transition:transform .2s,opacity .2s}
+  .nav-toggle[aria-expanded=true] span:nth-child(1){transform:translateY(7px) rotate(45deg)}
+  .nav-toggle[aria-expanded=true] span:nth-child(2){opacity:0}
+  .nav-toggle[aria-expanded=true] span:nth-child(3){transform:translateY(-7px) rotate(-45deg)}
+  .top.has-menu nav{display:none;position:absolute;top:100%;left:0;right:0;flex-direction:column;align-items:stretch;gap:2px;padding:8px 12px 12px;background:var(--card);border-bottom:1px solid var(--line);box-shadow:var(--shadow)}
+  .top.has-menu nav.open{display:flex}
+  .top.has-menu nav a,.top.has-menu nav > .link{padding:12px;min-height:44px;display:flex;align-items:center;text-align:left}
+  .top.has-menu .who{margin:6px 0 0;padding:10px 12px 0;border-left:0;border-top:1px solid var(--line);justify-content:space-between}
+  .top.has-menu .who .muted{display:inline;flex:1;max-width:none}
+}
+@media (prefers-reduced-motion:reduce){.nav-toggle span{transition:none}}
+[hidden]{display:none !important}

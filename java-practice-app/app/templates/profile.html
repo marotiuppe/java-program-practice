@@ -17,7 +17,7 @@
 <div class="badge-shelf">
   {% for b in badges %}
   <div class="badge-card {{ 'earned' if b.earned else 'locked' }}">
-    <div class="badge-icon" aria-hidden="true">{{ '&#127941;' if b.earned else '&#128274;' }}</div>
+    <div class="badge-icon" aria-hidden="true">{% if b.earned %}&#127941;{% else %}&#128274;{% endif %}</div>
     <b>{{ b.title }}</b>
     <span class="muted small">{{ b.how }}</span>
     <span class="small">{{ 'Earned' if b.earned else 'Not yet' }}</span>
