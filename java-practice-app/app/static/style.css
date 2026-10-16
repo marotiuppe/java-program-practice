@@ -226,3 +226,8 @@ form.inline{display:inline}
 .review-bar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:10px 0;padding:10px 14px;border:1px solid var(--accent);background:var(--accent-soft);border-radius:8px}
 .review-btns{display:flex;gap:6px;flex-wrap:wrap}
 .review-note{margin:8px 0}
+
+/* ---- account recovery (roadmap 5.2) ---- */
+.notice{color:var(--ok);background:color-mix(in srgb,var(--ok) 10%,transparent);border:1px solid color-mix(in srgb,var(--ok) 35%,transparent);padding:8px 12px;border-radius:8px}
+.verify-banner{padding:8px 16px;text-align:center;background:var(--accent-soft);border-bottom:1px solid var(--line);font-size:14px}
+.verify-banner form{display:inline}

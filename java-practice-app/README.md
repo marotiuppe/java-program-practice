@@ -64,3 +64,14 @@ Tick each item on the deployed URL. Use a throwaway account.
 - [ ] **Save**, reload the page; your code is still there.
 - [ ] **Report an issue** sends; the report shows on `/admin` (if your email is in `ADMIN_EMAILS`).
 - [ ] Redeploy (or restart) the service, log in again; the account, progress and code survived.
+
+## Email (verification and password reset)
+
+Mail goes through Gmail SMTP. Set these environment variables on Render (never commit them):
+
+- `SMTP_USER`: the Gmail address that sends the mail.
+- `SMTP_PASSWORD`: a Gmail **app password** (Google Account → Security → 2-Step Verification → App passwords). Your normal password will not work.
+- `MAIL_FROM` (optional sender name/address), `APP_BASE_URL` (the public site URL used in links; defaults to `RENDER_EXTERNAL_URL`).
+
+Without `SMTP_USER`/`SMTP_PASSWORD`, new accounts are marked verified automatically and "Forgot password" says reset is not set up.
+A personal Gmail account sends about 500 messages a day. If you outgrow that, switch `SMTP_HOST`/`SMTP_PORT` to another provider; no code change is needed.

@@ -28,6 +28,11 @@
     {% endif %}
   </nav>
 </header>
+{% if user and not user.email_verified %}
+<div class="verify-banner">Please confirm your email address. We sent you a link.
+  <form method="post" action="/verify/resend" class="inline"><button class="link">Send it again</button></form>
+</div>
+{% endif %}
 <main>{% block content %}{% endblock %}</main>
 <script src="/static/pwa.js"></script>
 </body>

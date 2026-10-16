@@ -1,4 +1,5 @@
 import asyncio
+import hashlib
 import logging
 import os
 import re
@@ -7,13 +8,13 @@ import urllib.request
 from datetime import date, datetime, timedelta
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI, Form, Request
+from fastapi import BackgroundTasks, FastAPI, Form, Request
 from fastapi.responses import FileResponse, JSONResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from starlette.middleware.sessions import SessionMiddleware
 
-from . import badges, content, db, grading, hints, ratelimit, stats
+from . import badges, content, db, grading, hints, mailer, ratelimit, stats
 from .runner import run_java, run_java_batch
 
 logging.basicConfig(level=logging.INFO)
@@ -92,7 +93,51 @@ def current_user(request: Request):
     user = db.get_user(uid)
     if user is None:
         request.session.clear()
+        return None
+    # A password change (reset) invalidates sessions created before it.
+    if "pwv" in request.session and request.session["pwv"] != _pwv(user["pw_hash"]):
+        request.session.clear()
+        return None
     return user
+
+
+def _pwv(pw_hash: str) -> str:
+    return hashlib.sha256(pw_hash.encode()).hexdigest()[:12]
+
+
+def _login_session(request: Request, user) -> None:
+    request.session["uid"] = user["id"]
+    request.session["pwv"] = _pwv(user["pw_hash"])
+
+
+def base_url(request: Request) -> str:
+    return (os.environ.get("APP_BASE_URL") or os.environ.get("RENDER_EXTERNAL_URL") or str(request.base_url)).rstrip("/")
+
+
+VERIFY_TTL = 24 * 3600
+RESET_TTL = 30 * 60
+FORGOT_IP = (5, 3600)
+FORGOT_EMAIL = (3, 3600)
+RESEND_USER = (3, 3600)
+
+
+def _send_verification(email: str, link: str) -> None:
+    mailer.send(email, "Confirm your email for Java Practice",
+                f"Welcome to Java Practice!\n\nConfirm your email address by opening this link (valid for 24 hours):\n{link}\n\n"
+                "If you did not create an account, you can ignore this message.\n")
+
+
+def _send_reset(email: str, link: str) -> None:
+    mailer.send(email, "Reset your Java Practice password",
+                f"Someone (hopefully you) asked to reset the password for this account.\n\n"
+                f"Open this link within 30 minutes to choose a new password:\n{link}\n\n"
+                "If you did not ask for this, ignore this message. Your password stays the same.\n")
+
+
+def _send_password_changed(email: str) -> None:
+    mailer.send(email, "Your Java Practice password was changed",
+                "The password for your Java Practice account was just changed.\n\n"
+                "If this was not you, reset your password again right away from the login page.\n")
 
 
 def is_admin(user) -> bool:
@@ -162,7 +207,7 @@ async def signup_page(request: Request):
 
 
 @app.post("/signup")
-async def signup(request: Request, email: str = Form(...), password: str = Form(...)):
+async def signup(request: Request, background: BackgroundTasks, email: str = Form(...), password: str = Form(...)):
     email = email.strip().lower()
     wait = ratelimit.hit(f"signup:{client_ip(request)}", *SIGNUP_IP)
     if wait:
@@ -172,17 +217,21 @@ async def signup(request: Request, email: str = Form(...), password: str = Form(
         return render(request, "auth.html", mode="signup", error="Enter a valid email address.")
     if len(password) < 8:
         return render(request, "auth.html", mode="signup", error="Password must be at least 8 characters.")
-    uid = db.create_user(email, password)
+    uid = db.create_user(email, password, verified=not mailer.configured())
     if uid is None:
         return render(request, "auth.html", mode="signup", error="That email is already registered.")
-    request.session["uid"] = uid
+    _login_session(request, db.get_user(uid))
     db.log_event(uid, "signup")
+    if mailer.configured():
+        token = db.create_token(uid, "verify", VERIFY_TTL)
+        background.add_task(_send_verification, email, f"{base_url(request)}/verify/{token}")
     return RedirectResponse("/level", status_code=303)
 
 
 @app.get("/login")
 async def login_page(request: Request):
-    return render(request, "auth.html", mode="login", error=None)
+    notice = "Password changed. Log in with your new password." if request.query_params.get("reset") else None
+    return render(request, "auth.html", mode="login", error=None, notice=notice)
 
 
 @app.post("/login")
@@ -198,9 +247,80 @@ async def login(request: Request, email: str = Form(...), password: str = Form(.
         ratelimit.record(ip_key)
         ratelimit.record(email_key)
         return render(request, "auth.html", mode="login", error="Wrong email or password.")
-    request.session["uid"] = user["id"]
+    _login_session(request, user)
     db.log_event(user["id"], "return_visit", stats.today_str(), once=True)
     return RedirectResponse("/", status_code=303)
+
+
+@app.get("/forgot")
+async def forgot_page(request: Request):
+    return render(request, "forgot.html", error=None, sent=False)
+
+
+@app.post("/forgot")
+async def forgot(request: Request, background: BackgroundTasks, email: str = Form(...)):
+    if not mailer.configured():
+        return render(request, "forgot.html", error="Password reset by email is not set up on this server yet.", sent=False)
+    email = email.strip().lower()
+    wait = ratelimit.hit(f"forgot:ip:{client_ip(request)}", *FORGOT_IP)
+    if wait:
+        return render(request, "forgot.html", status_code=429, sent=False,
+                      error=f"Too many requests. Try again in {ratelimit.human(wait)}.")
+    # Same answer whether or not the account exists, and whether or not this email hit its own limit.
+    if not ratelimit.hit(f"forgot:email:{email}", *FORGOT_EMAIL):
+        user = db.get_user_by_email(email)
+        if user:
+            token = db.create_token(user["id"], "reset", RESET_TTL)
+            background.add_task(_send_reset, email, f"{base_url(request)}/reset/{token}")
+            log.info("password reset requested for user %s", user["id"])
+    return render(request, "forgot.html", error=None, sent=True)
+
+
+@app.get("/reset/{token}")
+async def reset_page(request: Request, token: str):
+    if db.peek_token(token, "reset") is None:
+        return render(request, "message.html", status_code=400, title="Link expired",
+                      text="This reset link is invalid, expired or already used.", href="/forgot", link="Request a new link")
+    return render(request, "reset.html", token=token, error=None)
+
+
+@app.post("/reset/{token}")
+async def reset(request: Request, background: BackgroundTasks, token: str, password: str = Form(...)):
+    if len(password) < 8:
+        return render(request, "reset.html", status_code=400, token=token, error="Password must be at least 8 characters.")
+    uid = db.consume_token(token, "reset")
+    if uid is None:
+        return render(request, "message.html", status_code=400, title="Link expired",
+                      text="This reset link is invalid, expired or already used.", href="/forgot", link="Request a new link")
+    db.set_password(uid, password)
+    user = db.get_user(uid)
+    db.mark_verified(uid)  # they proved they control the mailbox
+    request.session.clear()
+    background.add_task(_send_password_changed, user["email"])
+    return RedirectResponse("/login?reset=1", status_code=303)
+
+
+@app.get("/verify/{token}")
+async def verify(request: Request, token: str):
+    uid = db.consume_token(token, "verify")
+    if uid is None:
+        return render(request, "message.html", status_code=400, title="Link expired",
+                      text="This confirmation link is invalid, expired or already used. Log in and request a new one.",
+                      href="/login", link="Log in")
+    db.mark_verified(uid)
+    return render(request, "message.html", title="Email confirmed", text="Thanks, your email address is confirmed.",
+                  href="/dashboard", link="Continue")
+
+
+@app.post("/verify/resend")
+async def verify_resend(request: Request, background: BackgroundTasks):
+    user = current_user(request)
+    if not user:
+        return RedirectResponse("/login", status_code=303)
+    if not user["email_verified"] and mailer.configured() and not ratelimit.hit(f"resend:{user['id']}", *RESEND_USER):
+        token = db.create_token(user["id"], "verify", VERIFY_TTL)
+        background.add_task(_send_verification, user["email"], f"{base_url(request)}/verify/{token}")
+    return RedirectResponse("/dashboard?sent=1", status_code=303)
 
 
 @app.post("/logout")

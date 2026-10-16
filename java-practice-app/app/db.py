@@ -54,6 +54,13 @@ CREATE TABLE IF NOT EXISTS events (
     created_at INTEGER NOT NULL
 );
 CREATE INDEX IF NOT EXISTS events_name_idx ON events (name, created_at);
+CREATE TABLE IF NOT EXISTS auth_tokens (
+    token_hash TEXT PRIMARY KEY,
+    user_id INTEGER NOT NULL,
+    purpose TEXT NOT NULL,
+    expires_at INTEGER NOT NULL,
+    used_at INTEGER
+);
 CREATE TABLE IF NOT EXISTS reviews (
     user_id INTEGER NOT NULL,
     level TEXT NOT NULL,
@@ -109,6 +116,13 @@ SCHEMA_PG = [
         created_at BIGINT NOT NULL
     )""",
     "CREATE INDEX IF NOT EXISTS events_name_idx ON events (name, created_at)",
+    """CREATE TABLE IF NOT EXISTS auth_tokens (
+        token_hash TEXT PRIMARY KEY,
+        user_id BIGINT NOT NULL,
+        purpose TEXT NOT NULL,
+        expires_at BIGINT NOT NULL,
+        used_at BIGINT
+    )""",
     """CREATE TABLE IF NOT EXISTS reviews (
         user_id BIGINT NOT NULL,
         level TEXT NOT NULL,
@@ -136,6 +150,7 @@ SCHEMA_PG = [
 # Columns added after the first release. Each is applied only when missing, so old databases upgrade in place.
 MIGRATIONS = [
     ("users", "daily_goal", "INTEGER NOT NULL DEFAULT 1"),
+    ("users", "email_verified", "INTEGER NOT NULL DEFAULT 1"),
     ("progress", "solved_at", "BIGINT"),
 ]
 
@@ -200,13 +215,14 @@ def verify_password(password: str, stored: str) -> bool:
         return False
 
 
-def create_user(email: str, password: str):
+def create_user(email: str, password: str, verified: bool = True):
     try:
         with connect() as c:
             cur = _x(
                 c,
-                "INSERT INTO users (email, pw_hash, created_at) VALUES (?, ?, ?)" + (" RETURNING id" if PG else ""),
-                (email, hash_password(password), int(time.time())),
+                "INSERT INTO users (email, pw_hash, created_at, email_verified) VALUES (?, ?, ?, ?)"
+                + (" RETURNING id" if PG else ""),
+                (email, hash_password(password), int(time.time()), 1 if verified else 0),
             )
             return cur.fetchone()["id"] if PG else cur.lastrowid
     except IntegrityError:
@@ -490,3 +506,49 @@ def rate_review(user_id, level, day, qnum, rating: str):
         _x(c, "UPDATE reviews SET stage = ?, due_at = ? WHERE user_id = ? AND level = ? AND day = ? AND qnum = ?",
            (stage, int(time.time()) + REVIEW_DAYS[stage] * DAY, user_id, level, day, qnum))
         return "scheduled"
+
+
+# ---- account recovery and email verification ----
+def set_password(user_id: int, password: str) -> None:
+    with connect() as c:
+        _x(c, "UPDATE users SET pw_hash = ? WHERE id = ?", (hash_password(password), user_id))
+
+
+def mark_verified(user_id: int) -> None:
+    with connect() as c:
+        _x(c, "UPDATE users SET email_verified = 1 WHERE id = ?", (user_id,))
+
+
+def _token_hash(raw: str) -> str:
+    return hashlib.sha256(raw.encode()).hexdigest()
+
+
+def create_token(user_id: int, purpose: str, ttl_seconds: int) -> str:
+    """Issue a single-use token (only its hash is stored). Earlier unused tokens of the same purpose stop working."""
+    raw = secrets.token_urlsafe(32)
+    now = int(time.time())
+    with connect() as c:
+        _x(c, "UPDATE auth_tokens SET used_at = ? WHERE user_id = ? AND purpose = ? AND used_at IS NULL",
+           (now, user_id, purpose))
+        _x(c, "INSERT INTO auth_tokens (token_hash, user_id, purpose, expires_at) VALUES (?, ?, ?, ?)",
+           (_token_hash(raw), user_id, purpose, now + ttl_seconds))
+    return raw
+
+
+def peek_token(raw: str, purpose: str):
+    """user_id if the token is valid right now (not used, not expired); does not use it up."""
+    with connect() as c:
+        row = _x(c, "SELECT user_id FROM auth_tokens WHERE token_hash = ? AND purpose = ? "
+                    "AND used_at IS NULL AND expires_at > ?", (_token_hash(raw), purpose, int(time.time()))).fetchone()
+    return row["user_id"] if row else None
+
+
+def consume_token(raw: str, purpose: str):
+    """Use the token up. Returns the user_id, or None if it was invalid, expired or already used."""
+    now = int(time.time())
+    with connect() as c:
+        cur = _x(c, "UPDATE auth_tokens SET used_at = ? WHERE token_hash = ? AND purpose = ? "
+                    "AND used_at IS NULL AND expires_at > ?", (now, _token_hash(raw), purpose, now))
+        if cur.rowcount != 1:
+            return None
+        return _x(c, "SELECT user_id FROM auth_tokens WHERE token_hash = ?", (_token_hash(raw),)).fetchone()["user_id"]
