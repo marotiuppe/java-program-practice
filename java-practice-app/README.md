@@ -30,9 +30,10 @@ full question set (the Docker image uses JDK 21 with `--release 17`).
 
 ## Known limits on the free plan
 
-- **Data loss:** the filesystem is ephemeral, so `data/app.db` (users, progress, saved code) is
-  wiped on every redeploy and on any platform restart. The editor also keeps a copy of each draft in
-  the browser (`localStorage`) as a partial backup. Users would need to sign up again.
+- **Data loss without a database URL:** the filesystem is ephemeral, so the local SQLite file
+  (`data/app.db`) is wiped on every redeploy and restart. Set `DATABASE_URL` (see below) to keep
+  users and progress in Postgres instead. The editor also keeps a copy of each draft in the browser
+  (`localStorage`) as a partial backup.
 - **Self-ping is best effort.** It only works while the service is already awake. A redeploy or a
   Render restart still cold-starts it (30-60 s). Free instance hours are shared across all your
   free services in the workspace.
@@ -43,5 +44,6 @@ full question set (the Docker image uses JDK 21 with `--release 17`).
 
 ## Configuration (environment variables)
 
-`SECRET_KEY` (session signing, required in production), `DB_PATH`, `JAVA_BIN_DIR`, `JAVAC_FLAGS`,
+`SECRET_KEY` (session signing, required in production), `DATABASE_URL` (Postgres connection string,
+e.g. from Neon; when unset the app uses a local SQLite file at `DB_PATH`), `DB_PATH`, `JAVA_BIN_DIR`, `JAVAC_FLAGS`,
 `JAVA_FLAGS`, `COMPILE_TIMEOUT`, `RUN_TIMEOUT`, `KEEPALIVE_URL`, `KEEPALIVE_SECONDS`, `RUNNER_UID`.
