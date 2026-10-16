@@ -13,7 +13,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from starlette.middleware.sessions import SessionMiddleware
 
-from . import badges, content, db, grading, stats
+from . import badges, content, db, grading, hints, stats
 from .runner import run_java, run_java_batch
 
 logging.basicConfig(level=logging.INFO)
@@ -400,7 +400,14 @@ async def api_run(request: Request):
     stdin_text = str(body.get("stdin", ""))
     db.touch_activity(user["id"], stats.today_str())
     _log_run(user["id"])
-    return JSONResponse(await run_java(code, stdin_text))
+    return JSONResponse(_with_help(await run_java(code, stdin_text)))
+
+
+def _with_help(res: dict) -> dict:
+    """Attach plain-language explanations to a compile failure."""
+    if res.get("stage") == "compile" and res.get("error"):
+        res["help"] = hints.explain(res["error"])
+    return res
 
 
 def _log_run(user_id: int) -> None:
@@ -474,7 +481,7 @@ async def api_test(request: Request):
     cases = [(s, False) for s in question["samples"]] + [(h, True) for h in question["hidden"]]
     res = await run_java_batch(code, [c["input"] for c, _ in cases])
     if res.get("stage") != "tests":
-        return JSONResponse(res)
+        return JSONResponse(_with_help(res))
     items = []
     for n, ((case, hidden), r) in enumerate(zip(cases, res["results"]), start=1):
         item = {

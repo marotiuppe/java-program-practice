@@ -316,6 +316,12 @@
   }
 
   const celebrate = (info) => { if (info && window.celebrate) window.celebrate(info); };
+  // Plain-language explanations for compile errors, shown under javac's own output.
+  function helpText(help) {
+    if (!help || !help.length) return '';
+    return '\n\nWhat this usually means:\n' + help.map((h) => '- Line ' + h.line + ' (' + h.message + '): ' + h.help).join('\n');
+  }
+
   const showOutput = () => { if (window.showTab) window.showTab('output'); };
 
   async function run() {
@@ -327,7 +333,7 @@
       const res = await post('/api/run', { code: code.value, stdin: stdin.value });
       if (res.stage === 'compile') {
         out.className = 'output err';
-        out.textContent = 'Compilation failed:\n' + res.error;
+        out.textContent = 'Compilation failed:\n' + res.error + helpText(res.help);
       } else if (res.stage === 'run') {
         let text = res.stdout || '';
         if (res.stderr) text += (text && !text.endsWith('\n') ? '\n' : '') + res.stderr;
@@ -378,7 +384,7 @@
       testsBox.textContent = '';
       if (res.stage === 'compile') {
         testsBox.appendChild(el('div', 'summary bad', 'Compilation failed'));
-        const pre = el('pre', 'output err', res.error);
+        const pre = el('pre', 'output err', res.error + helpText(res.help));
         testsBox.appendChild(pre);
       } else if (res.stage !== 'tests') {
         testsBox.appendChild(el('div', 'summary bad', res.error || 'Something went wrong.'));

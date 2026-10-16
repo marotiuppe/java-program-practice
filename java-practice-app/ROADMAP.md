@@ -125,7 +125,7 @@ Goal: give people a reason to return tomorrow, and the day after.
 - [x] **2.6 Review queue — spaced repetition (M).** Questions solved with many attempts, revealed, or abandoned come back after 1, 3, 7, 21 days in a "Review" tab; learner rates Forgot / Hard / Good / Easy. *Outcome:* a daily "review 3 questions" option.
 - [ ] **2.7 Reminders (M–L).** Opt-in: email reminder and weekly recap, and web-push on installed PWAs. Requires an email sender (see decision D2). Hard limits: at most one reminder a day, one-click unsubscribe. *Outcome:* lapsed users get a single, helpful nudge.
 - [ ] **2.8 Hints ladder (M).** Optional, after N failed attempts: concept hint → approach hint → solution outline (your original plan said questions only, so make this **opt-in per user**). Mark questions where a hint was used. *Outcome:* fewer people quit on a stuck question.
-- [ ] **2.9 Smarter compile-error help (M).** Plain-language explanation under common javac errors (missing semicolon, cannot find symbol, incompatible types). Rule-based first; optional AI-based later (see Phase 6). *Outcome:* beginners stay unblocked.
+- [x] **2.9 Smarter compile-error help (M).** Plain-language explanation under common javac errors (missing semicolon, cannot find symbol, incompatible types). Rule-based first; optional AI-based later (see Phase 6). *Outcome:* beginners stay unblocked.
 
 ### Phase 3 — Content quality and full auto-grading *(2–4 weeks, uses agents)*
 Goal: every question is correct, and grading is trustworthy.
