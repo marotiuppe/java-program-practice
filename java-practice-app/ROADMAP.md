@@ -96,10 +96,10 @@ Each task lists an **outcome** you can check. Phases are ordered by value and de
 Goal: know that it works, and hear about problems fast.
 
 - [ ] **0.1 Live smoke test (S).** Sign up, run Java, Run samples, Predict, redeploy and confirm data survives. *Outcome:* checklist in the README, all green on the deployed URL (JDK 21 with `--release 17`).
-- [ ] **0.2 "Report an issue" button (S).** On every question: category (wrong sample / unclear / broken code / other), optional note, auto-attach question id and the learner's code. Store in a `reports` table. *Outcome:* reports appear in the database.
-- [ ] **0.3 Admin page (M).** Protected by an admin flag: user count, daily active users, reports list with "resolved", hardest questions (most attempts, lowest solve rate). *Outcome:* one page that answers "how is it going?"
-- [ ] **0.4 Event logging (S).** Lightweight `events` table (signup, first_run, run, samples_pass, day_complete, return_visit). *Outcome:* the metrics in section 5 can be computed.
-- [ ] **0.5 Error monitoring (S).** Structured logs for 500s and runner failures; optionally a free error tracker. *Outcome:* a failed run leaves a trace you can find.
+- [x] **0.2 "Report an issue" button (S).** On every question: category (wrong sample / unclear / broken code / other), optional note, auto-attach question id and the learner's code. Store in a `reports` table. *Outcome:* reports appear in the database.
+- [x] **0.3 Admin page (M).** Protected by an admin flag: user count, daily active users, reports list with "resolved", hardest questions (most attempts, lowest solve rate). *Outcome:* one page that answers "how is it going?"
+- [x] **0.4 Event logging (S).** Lightweight `events` table (signup, first_run, run, samples_pass, day_complete, return_visit). *Outcome:* the metrics in section 5 can be computed.
+- [x] **0.5 Error monitoring (S).** Structured logs for 500s and runner failures; optionally a free error tracker. *Outcome:* a failed run leaves a trace you can find.
 - [ ] **0.6 Continuous checks (M).** GitHub Action on every push: run `validate_tests.py`, the Predict snippet check, and a smoke test. *Outcome:* a broken question or build fails the push.
 - [ ] **0.7 Database backup note (S).** Document the Neon backup/restore steps and test a restore once. *Outcome:* a written, tested recovery path.
 
@@ -117,7 +117,7 @@ Goal: practising on a phone feels natural. This should come early — the audien
 ### Phase 2 — Engagement loop *(2–3 weeks)*
 Goal: give people a reason to return tomorrow, and the day after.
 
-- [ ] **2.1 "Continue where you left off" (S).** Big button on the dashboard and home page → next unsolved question. *Outcome:* one click from login to coding.
+- [x] **2.1 "Continue where you left off" (S).** Big button on the dashboard and home page → next unsolved question. *Outcome:* one click from login to coding.
 - [ ] **2.2 Onboarding (M).** After sign-up: choose level (with a 5-question quick placement check as an option), set a daily goal (1/3/5 questions), then land directly on a pre-filled Day 1 Q1 with a guided "press Run" hint. *Outcome:* median time to first run under 2 minutes (measure with event 0.4).
 - [ ] **2.3 Daily goal ring and "Day complete" moment (M).** Progress ring on the dashboard; a short celebration when all 5 questions of a day are solved, with a "share" button and a "tomorrow's day is ready" teaser. *Outcome:* visible daily finish line.
 - [ ] **2.4 Streak v2 (M).** Calendar heatmap, **streak freeze** (earn one per 7-day streak, max 2 banked), "repair yesterday" once per month, longest-streak badge. Use the user's timezone (currently fixed by `APP_TIMEZONE`). *Outcome:* a missed day no longer wipes motivation.
