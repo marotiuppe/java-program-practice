@@ -187,3 +187,17 @@ form.inline{display:inline}
 }
 
 .goal-line{margin:6px 0 14px}
+
+/* ---- celebration (roadmap 2.3) ---- */
+.celebrate-overlay{position:fixed;inset:0;z-index:100;display:grid;place-items:center;padding:16px;background:rgba(15,18,32,.55)}
+.celebrate-box{max-width:420px;width:100%;text-align:center;background:var(--card);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow);padding:24px}
+.celebrate-box h2{margin:4px 0 8px}
+.celebrate-emoji{font-size:44px;line-height:1}
+.celebrate-box .bar{justify-content:center}
+@media (prefers-reduced-motion:no-preference){.celebrate-box{animation:pop .25s ease-out}@keyframes pop{from{transform:scale(.92);opacity:0}to{transform:none;opacity:1}}}
+.goal-card{display:flex;align-items:center;gap:14px;margin:8px 0 14px}
+.ring{width:72px;height:72px;flex:none}
+.ring circle{fill:none;stroke-width:8}
+.ring-bg{stroke:var(--line)}
+.ring-fg{stroke:var(--accent);stroke-linecap:round}
+.ring-text{font-size:17px;font-weight:700;fill:var(--fg)}

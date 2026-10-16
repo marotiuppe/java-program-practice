@@ -317,10 +317,19 @@ def _log_run(user_id: int) -> None:
     db.log_event(user_id, "run")
 
 
-def _log_solved(user, day: int) -> None:
-    """Record a Day-complete event the first time all 5 questions of a day are solved."""
-    if db.count_solved_in_day(user["id"], user["level"], day) >= 5:
-        db.log_event(user["id"], "day_complete", f"{user['level']}:{day}", once=True)
+def _solve_feedback(user, day: int):
+    """Called after a question becomes solved. Returns what to celebrate (or None): the day just
+    became complete, and/or today's goal was just reached. Each fires once (via the events table)."""
+    fb = {}
+    if db.count_solved_in_day(user["id"], user["level"], day) >= 5 and db.log_event(
+            user["id"], "day_complete", f"{user['level']}:{day}", once=True):
+        nxt = content.CONTENT[user["level"]]["days"].get(day + 1)
+        fb["day_complete"] = {"day": day, "next": {"n": day + 1, "title": nxt["title"]} if nxt else None}
+    solved_today = db.count_solved_since(user["id"], stats.today_start_epoch())
+    if solved_today >= user["daily_goal"] and db.log_event(
+            user["id"], "goal_reached", stats.today_str(), once=True):
+        fb["goal_reached"] = {"goal": user["daily_goal"], "solved_today": solved_today}
+    return fb or None
 
 
 def _throttle(user_id, gap: float) -> bool:
@@ -371,8 +380,8 @@ async def api_test(request: Request):
     _log_run(user["id"])
     if all_passed:
         db.log_event(user["id"], "samples_pass", f"{user['level']}:{day}:{q}", once=True)
-        _log_solved(user, day)
-    return {"stage": "tests", "results": items, "all_passed": all_passed}
+    return {"stage": "tests", "results": items, "all_passed": all_passed,
+            "celebrate": _solve_feedback(user, day) if all_passed else None}
 
 
 _predict_cache = {}
@@ -412,9 +421,7 @@ async def api_predict(request: Request):
         return {"revealed": True, "expected": expected}
     correct = grading.same(str(body.get("answer", ""))[:5000], expected)
     db.set_status(user["id"], user["level"], day, q, "solved" if correct else "attempted")
-    if correct:
-        _log_solved(user, day)
-    return {"correct": correct}
+    return {"correct": correct, "celebrate": _solve_feedback(user, day) if correct else None}
 
 
 @app.post("/api/save")
@@ -436,9 +443,7 @@ async def api_save(request: Request):
     code = str(body.get("code", ""))[:50_000]
     db.save_progress(user["id"], user["level"], day, q, code, status, bool(body.get("ran")))
     db.touch_activity(user["id"], stats.today_str())
-    if status == "solved":
-        _log_solved(user, day)
-    return {"ok": True}
+    return {"ok": True, "celebrate": _solve_feedback(user, day) if status == "solved" else None}
 
 
 @app.post("/api/report")

@@ -315,6 +315,7 @@
     return post('/api/save', Object.assign({ day: day, q: q, code: code.value }, extra || {}));
   }
 
+  const celebrate = (info) => { if (info && window.celebrate) window.celebrate(info); };
   const showOutput = () => { if (window.showTab) window.showTab('output'); };
 
   async function run() {
@@ -406,7 +407,7 @@
           d.appendChild(detail);
           testsBox.appendChild(d);
         });
-        if (res.all_passed) { markSolvedUi(); flash('Marked solved'); }
+        if (res.all_passed) { markSolvedUi(); flash('Marked solved'); celebrate(res.celebrate); }
       }
     } catch (e) {
       if (e.message !== 'login') testsBox.textContent = 'Could not reach the server. It may be waking up - try again in a moment.';
@@ -428,7 +429,7 @@
       try {
         const res = await post('/api/predict', { day: day, q: q, answer: answer.value });
         if (res.error) setMsg(res.error, 'bad');
-        else if (res.correct) { setMsg('Correct! Marked solved.', 'ok'); markSolvedUi(); }
+        else if (res.correct) { setMsg('Correct! Marked solved.', 'ok'); markSolvedUi(); celebrate(res.celebrate); }
         else setMsg('Not quite. Re-trace the code line by line and try again.', 'bad');
       } catch (e) {
         if (e.message !== 'login') setMsg('Could not reach the server.', 'bad');
@@ -457,8 +458,9 @@
   solveBtn.addEventListener('click', async () => {
     const next = solveBtn.dataset.status === 'solved' ? 'attempted' : 'solved';
     try {
-      await save({ status: next });
+      const saved = await save({ status: next });
       solveBtn.dataset.status = next;
+      if (next === 'solved') celebrate(saved.celebrate);
       solveBtn.textContent = next === 'solved' ? 'Mark unsolved' : 'Mark solved';
       flash(next === 'solved' ? 'Marked solved' : 'Marked unsolved');
     } catch (e) { flash('Failed'); }

@@ -11,8 +11,18 @@
 {% else %}
 <p class="muted">You have solved every question in this level. Well done!</p>
 {% endif %}
-<p class="goal-line">Today: <b>{{ solved_today }}</b> of <b>{{ daily_goal }}</b> solved{% if solved_today >= daily_goal %} &mdash; goal reached!{% endif %}
-  &middot; <a href="/goal">change goal</a></p>
+{% set pct = [solved_today / daily_goal, 1] | min %}
+<div class="goal-card">
+  <svg class="ring" viewBox="0 0 80 80" role="img" aria-label="{{ solved_today }} of {{ daily_goal }} solved today">
+    <circle cx="40" cy="40" r="34" class="ring-bg"/>
+    <circle cx="40" cy="40" r="34" class="ring-fg" stroke-dasharray="{{ (213.63 * pct) | round(1) }} 213.63" transform="rotate(-90 40 40)"/>
+    <text x="40" y="46" text-anchor="middle" class="ring-text">{{ solved_today }}/{{ daily_goal }}</text>
+  </svg>
+  <div>
+    <b>{% if solved_today >= daily_goal %}Daily goal reached!{% else %}Today&rsquo;s goal{% endif %}</b><br>
+    <span class="muted">{{ solved_today }} of {{ daily_goal }} solved today &middot; <a href="/goal">change goal</a></span>
+  </div>
+</div>
 <div class="stats">
   <div class="stat"><b>{{ streak.current }}</b><span>day streak{% if streak.current and not streak.today %} (practice today to keep it){% endif %}</span></div>
   <div class="stat"><b>{{ streak.longest }}</b><span>longest streak</span></div>
