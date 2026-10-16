@@ -79,6 +79,10 @@ with TestClient(app, follow_redirects=False) as c:
     r = c.post("/api/hint", json={"day": 1, "q": 1}).json()
     check("opt-in hint unlocks after attempts", len(r.get("hints", [])) == 1, r)
 
+    time.sleep(0.5)
+    r = c.post("/api/feedback", json={"day": 1, "q": 1, "rating": 1, "difficulty": "hard"}).json()
+    check("question feedback is saved", r.get("ok") is True and r.get("difficulty") == "hard", r)
+
     uid = db.get_user_by_email("smoke@example.com")["id"]
     db.enqueue_review(uid, "beginner", 1, 2, 0)
     check("review queue lists a due question", db.count_due_reviews(uid) == 1)

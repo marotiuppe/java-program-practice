@@ -788,6 +788,7 @@ async def question_page(request: Request, day: int, q: int):
         status=saved["status"] if saved else "todo",
         level=user["level"],
         welcome=bool(request.query_params.get("welcome")),
+        feedback=db.get_feedback(user["id"], user["level"], day, q),
         hints_on=bool(user["hints_on"]),
         hints_total=len(question["hints"]),
         hints_shown=question["hints"][: saved["hint_level"]] if saved else [],
@@ -956,6 +957,32 @@ async def api_predict(request: Request):
     correct = grading.same(str(body.get("answer", ""))[:5000], expected)
     db.set_status(user["id"], user["level"], day, q, "solved" if correct else "attempted")
     return {"correct": correct, "celebrate": _solve_feedback(user, day, q) if correct else None}
+
+
+@app.post("/api/feedback")
+async def api_feedback(request: Request):
+    """Thumbs up/down and a 'too easy / about right / too hard' vote for one question (one row per learner)."""
+    user = current_user(request)
+    if not user:
+        return JSONResponse({"error": "Please log in."}, status_code=401)
+    if not _throttle(f"feedback:{user['id']}", 0.4):
+        return JSONResponse({"error": "Slow down a little."}, status_code=429)
+    body = await request.json()
+    try:
+        day, q = int(body["day"]), int(body["q"])
+    except (KeyError, ValueError, TypeError):
+        return JSONResponse({"error": "Bad request."}, status_code=400)
+    _, question = _get_question(user["level"], day, q)
+    if not question:
+        return JSONResponse({"error": "Unknown question."}, status_code=404)
+    rating, difficulty = body.get("rating"), body.get("difficulty")
+    if rating is not None and rating not in (-1, 0, 1):
+        return JSONResponse({"error": "Bad rating."}, status_code=400)
+    if difficulty is not None and difficulty not in ("",) + db.DIFFICULTIES:
+        return JSONResponse({"error": "Bad difficulty."}, status_code=400)
+    if rating is None and difficulty is None:
+        return JSONResponse({"error": "Nothing to save."}, status_code=400)
+    return {"ok": True, **db.set_feedback(user["id"], user["level"], day, q, rating, difficulty)}
 
 
 HINT_UNLOCK = (2, 4, 6)  # run attempts needed before hint 1, 2, 3 can be opened

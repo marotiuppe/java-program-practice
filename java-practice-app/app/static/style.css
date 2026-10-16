@@ -314,3 +314,11 @@ main:focus{outline:none}
 @media (prefers-reduced-motion:reduce){
   *,*::before,*::after{animation-duration:.001ms !important;animation-iteration-count:1 !important;transition-duration:.001ms !important;scroll-behavior:auto !important}
 }
+
+/* ---- question feedback (roadmap 3.4) ---- */
+.feedback{display:flex;flex-direction:column;gap:6px;margin:8px 0;padding:8px 12px;border:1px dashed var(--line);border-radius:8px;font-size:14px}
+.feedback > div{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.fb-label{color:var(--muted);margin-right:4px}
+.fb{padding:4px 12px;min-height:34px}
+.fb[aria-pressed=true]{background:var(--accent);border-color:var(--accent);color:var(--accent-fg)}
+@media (max-width:700px){.fb{min-height:44px}}

@@ -133,7 +133,7 @@ Goal: every question is correct, and grading is trustworthy.
 - [ ] **3.1 Pilot on Beginner (L).** Agents write reference solutions + hidden tests for ~90 coding questions and Debug checks for 30; `tools/validate_tests.py` must pass. *Outcome:* Beginner fully verified; any wrong sample outputs corrected in the workbook.
 - [ ] **3.2 Intermediate, then Advanced (L each).** Same method. *Outcome:* all ~416 questions with checks verified.
 - [x] **3.3 Re-verify Predict outputs (S).** Run the 90 snippets in CI (already scripted) and fail on non-determinism. *Outcome:* no flaky "Check answer". *(Done: tools/check_predict.py runs in CI; all 90 snippets were stable.)*
-- [ ] **3.4 Question feedback (S).** 👍/👎 and "too easy / too hard" per question. *Outcome:* data to tune difficulty.
+- [x] **3.4 Question feedback (S).** 👍/👎 and "too easy / too hard" per question. *Outcome:* data to tune difficulty.
 - [ ] **3.5 Difficulty review (M).** Use solve-rate and attempts (0.3) to re-order or rewrite outliers. *Outcome:* an evidence-based curve.
 - [ ] **3.6 Interview mode (M).** Timed set of 3 mixed questions from completed days, with a score and breakdown. *Outcome:* a reason to return after the 30 days.
 

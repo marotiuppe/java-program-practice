@@ -12,6 +12,9 @@
     <option value="attempts" {{ 'selected' if sort == 'attempts' }}>Most attempts per learner</option>
     <option value="reports" {{ 'selected' if sort == 'reports' }}>Most reports</option>
     <option value="hints" {{ 'selected' if sort == 'hints' }}>Most hints opened</option>
+    <option value="disliked" {{ 'selected' if sort == 'disliked' }}>Most thumbs-down</option>
+    <option value="toohard" {{ 'selected' if sort == 'toohard' }}>Most "too hard" votes</option>
+    <option value="tooeasy" {{ 'selected' if sort == 'tooeasy' }}>Most "too easy" votes</option>
   </select>
   <label class="small">Min learners <input type="number" name="min_learners" value="{{ min_learners }}" min="0" max="50" style="width:70px"></label>
   <button>Apply</button>
@@ -19,7 +22,7 @@
 <p class="muted small">Showing {{ rows | length }} of {{ shown }}.</p>
 <div class="table-wrap">
 <table class="admin-table">
-  <tr><th>Question</th><th>Type</th><th>Learners</th><th>Solved</th><th>Attempts / learner</th><th>Hints opened</th><th>Reports</th></tr>
+  <tr><th>Question</th><th>Type</th><th>Learners</th><th>Solved</th><th>Attempts / learner</th><th>Hints opened</th><th>Feedback (&#128077; / &#128078;)</th><th>Difficulty votes (easy / right / hard)</th><th>Reports</th></tr>
   {% for r in rows %}
   <tr>
     <td><a href="/day/{{ r.day }}/q/{{ r.q }}">Day {{ r.day }} &middot; Q{{ r.q }}</a> <span class="muted small">{{ r.category }}</span></td>
@@ -28,9 +31,11 @@
     <td>{{ r.solved }} <span class="muted small">({{ r.solve_rate }}%)</span></td>
     <td>{{ r.per_learner }}</td>
     <td>{{ r.hinted or '' }}</td>
+    <td>{% if r.up or r.down %}{{ r.up }} / {{ r.down }}{% endif %}</td>
+    <td>{% if r.easy or r.right_n or r.hard %}{{ r.easy }} / {{ r.right_n }} / {{ r.hard }}{% endif %}</td>
     <td>{% if r.reports %}<a href="/admin/reports?status=open">{{ r.open }} open / {{ r.reports }}</a>{% endif %}</td>
   </tr>
-  {% else %}<tr><td colspan="7" class="muted">Not enough learner data for this level yet.</td></tr>{% endfor %}
+  {% else %}<tr><td colspan="9" class="muted">Not enough learner data for this level yet.</td></tr>{% endfor %}
 </table>
 </div>
 {% endblock %}

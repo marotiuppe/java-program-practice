@@ -88,6 +88,21 @@
       {% endif %}
     </div>
     {% endif %}
+    <div class="feedback" id="feedback" data-day="{{ day.n }}" data-q="{{ question.q }}"
+         data-rating="{{ feedback.rating if feedback else 0 }}" data-difficulty="{{ feedback.difficulty if feedback else '' }}">
+      <div role="group" aria-label="Was this question good?">
+        <span class="fb-label">Was this question good?</span>
+        <button type="button" class="fb" data-rating="1" aria-pressed="false" aria-label="Good question">&#128077;</button>
+        <button type="button" class="fb" data-rating="-1" aria-pressed="false" aria-label="Poor question">&#128078;</button>
+      </div>
+      <div role="group" aria-label="How hard was it?">
+        <span class="fb-label">How hard was it?</span>
+        <button type="button" class="fb" data-difficulty="easy" aria-pressed="false">Too easy</button>
+        <button type="button" class="fb" data-difficulty="right" aria-pressed="false">About right</button>
+        <button type="button" class="fb" data-difficulty="hard" aria-pressed="false">Too hard</button>
+      </div>
+      <span id="fb-msg" class="muted small" role="status"></span>
+    </div>
     <details id="report" class="report">
       <summary>Report an issue with this question</summary>
       <select id="report-cat" aria-label="Problem type">
@@ -113,4 +128,5 @@
 <script src="{{ static('report.js') }}"></script>
 <script src="{{ static('review.js') }}"></script>
 <script src="{{ static('hints.js') }}"></script>
+<script src="{{ static('feedback.js') }}"></script>
 {% endblock %}

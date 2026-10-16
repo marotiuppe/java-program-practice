@@ -311,7 +311,7 @@ async def report_reopen(request: Request, report_id: int):
 
 
 # ---------------------------------------------------------------- question quality
-QSORTS = ("hardest", "attempts", "reports", "hints")
+QSORTS = ("hardest", "attempts", "reports", "hints", "disliked", "toohard", "tooeasy")
 
 
 @router.get("/questions")
@@ -330,21 +330,31 @@ async def questions(request: Request, level: str = "beginner", sort: str = "hard
     rep = {(r["day"], r["qnum"]): {"reports": int(r["n"]), "open": int(r["open_n"] or 0)} for r in _q(
         "SELECT day, qnum, COUNT(*) AS n, SUM(CASE WHEN resolved = 0 THEN 1 ELSE 0 END) AS open_n "
         "FROM reports WHERE level = ? GROUP BY day, qnum", (level,))}
+    fb = {(r["day"], r["qnum"]): {k: int(r[k] or 0) for k in ("up", "down", "easy", "right_n", "hard")} for r in _q(
+        "SELECT day, qnum, SUM(CASE WHEN rating = 1 THEN 1 ELSE 0 END) AS up, "
+        "SUM(CASE WHEN rating = -1 THEN 1 ELSE 0 END) AS down, "
+        "SUM(CASE WHEN difficulty = 'easy' THEN 1 ELSE 0 END) AS easy, "
+        "SUM(CASE WHEN difficulty = 'right' THEN 1 ELSE 0 END) AS right_n, "
+        "SUM(CASE WHEN difficulty = 'hard' THEN 1 ELSE 0 END) AS hard "
+        "FROM feedback WHERE level = ? GROUP BY day, qnum", (level,))}
     rows = []
-    for key in sorted(set(stat) | set(rep)):
+    for key in sorted(set(stat) | set(rep) | set(fb)):
         d, qn = key
         q = content.CONTENT[level]["days"].get(d, {}).get("questions", {}).get(qn)
         s = stat.get(key, {"learners": 0, "attempts": 0, "solved": 0, "hinted": 0})
         rp = rep.get(key, {"reports": 0, "open": 0})
+        f = fb.get(key, {"up": 0, "down": 0, "easy": 0, "right_n": 0, "hard": 0})
         rows.append({
             "day": d, "q": qn, "category": q["category"] if q else "?", "kind": q["kind"] if q else "",
-            **s, **rp,
+            **s, **rp, **f,
             "solve_rate": _pct(s["solved"], s["learners"]),
             "per_learner": round(s["attempts"] / s["learners"], 1) if s["learners"] else 0,
         })
-    rows = [r for r in rows if r["learners"] >= min_learners or r["reports"]]
+    rows = [r for r in rows if r["learners"] >= min_learners or r["reports"] or r["up"] or r["down"] or r["hard"] or r["easy"]]
     order = {"hardest": lambda r: (r["solve_rate"], -r["per_learner"]), "attempts": lambda r: -r["per_learner"],
-             "reports": lambda r: -r["reports"], "hints": lambda r: -r["hinted"]}[sort]
+             "reports": lambda r: -r["reports"], "hints": lambda r: -r["hinted"],
+             "disliked": lambda r: (-r["down"], r["up"]), "toohard": lambda r: -r["hard"],
+             "tooeasy": lambda r: -r["easy"]}[sort]
     rows.sort(key=order)
     content_stats = {
         "total": sum(len(d["questions"]) for d in content.CONTENT[level]["days"].values()),

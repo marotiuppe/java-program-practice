@@ -54,6 +54,16 @@ CREATE TABLE IF NOT EXISTS events (
     created_at INTEGER NOT NULL
 );
 CREATE INDEX IF NOT EXISTS events_name_idx ON events (name, created_at);
+CREATE TABLE IF NOT EXISTS feedback (
+    user_id INTEGER NOT NULL,
+    level TEXT NOT NULL,
+    day INTEGER NOT NULL,
+    qnum INTEGER NOT NULL,
+    rating INTEGER NOT NULL DEFAULT 0,
+    difficulty TEXT NOT NULL DEFAULT '',
+    updated_at INTEGER NOT NULL,
+    PRIMARY KEY (user_id, level, day, qnum)
+);
 CREATE TABLE IF NOT EXISTS auth_tokens (
     token_hash TEXT PRIMARY KEY,
     user_id INTEGER NOT NULL,
@@ -116,6 +126,16 @@ SCHEMA_PG = [
         created_at BIGINT NOT NULL
     )""",
     "CREATE INDEX IF NOT EXISTS events_name_idx ON events (name, created_at)",
+    """CREATE TABLE IF NOT EXISTS feedback (
+        user_id BIGINT NOT NULL,
+        level TEXT NOT NULL,
+        day INTEGER NOT NULL,
+        qnum INTEGER NOT NULL,
+        rating INTEGER NOT NULL DEFAULT 0,
+        difficulty TEXT NOT NULL DEFAULT '',
+        updated_at BIGINT NOT NULL,
+        PRIMARY KEY (user_id, level, day, qnum)
+    )""",
     """CREATE TABLE IF NOT EXISTS auth_tokens (
         token_hash TEXT PRIMARY KEY,
         user_id BIGINT NOT NULL,
@@ -555,7 +575,7 @@ def consume_token(raw: str, purpose: str):
 
 
 # ---- privacy: export and delete everything we hold about a user ----
-USER_TABLES = ["progress", "activity", "events", "reviews", "reports", "auth_tokens"]
+USER_TABLES = ["progress", "activity", "events", "reviews", "reports", "feedback", "auth_tokens"]
 
 
 def export_user(user_id: int) -> dict:
@@ -572,6 +592,7 @@ def export_user(user_id: int) -> dict:
             "active_days": [r["day"] for r in rows("SELECT day FROM activity WHERE user_id = ? ORDER BY day")],
             "events": rows("SELECT name, meta, created_at FROM events WHERE user_id = ? ORDER BY id"),
             "reviews": rows("SELECT level, day, qnum, stage, due_at FROM reviews WHERE user_id = ?"),
+            "feedback": rows("SELECT level, day, qnum, rating, difficulty, updated_at FROM feedback WHERE user_id = ?"),
             "reports": rows("SELECT level, day, qnum, category, note, code, resolved, created_at FROM reports "
                             "WHERE user_id = ? ORDER BY id"),
         }
@@ -635,3 +656,32 @@ def event_metas(user_id: int, name: str) -> set:
     with connect() as c:
         return {r["meta"] for r in _x(c, "SELECT meta FROM events WHERE user_id = ? AND name = ?",
                                       (user_id, name)).fetchall()}
+
+
+# ---- question feedback ----
+DIFFICULTIES = ("easy", "right", "hard")
+
+
+def get_feedback(user_id, level, day, qnum):
+    with connect() as c:
+        return _x(c, "SELECT rating, difficulty FROM feedback WHERE user_id = ? AND level = ? AND day = ? AND qnum = ?",
+                  (user_id, level, day, qnum)).fetchone()
+
+
+def set_feedback(user_id, level, day, qnum, rating=None, difficulty=None) -> dict:
+    """Save a thumbs rating (-1, 0, 1) and/or a difficulty vote ('easy', 'right', 'hard' or '') for one question.
+    Whatever is not passed keeps its current value. Returns the stored values."""
+    now = int(time.time())
+    with connect() as c:
+        row = _x(c, "SELECT rating, difficulty FROM feedback WHERE user_id = ? AND level = ? AND day = ? AND qnum = ?",
+                 (user_id, level, day, qnum)).fetchone()
+        new_rating = row["rating"] if rating is None and row else (rating or 0)
+        new_diff = row["difficulty"] if difficulty is None and row else (difficulty or "")
+        if row is None:
+            _x(c, "INSERT INTO feedback (user_id, level, day, qnum, rating, difficulty, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?)",
+               (user_id, level, day, qnum, new_rating, new_diff, now))
+        else:
+            _x(c, "UPDATE feedback SET rating = ?, difficulty = ?, updated_at = ? "
+                  "WHERE user_id = ? AND level = ? AND day = ? AND qnum = ?",
+               (new_rating, new_diff, now, user_id, level, day, qnum))
+    return {"rating": new_rating, "difficulty": new_diff}
