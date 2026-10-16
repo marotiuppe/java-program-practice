@@ -116,6 +116,7 @@ async def signup(request: Request, email: str = Form(...), password: str = Form(
     if uid is None:
         return render(request, "auth.html", mode="signup", error="That email is already registered.")
     request.session["uid"] = uid
+    db.log_event(uid, "signup")
     return RedirectResponse("/level", status_code=303)
 
 
@@ -130,6 +131,7 @@ async def login(request: Request, email: str = Form(...), password: str = Form(.
     if not user or not db.verify_password(password, user["pw_hash"]):
         return render(request, "auth.html", mode="login", error="Wrong email or password.")
     request.session["uid"] = user["id"]
+    db.log_event(user["id"], "return_visit", stats.today_str(), once=True)
     return RedirectResponse("/", status_code=303)
 
 
@@ -253,7 +255,19 @@ async def api_run(request: Request):
     code = str(body.get("code", ""))
     stdin_text = str(body.get("stdin", ""))
     db.touch_activity(user["id"], stats.today_str())
+    _log_run(user["id"])
     return JSONResponse(await run_java(code, stdin_text))
+
+
+def _log_run(user_id: int) -> None:
+    db.log_event(user_id, "first_run", once=True)
+    db.log_event(user_id, "run")
+
+
+def _log_solved(user, day: int) -> None:
+    """Record a Day-complete event the first time all 5 questions of a day are solved."""
+    if db.count_solved_in_day(user["id"], user["level"], day) >= 5:
+        db.log_event(user["id"], "day_complete", f"{user['level']}:{day}", once=True)
 
 
 def _throttle(user_id: int, gap: float) -> bool:
@@ -301,6 +315,10 @@ async def api_test(request: Request):
     all_passed = all(i["pass"] for i in items)
     db.save_progress(user["id"], user["level"], day, q, code, "solved" if all_passed else None, True)
     db.touch_activity(user["id"], stats.today_str())
+    _log_run(user["id"])
+    if all_passed:
+        db.log_event(user["id"], "samples_pass", f"{user['level']}:{day}:{q}", once=True)
+        _log_solved(user, day)
     return {"stage": "tests", "results": items, "all_passed": all_passed}
 
 
@@ -341,6 +359,8 @@ async def api_predict(request: Request):
         return {"revealed": True, "expected": expected}
     correct = grading.same(str(body.get("answer", ""))[:5000], expected)
     db.set_status(user["id"], user["level"], day, q, "solved" if correct else "attempted")
+    if correct:
+        _log_solved(user, day)
     return {"correct": correct}
 
 
@@ -363,4 +383,6 @@ async def api_save(request: Request):
     code = str(body.get("code", ""))[:50_000]
     db.save_progress(user["id"], user["level"], day, q, code, status, bool(body.get("ran")))
     db.touch_activity(user["id"], stats.today_str())
+    if status == "solved":
+        _log_solved(user, day)
     return {"ok": True}
