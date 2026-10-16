@@ -3,7 +3,7 @@
 Sign up / log in, choose a level (Beginner, Intermediate, Advanced), work through a 30-day plan
 (5 questions a day), write Java 17 in the browser, compile and run it, and track progress per day.
 
-Stack: FastAPI + Jinja2 + a plain textarea editor, SQLite, JDK 17 in the Docker image.
+Stack: FastAPI + Jinja2 + a plain textarea editor, SQLite, JDK 21 in the Docker image (compiles with `--release 17`).
 Questions come from `app/content/*.md` (copies of the three workbooks).
 
 ## Run locally
@@ -19,7 +19,7 @@ uvicorn app.main:app --reload --port 8000
 Open http://localhost:8000. With JDK 17 or newer the app compiles with `--release 17`. With an older
 JDK (for example JDK 8 on your PATH) the flag is skipped automatically, but Java 9+ syntax such as
 `record`, `var`, text blocks and `List.of` will not compile. Point `JAVA_BIN_DIR` at a JDK 17+ for the
-full question set (the Docker image already uses JDK 17).
+full question set (the Docker image uses JDK 21 with `--release 17`).
 
 ## Deploy on Render (free plan)
 
