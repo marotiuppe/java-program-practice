@@ -22,6 +22,14 @@
   {% endif %}
 </div>
 <div class="card">
+  <h2>Hints</h2>
+  <p class="muted">Off by default, so questions stay a pure challenge. When on, a question you are stuck on can reveal up to three hints, one at a time (a concept hint, then an approach hint, then an outline) after you have tried running your code a few times. Questions where you opened a hint are marked.</p>
+  <form method="post" action="/account/hints">
+    <label class="check"><input type="checkbox" name="on" value="1" {{ 'checked' if hints_on }}> Offer me hints when I am stuck</label>
+    <button>Save</button>
+  </form>
+</div>
+<div class="card">
   <h2>Download your data</h2>
   <p class="muted">Your progress, saved code, activity, review queue and reports as one JSON file.</p>
   <p><a class="btn-continue" href="/account/export">Download my data</a></p>

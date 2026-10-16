@@ -354,7 +354,7 @@ async def account_page(request: Request):
     if not user:
         return RedirectResponse("/login", status_code=303)
     return render(request, "account.html", error=None, saved=bool(request.query_params.get("saved")),
-                  reminders_on=bool(user["reminders"]), mail_ready=mailer.configured(), verified=bool(user["email_verified"]))
+                  reminders_on=bool(user["reminders"]), hints_on=bool(user["hints_on"]), mail_ready=mailer.configured(), verified=bool(user["email_verified"]))
 
 
 @app.get("/account/export")
@@ -378,18 +378,29 @@ async def account_delete(request: Request, password: str = Form(...)):
     key = f"delete-fail:{user['id']}"
     wait = ratelimit.retry_after(key, *DELETE_FAIL)
     if wait:
-        return render(request, "account.html", status_code=429, saved=False, reminders_on=bool(user["reminders"]),
+        return render(request, "account.html", status_code=429, saved=False, reminders_on=bool(user["reminders"]), hints_on=bool(user["hints_on"]),
                       mail_ready=mailer.configured(), verified=bool(user["email_verified"]),
                       error=f"Too many wrong passwords. Try again in {ratelimit.human(wait)}.")
     if not db.verify_password(password, user["pw_hash"]):
         ratelimit.record(key)
-        return render(request, "account.html", status_code=400, saved=False, reminders_on=bool(user["reminders"]),
+        return render(request, "account.html", status_code=400, saved=False, reminders_on=bool(user["reminders"]), hints_on=bool(user["hints_on"]),
                       mail_ready=mailer.configured(), verified=bool(user["email_verified"]),
                       error="That password is not correct.")
     db.delete_user(user["id"])
     request.session.clear()
     return render(request, "message.html", title="Account deleted",
                   text="Your account and all of its data have been permanently deleted.", href="/signup", link="Create a new account")
+
+
+@app.post("/account/hints")
+async def account_hints(request: Request, on: str = Form(""), back: str = Form("")):
+    user = current_user(request)
+    if not user:
+        return RedirectResponse("/login", status_code=303)
+    db.set_hints_on(user["id"], bool(on))
+    # a question page can send the learner straight back to where they were (same-site paths only)
+    dest = back if back.startswith("/day/") else "/account?saved=1"
+    return RedirectResponse(dest, status_code=303)
 
 
 @app.post("/account/reminders")
@@ -622,9 +633,11 @@ async def day_page(request: Request, day: int):
     d, _ = _get_question(user["level"], day, 1)
     if not d:
         return RedirectResponse("/dashboard", status_code=303)
-    status = {r["qnum"]: r["status"] for r in db.get_progress(user["id"], user["level"]) if r["day"] == day}
+    rows = [r for r in db.get_progress(user["id"], user["level"]) if r["day"] == day]
+    status = {r["qnum"]: r["status"] for r in rows}
+    hint_used = {r["qnum"] for r in rows if r["hint_level"]}
     return render(
-        request, "day.html", day=d, status=status, level=user["level"],
+        request, "day.html", day=d, status=status, hint_used=hint_used, level=user["level"],
         last_day=max(content.CONTENT[user["level"]]["days"]),
     )
 
@@ -647,6 +660,9 @@ async def question_page(request: Request, day: int, q: int):
         status=saved["status"] if saved else "todo",
         level=user["level"],
         welcome=bool(request.query_params.get("welcome")),
+        hints_on=bool(user["hints_on"]),
+        hints_total=len(question["hints"]),
+        hints_shown=question["hints"][: saved["hint_level"]] if saved else [],
         in_review=bool(request.query_params.get("review")) and db.get_review(user["id"], user["level"], day, q) is not None,
     )
 
@@ -810,6 +826,40 @@ async def api_predict(request: Request):
     correct = grading.same(str(body.get("answer", ""))[:5000], expected)
     db.set_status(user["id"], user["level"], day, q, "solved" if correct else "attempted")
     return {"correct": correct, "celebrate": _solve_feedback(user, day, q) if correct else None}
+
+
+HINT_UNLOCK = (2, 4, 6)  # run attempts needed before hint 1, 2, 3 can be opened
+
+
+@app.post("/api/hint")
+async def api_hint(request: Request):
+    """Reveal the next hint (opt-in per user, and only after a few real attempts)."""
+    user = current_user(request)
+    if not user:
+        return JSONResponse({"error": "Please log in."}, status_code=401)
+    if not user["hints_on"]:
+        return JSONResponse({"error": "Turn on hints in your account settings first."}, status_code=403)
+    body = await request.json()
+    try:
+        day, q = int(body["day"]), int(body["q"])
+    except (KeyError, ValueError, TypeError):
+        return JSONResponse({"error": "Bad request."}, status_code=400)
+    _, question = _get_question(user["level"], day, q)
+    if not question or not question["hints"]:
+        return JSONResponse({"error": "There are no hints for this question yet."}, status_code=404)
+    row = db.get_question_progress(user["id"], user["level"], day, q)
+    shown = row["hint_level"] if row else 0
+    attempts = row["attempts"] if row else 0
+    nxt = shown + 1
+    if nxt > len(question["hints"]):
+        return JSONResponse({"error": "You have seen every hint for this question."}, status_code=400)
+    need = HINT_UNLOCK[nxt - 1] - attempts
+    if need > 0:
+        return JSONResponse({"error": f"Give it a bit more effort first: run your code {need} more time{'' if need == 1 else 's'} to unlock the next hint."},
+                            status_code=403)
+    db.raise_hint_level(user["id"], user["level"], day, q, nxt)
+    db.log_event(user["id"], "hint_opened", f"{user['level']}:{day}:{q}:{nxt}")
+    return {"hints": question["hints"][:nxt], "left": len(question["hints"]) - nxt}
 
 
 @app.post("/api/save")

@@ -240,3 +240,8 @@ form.inline{display:inline}
 
 .check{display:flex;gap:8px;align-items:center;margin:10px 0}
 .check input{width:auto;margin:0}
+
+/* ---- hints (roadmap 2.8) ---- */
+.hints{margin:8px 0;padding:8px 12px;border:1px dashed var(--line);border-radius:8px}
+.hints ol{margin:4px 0 8px 18px;padding:0}
+.hints li{margin:4px 0}

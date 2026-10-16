@@ -73,6 +73,20 @@
       <span id="msg" class="muted"></span>
     </div>
     <div class="tabpart" data-tab="output">
+    {% if hints_total %}
+    <div class="hints" id="hints" data-day="{{ day.n }}" data-q="{{ question.q }}" data-total="{{ hints_total }}">
+      {% if hints_on %}
+        <ol id="hint-list">{% for h in hints_shown %}<li>{{ h }}</li>{% endfor %}</ol>
+        <button id="hint-btn" type="button" {% if hints_shown | length >= hints_total %}hidden{% endif %}>Show a hint</button>
+        <span id="hint-msg" class="muted small"></span>
+      {% else %}
+        <form method="post" action="/account/hints" class="inline">
+          <input type="hidden" name="on" value="1"><input type="hidden" name="back" value="/day/{{ day.n }}/q/{{ question.q }}">
+          <button class="link" type="submit">Stuck? Turn on hints</button>
+        </form>
+      {% endif %}
+    </div>
+    {% endif %}
     <details id="report" class="report">
       <summary>Report an issue with this question</summary>
       <select id="report-cat" aria-label="Problem type">
@@ -97,4 +111,5 @@
 <script src="/static/editor.js"></script>
 <script src="/static/report.js"></script>
 <script src="/static/review.js"></script>
+<script src="/static/hints.js"></script>
 {% endblock %}

@@ -8,7 +8,7 @@
 <ol class="qlist">
   {% for qn, q in day.questions.items() %}
     <li><a href="/day/{{ day.n }}/q/{{ qn }}">Question {{ qn }}: {{ q.category }}</a>
-      <span class="badge {{ status.get(qn, 'todo') }}">{{ status.get(qn, 'todo') }}</span></li>
+      <span class="badge {{ status.get(qn, 'todo') }}">{{ status.get(qn, 'todo') }}</span>{% if qn in hint_used %}<span class="badge">hint used</span>{% endif %}</li>
   {% endfor %}
 </ol>
 {% endblock %}

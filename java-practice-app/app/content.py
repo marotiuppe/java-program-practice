@@ -127,8 +127,18 @@ def _attach_tests(level: str, days: dict) -> None:
             q["check_count"] = len(q["samples"]) + len(cases)
 
 
+def _attach_hints(level: str, days: dict) -> None:
+    """Optional, opt-in hints live in content/hints/<level>.json as {"<day>:<q>": [concept, approach, outline]}."""
+    path = BASE / "hints" / f"{level}.json"
+    data = json.loads(path.read_text(encoding="utf-8")) if path.exists() else {}
+    for dn, day in days.items():
+        for qn, q in day["questions"].items():
+            q["hints"] = [h for h in data.get(f"{dn}:{qn}", []) if isinstance(h, str) and h.strip()][:3]
+
+
 def load() -> None:
     for key, (label, filename) in LEVELS.items():
         days = _parse_level(BASE / filename)
         _attach_tests(key, days)
+        _attach_hints(key, days)
         CONTENT[key] = {"label": label, "days": days}

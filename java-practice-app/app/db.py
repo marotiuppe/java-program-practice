@@ -152,6 +152,8 @@ MIGRATIONS = [
     ("users", "daily_goal", "INTEGER NOT NULL DEFAULT 1"),
     ("users", "email_verified", "INTEGER NOT NULL DEFAULT 1"),
     ("users", "reminders", "INTEGER NOT NULL DEFAULT 0"),
+    ("users", "hints_on", "INTEGER NOT NULL DEFAULT 0"),
+    ("progress", "hint_level", "INTEGER NOT NULL DEFAULT 0"),
     ("users", "tz", "TEXT NOT NULL DEFAULT ''"),
     ("progress", "solved_at", "BIGINT"),
 ]
@@ -261,7 +263,7 @@ def set_level(user_id: int, level: str) -> None:
 def get_progress(user_id: int, level: str):
     with connect() as c:
         return _x(c,
-            "SELECT day, qnum, status FROM progress WHERE user_id = ? AND level = ?",
+            "SELECT day, qnum, status, hint_level FROM progress WHERE user_id = ? AND level = ?",
             (user_id, level),
         ).fetchall()
 
@@ -269,7 +271,7 @@ def get_progress(user_id: int, level: str):
 def get_question_progress(user_id: int, level: str, day: int, qnum: int):
     with connect() as c:
         return _x(c,
-            "SELECT status, code, attempts FROM progress "
+            "SELECT status, code, attempts, hint_level FROM progress "
             "WHERE user_id = ? AND level = ? AND day = ? AND qnum = ?",
             (user_id, level, day, qnum),
         ).fetchone()
@@ -569,7 +571,7 @@ def export_user(user_id: int) -> dict:
                   (user_id,)).fetchone()
         return {
             "account": dict(user) if user else None,
-            "progress": rows("SELECT level, day, qnum, status, code, attempts, updated_at, solved_at FROM progress "
+            "progress": rows("SELECT level, day, qnum, status, code, attempts, hint_level, updated_at, solved_at FROM progress "
                              "WHERE user_id = ? ORDER BY level, day, qnum"),
             "active_days": [r["day"] for r in rows("SELECT day FROM activity WHERE user_id = ? ORDER BY day")],
             "events": rows("SELECT name, meta, created_at FROM events WHERE user_id = ? ORDER BY id"),
@@ -602,3 +604,23 @@ def list_reminder_users():
     """Users who opted in to reminders and have a confirmed email address."""
     with connect() as c:
         return _x(c, "SELECT id, email, tz FROM users WHERE reminders = 1 AND email_verified = 1").fetchall()
+
+
+# ---- hints (opt-in) ----
+def set_hints_on(user_id: int, on: bool) -> None:
+    with connect() as c:
+        _x(c, "UPDATE users SET hints_on = ? WHERE id = ?", (1 if on else 0, user_id))
+
+
+def raise_hint_level(user_id, level, day, qnum, hint_level: int) -> None:
+    """Record that hints up to hint_level were shown for this question (never lowers it)."""
+    now = int(time.time())
+    with connect() as c:
+        row = _x(c, "SELECT hint_level FROM progress WHERE user_id = ? AND level = ? AND day = ? AND qnum = ?",
+                 (user_id, level, day, qnum)).fetchone()
+        if row is None:
+            _x(c, "INSERT INTO progress (user_id, level, day, qnum, status, code, attempts, updated_at, hint_level) "
+                  "VALUES (?, ?, ?, ?, 'todo', '', 0, ?, ?)", (user_id, level, day, qnum, now, hint_level))
+        elif hint_level > row["hint_level"]:
+            _x(c, "UPDATE progress SET hint_level = ? WHERE user_id = ? AND level = ? AND day = ? AND qnum = ?",
+               (hint_level, user_id, level, day, qnum))

@@ -1,0 +1,27 @@
+{
+  "1:1": [
+    "A receipt line needs three kinds of data. Pick the type that fits each: text for the item name, a whole number for the quantity, and a number with decimals for the price.",
+    "Declare the three variables first, then compute the total as quantity * price in a double. Print each line with System.out.println, and use printf or String.format with %.2f so the total always shows 2 decimal places.",
+    "String name = ...; int qty = ...; double price = ...; double total = qty * price; then println the Item and Quantity lines and finish with System.out.printf(\"Total: %.2f%n\", total);"
+  ],
+  "1:2": [
+    "Swapping needs the old value of one variable to survive while the other is overwritten. Think about where the first value can wait.",
+    "Way 1: save a in a temporary variable, copy b into a, then copy the temporary into b. Way 2: use arithmetic so that one variable holds the sum of both, then recover each original value by subtracting.",
+    "With a temp: int t = a; a = b; b = t;   Without: a = a + b; b = a - b; a = a - b;   Then print with System.out.println(\"a=\" + a + \" b=\" + b);"
+  ],
+  "1:3": [
+    "Dividing two int values in Java gives an int and drops the decimal part. The average needs a decimal result.",
+    "Add the three marks into an int total. For the average, make at least one side of the division a double (for example total / 3.0) and print it with %.2f.",
+    "int total = m1 + m2 + m3; double avg = total / 3.0; System.out.println(\"Total: \" + total); System.out.printf(\"Average: %.2f%n\", avg);"
+  ],
+  "1:4": [
+    "Go line by line and write down the type of each expression before you compute it. Integer arithmetic and double arithmetic behave differently.",
+    "Two things to watch: / between two ints throws away the remainder, and + with a String on its left joins the pieces one at a time, from left to right.",
+    "Compare the second and the last println: they use the same variables, but one has parentheses around a + b. Ask yourself when the addition happens in each. In the double line, the cast applies to a before the division happens."
+  ],
+  "1:5": [
+    "The errors are of four different kinds: a value of the wrong type, the wrong kind of quotes, a value in quotes that should not be, and one missing symbol. Read each line and ask what type the right-hand side really is.",
+    "int cannot hold 20.5, and the story says the age is a whole number, 20. Text uses double quotes; single quotes are for a single char. A boolean value is written true, without quotes. Every statement ends with a semicolon.",
+    "Corrected: int age = 20;  String name = \"Riya\";  boolean passed = true;  System.out.println(\"Name: \" + name);"
+  ]
+}
