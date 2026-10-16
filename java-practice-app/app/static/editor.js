@@ -465,5 +465,44 @@
     }
   });
 
+  /* ---------------- touch symbol toolbar ---------------- */
+  // Shown only on touch devices (CSS). Keys go through the normal keydown handler so bracket
+  // pairing, Tab and autocomplete behave exactly as on a hardware keyboard.
+  const symbols = document.getElementById('symbols');
+  function moveCaretLine(dir) {
+    const v = code.value, pos = code.selectionStart;
+    const ls = lineStartOf(v, pos), col = pos - ls;
+    if (dir < 0) {
+      if (ls === 0) return setCaret(0);
+      const ps = lineStartOf(v, ls - 1);
+      setCaret(ps + Math.min(col, ls - 1 - ps));
+    } else {
+      const le = v.indexOf('\n', pos);
+      if (le < 0) return setCaret(v.length);
+      let ne = v.indexOf('\n', le + 1);
+      if (ne < 0) ne = v.length;
+      setCaret(le + 1 + Math.min(col, ne - le - 1));
+    }
+  }
+  function pressSymbol(key) {
+    code.focus();
+    if (key === 'undo') { document.execCommand('undo'); return; }
+    if (key === 'ArrowLeft') return setCaret(Math.max(0, code.selectionStart - 1));
+    if (key === 'ArrowRight') return setCaret(Math.min(code.value.length, code.selectionEnd + 1));
+    if (key === 'ArrowUp') return moveCaretLine(-1);
+    if (key === 'ArrowDown') return moveCaretLine(1);
+    const ev = new KeyboardEvent('keydown', { key: key, bubbles: true, cancelable: true });
+    if (code.dispatchEvent(ev) && key !== 'Tab') insertText(key);
+  }
+  if (symbols) {
+    // pointerdown + preventDefault keeps focus in the editor so the on-screen keyboard stays open
+    symbols.addEventListener('pointerdown', (e) => {
+      const b = e.target.closest('button[data-k]');
+      if (!b) return;
+      e.preventDefault();
+      pressSymbol(b.dataset.k);
+    });
+  }
+
   refresh();
 })();

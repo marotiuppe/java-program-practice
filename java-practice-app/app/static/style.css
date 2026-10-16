@@ -164,3 +164,10 @@ form.inline{display:inline}
   .top nav a{padding:8px 8px}
   .who{margin-left:4px;padding-left:8px;gap:6px}
 }
+
+/* ---- touch symbol toolbar (roadmap 1.2) ---- */
+.symbols{display:none}
+@media (pointer:coarse){
+  .symbols{display:flex;gap:4px;overflow-x:auto;margin:6px 0;padding-bottom:2px;-webkit-overflow-scrolling:touch}
+  .symbols button{flex:none;min-width:40px;min-height:44px;padding:0 10px;font:16px ui-monospace,Consolas,monospace}
+}
