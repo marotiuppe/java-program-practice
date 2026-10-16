@@ -13,7 +13,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from starlette.middleware.sessions import SessionMiddleware
 
-from . import badges, content, db, grading, hints, stats
+from . import badges, content, db, grading, hints, ratelimit, stats
 from .runner import run_java, run_java_batch
 
 logging.basicConfig(level=logging.INFO)
@@ -99,8 +99,34 @@ def is_admin(user) -> bool:
     return bool(user) and user["email"].lower() in ADMIN_EMAILS
 
 
-def render(request: Request, name: str, **ctx):
-    return templates.TemplateResponse(request, name, {"user": (u := current_user(request)), "is_admin": is_admin(u), **ctx})
+def render(request: Request, name: str, status_code: int = 200, **ctx):
+    return templates.TemplateResponse(
+        request, name, {"user": (u := current_user(request)), "is_admin": is_admin(u), **ctx}, status_code=status_code)
+
+
+def client_ip(request: Request) -> str:
+    """Best guess at the caller's IP. Behind Render's proxy the left-most X-Forwarded-For entry is the client.
+    A client can fake that header, so per-IP limits slow abuse down but the per-account limits are the real guard."""
+    fwd = request.headers.get("x-forwarded-for", "")
+    if fwd:
+        return fwd.split(",")[0].strip()
+    return request.client.host if request.client else "unknown"
+
+
+# Limits: (attempts, window in seconds)
+SIGNUP_IP = (5, 3600)
+LOGIN_FAIL_IP = (20, 900)
+LOGIN_FAIL_EMAIL = (5, 900)
+RUN_IP = (60, 60)
+
+
+def _run_limited(request: Request):
+    """429 response when this IP is running code too fast, else None."""
+    wait = ratelimit.hit(f"run:{client_ip(request)}", *RUN_IP)
+    if wait:
+        return JSONResponse({"stage": "busy", "ok": False, "error": f"Too many runs from your network. Try again in {ratelimit.human(wait)}."},
+                            status_code=429)
+    return None
 
 
 @app.get("/favicon.ico", include_in_schema=False)
@@ -138,6 +164,10 @@ async def signup_page(request: Request):
 @app.post("/signup")
 async def signup(request: Request, email: str = Form(...), password: str = Form(...)):
     email = email.strip().lower()
+    wait = ratelimit.hit(f"signup:{client_ip(request)}", *SIGNUP_IP)
+    if wait:
+        return render(request, "auth.html", status_code=429, mode="signup",
+                      error=f"Too many sign-ups from your network. Try again in {ratelimit.human(wait)}.")
     if not EMAIL_RE.match(email):
         return render(request, "auth.html", mode="signup", error="Enter a valid email address.")
     if len(password) < 8:
@@ -157,8 +187,16 @@ async def login_page(request: Request):
 
 @app.post("/login")
 async def login(request: Request, email: str = Form(...), password: str = Form(...)):
-    user = db.get_user_by_email(email.strip().lower())
+    email = email.strip().lower()
+    ip_key, email_key = f"login-fail:ip:{client_ip(request)}", f"login-fail:email:{email}"
+    wait = max(ratelimit.retry_after(ip_key, *LOGIN_FAIL_IP), ratelimit.retry_after(email_key, *LOGIN_FAIL_EMAIL))
+    if wait:
+        return render(request, "auth.html", status_code=429, mode="login",
+                      error=f"Too many failed attempts. Try again in {ratelimit.human(wait)}.")
+    user = db.get_user_by_email(email)
     if not user or not db.verify_password(password, user["pw_hash"]):
+        ratelimit.record(ip_key)
+        ratelimit.record(email_key)
         return render(request, "auth.html", mode="login", error="Wrong email or password.")
     request.session["uid"] = user["id"]
     db.log_event(user["id"], "return_visit", stats.today_str(), once=True)
@@ -395,6 +433,8 @@ async def api_run(request: Request):
         return JSONResponse({"error": "Please log in."}, status_code=401)
     if not _throttle(user["id"], 1.5):
         return JSONResponse({"stage": "busy", "ok": False, "error": "Slow down a little."}, status_code=429)
+    if (limited := _run_limited(request)):
+        return limited
     body = await request.json()
     code = str(body.get("code", ""))
     stdin_text = str(body.get("stdin", ""))
@@ -469,6 +509,8 @@ async def api_test(request: Request):
         return JSONResponse({"error": "Please log in."}, status_code=401)
     if not _throttle(user["id"], 3):
         return JSONResponse({"stage": "busy", "ok": False, "error": "Slow down a little."}, status_code=429)
+    if (limited := _run_limited(request)):
+        return limited
     body = await request.json()
     try:
         day, q = int(body["day"]), int(body["q"])

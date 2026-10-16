@@ -31,6 +31,13 @@ RUNNER_UID = int(os.environ.get("RUNNER_UID", "10001"))
 
 # One Java process at a time: the free plan has ~512 MB of RAM.
 _slot = asyncio.Semaphore(1)
+MAX_QUEUE = int(os.environ.get("RUN_QUEUE_MAX", "6"))  # programs allowed to wait for the slot
+_waiting = 0
+
+
+def queue_depth() -> int:
+    """How many programs are waiting for the single Java slot right now."""
+    return _waiting
 _IS_POSIX = os.name == "posix"
 
 
@@ -260,12 +267,25 @@ def _execute_batch(code: str, stdins: list) -> dict:
         shutil.rmtree(tmp, ignore_errors=True)
 
 
+def _busy(waiting: int) -> dict:
+    who = f"{waiting} other program{'' if waiting == 1 else 's'} waiting" if waiting else "other programs running"
+    return {"stage": "busy", "ok": False, "queue": waiting,
+            "error": f"The server is busy ({who}). Please try again in a few seconds."}
+
+
 async def _guarded(fn, *args) -> dict:
+    global _waiting
+    if _slot.locked() and _waiting >= MAX_QUEUE:  # refuse early instead of piling up requests
+        log.warning("runner queue full (%d waiting)", _waiting)
+        return _busy(_waiting)
+    _waiting += 1
     try:
         await asyncio.wait_for(_slot.acquire(), timeout=25)
     except asyncio.TimeoutError:
         log.warning("runner busy: gave up waiting for a free slot (fn=%s)", fn.__name__)
-        return {"stage": "busy", "ok": False, "error": "Server is busy running other programs. Try again shortly."}
+        return _busy(_waiting - 1)
+    finally:
+        _waiting -= 1
     try:
         return await asyncio.to_thread(fn, *args)
     except Exception:
