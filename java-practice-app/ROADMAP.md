@@ -112,7 +112,7 @@ Goal: practising on a phone feels natural. This should come early — the audien
 - [x] **1.4 Mobile autocomplete (S).** Popup appears above the caret on small screens, tap to accept. *Outcome:* suggestions work by touch.
 - [x] **1.5 PWA install (M).** Web app manifest, icons, theme color, service worker that caches the app shell and question pages; "Add to home screen" prompt after the first solved question. *Outcome:* installs on Android and iOS and opens full-screen; question text readable offline (running code still needs the server). *(Done, except the prompt is an "Install app" button in the nav whenever the browser offers install, not tied to the first solved question; iOS users use Share → Add to Home Screen. Not yet tested on real devices.)*
 - [x] **1.6 Cold-start experience (S).** Friendly "waking the server" screen with a countdown and retry, since free instances sleep. *Outcome:* a first visitor after idle sees progress, not a blank page. *(Done for returning visitors via the service worker; a brand-new visitor still sees Render's own loading page, which the app cannot change.)*
-- [ ] **1.7 Real-device test pass (S).** Test on at least one low-end Android phone, one iPhone, and Chrome/Safari/Firefox desktop. *Outcome:* a short compatibility table in the repo.
+- [ ] **1.7 Real-device test pass (S).** Test on at least one low-end Android phone, one iPhone, and Chrome/Safari/Firefox desktop. *Outcome:* a short compatibility table in the repo. *(Table started in COMPATIBILITY.md; real devices still to be tested.)*
 
 ### Phase 2 — Engagement loop *(2–3 weeks)*
 Goal: give people a reason to return tomorrow, and the day after.
