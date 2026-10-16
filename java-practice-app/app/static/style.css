@@ -1,6 +1,6 @@
 /* Java Practice - indigo/violet theme. Editor, syntax and autocomplete rules are at the bottom. */
-:root{--bg:#f5f6fb;--fg:#1a1d2e;--muted:#667085;--card:#fff;--line:#e3e6f0;--accent:#4f46e5;--accent-fg:#fff;--accent-soft:#eef0ff;--ok:#16874a;--warn:#b7791f;--err:#c0392b;--shadow:0 1px 2px rgba(20,24,60,.06),0 4px 14px rgba(20,24,60,.06);--r:12px}
-@media (prefers-color-scheme:dark){:root{--bg:#0f1220;--fg:#e8eaf4;--muted:#9aa3b8;--card:#181c2e;--line:#2a3047;--accent:#818cf8;--accent-fg:#0f1220;--accent-soft:#22274a;--ok:#4cc27f;--warn:#e0b04a;--err:#ff7b6b;--shadow:0 1px 2px rgba(0,0,0,.3),0 6px 18px rgba(0,0,0,.25)}}
+:root{--bg:#f5f6fb;--fg:#1a1d2e;--muted:#586174;--card:#fff;--line:#e3e6f0;--accent:#4f46e5;--accent-fg:#fff;--accent-soft:#eef0ff;--ok:#16874a;--warn:#b7791f;--err:#c0392b;--err-fg:#fff;--shadow:0 1px 2px rgba(20,24,60,.06),0 4px 14px rgba(20,24,60,.06);--r:12px}
+@media (prefers-color-scheme:dark){:root{--bg:#0f1220;--fg:#e8eaf4;--muted:#9aa3b8;--card:#181c2e;--line:#2a3047;--accent:#818cf8;--accent-fg:#0f1220;--accent-soft:#22274a;--ok:#4cc27f;--warn:#e0b04a;--err:#ff7b6b;--err-fg:#2b0a06;--shadow:0 1px 2px rgba(0,0,0,.3),0 6px 18px rgba(0,0,0,.25)}}
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--fg);font:15px/1.55 system-ui,"Segoe UI",Roboto,sans-serif;-webkit-font-smoothing:antialiased}
 a{color:var(--accent)}
@@ -219,7 +219,7 @@ form.inline{display:inline}
 .badge-shelf{display:grid;gap:12px;grid-template-columns:repeat(auto-fill,minmax(200px,1fr))}
 .badge-card{display:flex;flex-direction:column;gap:4px;padding:14px;border:1px solid var(--line);border-radius:var(--r);background:var(--card);box-shadow:var(--shadow)}
 .badge-card.earned{border-color:var(--accent)}
-.badge-card.locked{opacity:.6}
+.badge-card.locked{background:var(--bg)}.badge-card.locked .badge-icon{filter:grayscale(1);opacity:.7}
 .badge-icon{font-size:30px;line-height:1}
 
 /* ---- review queue (roadmap 2.6) ---- */
@@ -236,7 +236,7 @@ form.inline{display:inline}
 .narrow-text{max-width:760px;margin:0 auto}
 .site-foot{text-align:center;padding:24px 16px;font-size:13px;color:var(--muted)}
 .card.danger{border-color:var(--err)}
-.danger-btn{background:var(--err);border-color:var(--err);color:#fff}
+.danger-btn{background:var(--err);border-color:var(--err);color:var(--err-fg)}
 
 .check{display:flex;gap:8px;align-items:center;margin:10px 0}
 .check input{width:auto;margin:0}
@@ -303,3 +303,14 @@ details.card summary{cursor:pointer}
 .pager{display:flex;gap:16px;align-items:center}
 .admin-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
 .badge.earned-b{border-color:var(--accent);color:var(--accent)}
+
+/* ---- accessibility (roadmap 5.7) ---- */
+.skip{position:absolute;left:12px;top:-60px;z-index:200;padding:10px 16px;border-radius:8px;background:var(--accent);color:var(--accent-fg);font-weight:700;text-decoration:none}
+.skip:focus{top:8px}
+main:focus{outline:none}
+.sr-only{position:absolute;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+.q-title{font-size:19px;letter-spacing:-.005em;margin:0 0 .6em}
+.editor-help{margin:6px 0 0}
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:.001ms !important;animation-iteration-count:1 !important;transition-duration:.001ms !important;scroll-behavior:auto !important}
+}

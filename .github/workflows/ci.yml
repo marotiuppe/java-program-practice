@@ -33,5 +33,7 @@ jobs:
         run: python tools/check_sandbox.py
       - name: Every email template renders
         run: python tools/preview_emails.py /tmp/email-preview
+      - name: Accessibility audit (axe-core)
+        run: pip install playwright axe-playwright-python && python tools/a11y_audit.py
       - name: Smoke test of the main flows
         run: python tools/smoke_test.py

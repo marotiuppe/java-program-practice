@@ -45,8 +45,20 @@
     const shareBtn = el('button', '', 'Share');
     shareBtn.addEventListener('click', () => share(shareText, note));
     const closeBtn = el('button', 'primary', 'Keep going');
-    const close = () => { overlay.remove(); document.removeEventListener('keydown', onKey); };
-    const onKey = (e) => { if (e.key === 'Escape') close(); };
+    const opener = document.activeElement;
+    const close = () => {
+      overlay.remove();
+      document.removeEventListener('keydown', onKey);
+      if (opener && opener.focus) opener.focus();
+    };
+    const onKey = (e) => {
+      if (e.key === 'Escape') { close(); return; }
+      if (e.key !== 'Tab') return;  // keep Tab inside the dialog
+      const items = Array.from(overlay.querySelectorAll('button, a[href]'));
+      const first = items[0], last = items[items.length - 1];
+      if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+      else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+    };
     closeBtn.addEventListener('click', close);
     row.appendChild(closeBtn);
     row.appendChild(shareBtn);

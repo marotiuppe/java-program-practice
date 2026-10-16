@@ -14,7 +14,7 @@
     <button data-rating="good">Good</button>
     <button data-rating="easy">Easy</button>
   </span>
-  <span id="review-msg" class="muted small"></span>
+  <span id="review-msg" class="muted small" role="status"></span>
 </div>
 {% endif %}
 <div class="qhead">
@@ -24,14 +24,14 @@
     {% if question.q < 5 %}<a href="/day/{{ day.n }}/q/{{ question.q + 1 }}">Next</a>{% endif %}
   </span>
 </div>
-<nav class="tabs" id="tabs" aria-label="Question sections">
-  <button type="button" data-tab="problem" class="on">Problem</button>
-  <button type="button" data-tab="code">Code</button>
-  <button type="button" data-tab="output">Output</button>
-</nav>
+<div class="tabs" id="tabs" role="tablist" aria-label="Question sections">
+  <button type="button" role="tab" id="tab-problem" aria-selected="true" aria-controls="split" data-tab="problem" class="on">Problem</button>
+  <button type="button" role="tab" id="tab-code" aria-selected="false" aria-controls="split" tabindex="-1" data-tab="code">Code</button>
+  <button type="button" role="tab" id="tab-output" aria-selected="false" aria-controls="split" tabindex="-1" data-tab="output">Output</button>
+</div>
 <div class="split" id="split" data-tab="problem">
   <section class="pane prose" data-tab="problem">
-    <h2>Question {{ question.q }}: {{ question.category }}</h2>
+    <h1 class="q-title">Question {{ question.q }}: {{ question.category }}</h1>
     {{ question.html | safe }}
   </section>
   <section class="pane work">
@@ -44,7 +44,7 @@
       <div class="bar">
         <button id="check" class="primary">Check answer</button>
         <button id="reveal" class="link">Reveal output</button>
-        <span id="predict-msg" class="pmsg"></span>
+        <span id="predict-msg" class="pmsg" role="status"></span>
       </div>
       <p class="muted small">Try to predict first. Running the code below shows the real output.</p>
     </div>
@@ -53,13 +53,14 @@
       <pre id="gutter" aria-hidden="true">1</pre>
       <div id="code-area" class="code-area">
         <pre id="hl" aria-hidden="true"></pre>
-        <textarea id="code" spellcheck="false" autocapitalize="off" autocomplete="off" autocorrect="off" wrap="off"
+        <textarea id="code" aria-label="Java code editor" aria-describedby="editor-help" spellcheck="false" autocapitalize="off" autocomplete="off" autocorrect="off" wrap="off"
           data-level="{{ level }}" data-day="{{ day.n }}" data-q="{{ question.q }}"
           data-has-saved="{{ '0' if status == 'todo' else '1' }}">{{ saved_code }}</textarea>
         <div id="ac" class="ac" hidden></div>
       </div>
     </div>
     <div id="symbols" class="symbols" aria-label="Symbol keys"><button type="button" data-k="Tab">Tab</button><button type="button" data-k="(">(</button><button type="button" data-k=")">)</button><button type="button" data-k="{">{</button><button type="button" data-k="}">}</button><button type="button" data-k="[">[</button><button type="button" data-k="]">]</button><button type="button" data-k=";">;</button><button type="button" data-k="&quot;">&quot;</button><button type="button" data-k=".">.</button><button type="button" data-k="=">=</button><button type="button" data-k="&lt;">&lt;</button><button type="button" data-k="&gt;">&gt;</button><button type="button" data-k="!">!</button><button type="button" data-k="&amp;">&amp;</button><button type="button" data-k="|">|</button><button type="button" data-k=",">,</button><button type="button" data-k="+">+</button><button type="button" data-k="-">-</button><button type="button" data-k="*">*</button><button type="button" data-k="/">/</button><button type="button" data-k="ArrowLeft" aria-label="Left">&larr;</button><button type="button" data-k="ArrowRight" aria-label="Right">&rarr;</button><button type="button" data-k="ArrowUp" aria-label="Up">&uarr;</button><button type="button" data-k="ArrowDown" aria-label="Down">&darr;</button><button type="button" data-k="undo" aria-label="Undo">&#8630;</button></div>
+    <p id="editor-help" class="muted small editor-help">Keyboard: Tab indents. To move out of the editor press Esc, then Tab.</p>
     <label class="stdin-label">Input (stdin)
       <textarea id="stdin" rows="3" spellcheck="false" placeholder="Program input goes here"></textarea>
     </label>
@@ -70,7 +71,7 @@
       <button id="save">Save</button>
       <button id="solve" data-status="{{ status }}">{{ 'Mark unsolved' if status == 'solved' else 'Mark solved' }}</button>
       <button id="reset" class="link">Reset code</button>
-      <span id="msg" class="muted"></span>
+      <span id="msg" class="muted" role="status"></span>
     </div>
     <div class="tabpart" data-tab="output">
     {% if hints_total %}
@@ -78,7 +79,7 @@
       {% if hints_on %}
         <ol id="hint-list">{% for h in hints_shown %}<li>{{ h }}</li>{% endfor %}</ol>
         <button id="hint-btn" type="button" {% if hints_shown | length >= hints_total %}hidden{% endif %}>Show a hint</button>
-        <span id="hint-msg" class="muted small"></span>
+        <span id="hint-msg" class="muted small" role="alert"></span>
       {% else %}
         <form method="post" action="/account/hints" class="inline">
           <input type="hidden" name="on" value="1"><input type="hidden" name="back" value="/day/{{ day.n }}/q/{{ question.q }}">
@@ -97,9 +98,9 @@
       </select>
       <textarea id="report-note" rows="2" maxlength="2000" placeholder="Optional: tell us more. Your current code is attached automatically."></textarea>
       <button id="report-send">Send report</button>
-      <span id="report-msg" class="muted small"></span>
+      <span id="report-msg" class="muted small" role="status"></span>
     </details>
-    <div id="tests" class="tests" hidden></div>
+    <div id="tests" class="tests" aria-live="polite" hidden></div>
     <pre id="output" class="output" aria-live="polite">Output appears here. The first run after the server has been idle can take a while.</pre>
     </div>
   </section>

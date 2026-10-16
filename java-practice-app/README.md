@@ -115,3 +115,9 @@ Then point the Render service's `DATABASE_URL` at it and redeploy. The tool refu
 ## Email design
 
 Every email (confirm email, reset password, password changed, streak nudge, "we saved your place", weekly recap, admin test) is built in `app/email_templates.py` and `app/templates/email/layout.html`: logo, a banner image, one clear button, a footer with Privacy and (for reminders) Unsubscribe, a hidden preview line, a dark-mode version, and a plain-text copy sent alongside the HTML. Banner images and the logo live in `app/static/email/` and are loaded from `APP_BASE_URL`, so set that variable. To see every email in your browser run `python tools/preview_emails.py` (it writes HTML files to `email-preview/`). To change the artwork edit and re-run `python tools/make_email_images.py`.
+
+## Accessibility
+
+Built in: a "Skip to main content" link, labelled form fields and a labelled code editor, one top-level heading per page, proper tab roles with arrow-key navigation on the phone question layout, a focus-trapping celebration dialog that returns focus when it closes, announcements for run results, hints and messages, text contrast that passes WCAG AA in light and dark mode, and `prefers-reduced-motion` support. **Keyboard users:** inside the code editor Tab indents; press **Esc, then Tab** to move out (a hint under the editor says so).
+
+`python tools/a11y_audit.py` runs axe-core over every main page in light and dark mode (also in CI). It finds roughly a third of real problems, so it is not proof of full accessibility. Not yet done: testing with real screen readers (NVDA, VoiceOver, TalkBack) and with browser zoom at 200 to 400 percent; both need a person.

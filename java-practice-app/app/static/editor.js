@@ -12,6 +12,7 @@
   const day = +code.dataset.day, q = +code.dataset.q, level = code.dataset.level;
   const draftKey = 'draft:' + level + ':' + day + ':' + q;
   const IND = '    ';
+  let tabEscape = false; // after Esc, the next Tab moves focus out instead of indenting (keyboard users)
   const safe = (fn) => { try { return fn(); } catch (e) { return null; } };
 
   // The server (SQLite) can be wiped on the free plan, so keep a browser copy as backup.
@@ -279,7 +280,10 @@
       if (['ArrowLeft', 'ArrowRight', 'Home', 'End', 'PageUp', 'PageDown'].indexOf(e.key) !== -1) closeAc();
     }
 
+    if (e.key === 'Escape') { tabEscape = true; return; }
     if (mod || e.altKey) return;
+    if (e.key === 'Tab' && tabEscape) { tabEscape = false; return; }  // let the browser move focus
+    if (e.key !== 'Shift') tabEscape = false;
     if (e.key === 'Tab') {
       e.preventDefault();
       const multi = code.value.slice(code.selectionStart, code.selectionEnd).indexOf('\n') !== -1;

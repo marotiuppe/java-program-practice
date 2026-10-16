@@ -39,6 +39,7 @@
 </form>
 {% endif %}
 <p class="muted small">A freeze is earned every 7 practice days (keep up to 2) and saves your streak automatically on a day you miss.</p>
+<p class="sr-only">Practice calendar: you practiced on {{ streak.total }} day{{ '' if streak.total == 1 else 's' }} in total; the grid below shows the last {{ heatmap | length }} weeks.</p>
 <div class="heat" role="img" aria-label="Practice calendar for the last {{ heatmap | length }} weeks">
   {% for week in heatmap %}
   <div class="heat-col">
