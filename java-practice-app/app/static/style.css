@@ -135,3 +135,5 @@ form.inline{display:inline}
 
 .admin-table{border-collapse:collapse;width:100%}
 .admin-table th,.admin-table td{text-align:left;padding:6px 10px;border-bottom:1px solid var(--line)}
+
+.welcome{margin:10px 0;padding:10px 14px;border-radius:8px;background:var(--accent-soft);border:1px solid var(--accent)}

@@ -2,6 +2,9 @@
 {% block title %}Day {{ day.n }} · Q{{ question.q }}{% endblock %}
 {% block content %}
 {% set show_start = False %}{% include "_mock.html" %}
+{% if welcome %}
+<div class="welcome">Welcome! Read the question, then press <b>Run</b> to see your first program's output. You can always come back to this from the dashboard.</div>
+{% endif %}
 <div class="qhead">
   <a href="/day/{{ day.n }}">&larr; Day {{ day.n }}: {{ day.title }}</a>
   <span>

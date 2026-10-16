@@ -171,7 +171,10 @@ async def level_set(request: Request, level: str = Form(...)):
     if not user:
         return RedirectResponse("/login", status_code=303)
     if level in content.LEVELS:
+        first_time = not user["level"]
         db.set_level(user["id"], level)
+        if first_time:  # onboarding: straight to the first question instead of the dashboard
+            return RedirectResponse("/day/1/q/1?welcome=1", status_code=303)
     return RedirectResponse("/dashboard", status_code=303)
 
 
@@ -257,6 +260,7 @@ async def question_page(request: Request, day: int, q: int):
         saved_code=saved["code"] if saved and saved["code"] else question["starter"],
         status=saved["status"] if saved else "todo",
         level=user["level"],
+        welcome=bool(request.query_params.get("welcome")),
     )
 
 
