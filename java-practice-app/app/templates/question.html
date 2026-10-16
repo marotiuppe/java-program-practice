@@ -49,6 +49,18 @@
       <button id="reset" class="link">Reset code</button>
       <span id="msg" class="muted"></span>
     </div>
+    <details id="report" class="report">
+      <summary>Report an issue with this question</summary>
+      <select id="report-cat" aria-label="Problem type">
+        <option value="wrong_sample">Sample output looks wrong</option>
+        <option value="unclear">Question is unclear</option>
+        <option value="broken_code">Starter code is broken</option>
+        <option value="other">Something else</option>
+      </select>
+      <textarea id="report-note" rows="2" maxlength="2000" placeholder="Optional: tell us more. Your current code is attached automatically."></textarea>
+      <button id="report-send">Send report</button>
+      <span id="report-msg" class="muted small"></span>
+    </details>
     <div id="tests" class="tests" hidden></div>
     <pre id="output" class="output" aria-live="polite">Output appears here. The first run after the server has been idle can take a while.</pre>
   </section>
@@ -56,4 +68,5 @@
 <script>const STARTER = {{ question.starter | tojson }};</script>
 <script src="/static/javalang.js"></script>
 <script src="/static/editor.js"></script>
+<script src="/static/report.js"></script>
 {% endblock %}

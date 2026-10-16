@@ -21,6 +21,7 @@ HERE = os.path.dirname(__file__)
 templates = Jinja2Templates(directory=os.path.join(HERE, "templates"))
 
 EMAIL_RE = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
+REPORT_CATEGORIES = {"wrong_sample", "unclear", "broken_code", "other"}
 STATUSES = {"todo", "attempted", "solved"}
 KEEPALIVE_SECONDS = int(os.environ.get("KEEPALIVE_SECONDS", "300"))
 _last_run = {}  # user_id -> timestamp, for a simple per-user rate limit
@@ -270,7 +271,7 @@ def _log_solved(user, day: int) -> None:
         db.log_event(user["id"], "day_complete", f"{user['level']}:{day}", once=True)
 
 
-def _throttle(user_id: int, gap: float) -> bool:
+def _throttle(user_id, gap: float) -> bool:
     """Simple per-user rate limit. Returns False when the call came too soon after the last one."""
     now = time.monotonic()
     if now - _last_run.get(user_id, 0) < gap:
@@ -385,4 +386,26 @@ async def api_save(request: Request):
     db.touch_activity(user["id"], stats.today_str())
     if status == "solved":
         _log_solved(user, day)
+    return {"ok": True}
+
+
+@app.post("/api/report")
+async def api_report(request: Request):
+    """Learner flags a problem with a question; the code they had in the editor is attached."""
+    user = current_user(request)
+    if not user:
+        return JSONResponse({"error": "Please log in."}, status_code=401)
+    if not _throttle(f"report:{user['id']}", 10):
+        return JSONResponse({"error": "Please wait a few seconds before sending another report."}, status_code=429)
+    body = await request.json()
+    try:
+        day, q = int(body["day"]), int(body["q"])
+    except (KeyError, ValueError, TypeError):
+        return JSONResponse({"error": "Bad request."}, status_code=400)
+    _, question = _get_question(user["level"], day, q)
+    category = body.get("category")
+    if not question or category not in REPORT_CATEGORIES:
+        return JSONResponse({"error": "Bad request."}, status_code=400)
+    db.add_report(user["id"], user["level"], day, q, category,
+                  str(body.get("note", ""))[:2000], str(body.get("code", ""))[:50_000])
     return {"ok": True}
