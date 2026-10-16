@@ -69,6 +69,15 @@ app.add_middleware(
 app.mount("/static", StaticFiles(directory=os.path.join(HERE, "static")), name="static")
 
 
+@app.exception_handler(Exception)
+async def unhandled_error(request: Request, exc: Exception):
+    """Leave a findable trace (method, path, user) for every 500."""
+    log.error("500 %s %s uid=%s", request.method, request.url.path, request.session.get("uid"), exc_info=exc)
+    if request.url.path.startswith("/api/"):
+        return JSONResponse({"error": "Something went wrong on the server."}, status_code=500)
+    return JSONResponse({"error": "Something went wrong on the server. Please try again."}, status_code=500)
+
+
 def current_user(request: Request):
     uid = request.session.get("uid")
     if not uid:

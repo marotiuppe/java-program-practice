@@ -6,6 +6,7 @@ container) the child drops to an unprivileged uid. It does NOT block network acc
 """
 import asyncio
 import hashlib
+import logging
 import os
 import shutil
 import signal
@@ -13,6 +14,7 @@ import subprocess
 import tempfile
 import threading
 
+log = logging.getLogger("runner")
 JAVA_BIN_DIR = os.environ.get("JAVA_BIN_DIR", "")  # empty -> use PATH
 _JAVAC_BASE = "-J-Xmx192m -J-XX:+UseSerialGC -J-XX:TieredStopAtLevel=1 -encoding UTF-8 -proc:none"
 _javac_flags_cache = None
@@ -262,9 +264,13 @@ async def _guarded(fn, *args) -> dict:
     try:
         await asyncio.wait_for(_slot.acquire(), timeout=25)
     except asyncio.TimeoutError:
+        log.warning("runner busy: gave up waiting for a free slot (fn=%s)", fn.__name__)
         return {"stage": "busy", "ok": False, "error": "Server is busy running other programs. Try again shortly."}
     try:
         return await asyncio.to_thread(fn, *args)
+    except Exception:
+        log.exception("runner failure (fn=%s)", fn.__name__)
+        return {"stage": "compile", "ok": False, "error": "The server could not run your program. Please try again."}
     finally:
         _slot.release()
 
