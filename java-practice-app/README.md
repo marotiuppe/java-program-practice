@@ -75,3 +75,11 @@ Mail goes through Gmail SMTP. Set these environment variables on Render (never c
 
 Without `SMTP_USER`/`SMTP_PASSWORD`, new accounts are marked verified automatically and "Forgot password" says reset is not set up.
 A personal Gmail account sends about 500 messages a day. If you outgrow that, switch `SMTP_HOST`/`SMTP_PORT` to another provider; no code change is needed.
+
+## Sandbox: what is and is not isolated
+
+Learner code runs in a separate process with: a fresh temp directory, wall-clock timeouts, CPU / file-size / process / open-file limits, a scrubbed environment, capped output, and an unprivileged user (uid 10001). The database folder is root-only, and secrets (such as `DATABASE_URL`) exist only in the web process, not in the learner's process.
+
+On Linux a **seccomp filter** (`app/sandbox.py`) also stops learner code from opening network sockets (no outbound requests, DNS or listening servers) and blocks risky system calls. It is switched on at startup only after a self-test passes (a normal program still runs and a local connection is refused); the admin page shows the result. Set `SANDBOX=off` to disable it.
+
+**Not isolated:** it is not a full container. Learner code can still read world-readable files, write to `/tmp`, and start processes (limited in number) as the unprivileged user. A separate runner service with its own host is not possible on the free plan, so the web app and the runner share one machine. Verify with `docker run --rm -v "$PWD/tools:/app/tools" java-practice-test python tools/check_sandbox.py` after building the image.

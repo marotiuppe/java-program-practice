@@ -14,8 +14,8 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from starlette.middleware.sessions import SessionMiddleware
 
-from . import badges, content, db, grading, hints, mailer, ratelimit, stats
-from .runner import run_java, run_java_batch
+from . import badges, content, db, grading, hints, mailer, ratelimit, sandbox, stats
+from .runner import run_java, run_java_batch, sandbox_self_test
 
 logging.basicConfig(level=logging.INFO)
 log = logging.getLogger("app")
@@ -50,6 +50,7 @@ async def _keepalive_loop(url: str) -> None:
 async def lifespan(app: FastAPI):
     db.init()
     content.load()
+    await asyncio.to_thread(sandbox_self_test)
     task = None
     base = os.environ.get("KEEPALIVE_URL") or os.environ.get("RENDER_EXTERNAL_URL")
     if base:
@@ -765,6 +766,7 @@ async def admin_page(request: Request):
         overview=db.admin_overview(today, week_start),
         reports=db.list_reports(),
         hardest=db.hardest_questions(),
+        sandbox_status=sandbox.STATUS,
     )
 
 

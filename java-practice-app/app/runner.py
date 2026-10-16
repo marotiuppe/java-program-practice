@@ -1,8 +1,9 @@
 """Compiles and runs a single-file Java program (class Main) with limits.
 
 Safety layers: fresh temp dir, wall-clock timeouts, resource limits, scrubbed
-environment, output captured to size-capped files, and (when started as root in the
-container) the child drops to an unprivileged uid. It does NOT block network access.
+environment, output captured to size-capped files, (when started as root in the
+container) the child drops to an unprivileged uid, and on Linux a seccomp filter
+(app/sandbox.py) blocks network sockets once the startup self-test has passed.
 """
 import asyncio
 import hashlib
@@ -11,8 +12,11 @@ import os
 import shutil
 import signal
 import subprocess
+import socket
 import tempfile
 import threading
+
+from . import sandbox
 
 log = logging.getLogger("runner")
 JAVA_BIN_DIR = os.environ.get("JAVA_BIN_DIR", "")  # empty -> use PATH
@@ -80,10 +84,14 @@ def _preexec():
     resource.setrlimit(resource.RLIMIT_CPU, (20, 20))
     resource.setrlimit(resource.RLIMIT_FSIZE, (2_000_000, 2_000_000))
     resource.setrlimit(resource.RLIMIT_NPROC, (256, 256))
+    resource.setrlimit(resource.RLIMIT_NOFILE, (256, 256))
+    resource.setrlimit(resource.RLIMIT_CORE, (0, 0))
     if os.getuid() == 0:
         os.setgroups([])
         os.setgid(RUNNER_UID)
         os.setuid(RUNNER_UID)
+    if sandbox.ENABLED:
+        sandbox.install()  # last step: after this the child cannot open network sockets
 
 
 def _kill(proc: subprocess.Popen) -> None:
@@ -307,3 +315,49 @@ async def run_java_batch(code: str, stdins: list) -> dict:
     if len(code.encode()) > MAX_CODE_BYTES:
         return {"stage": "compile", "ok": False, "error": "Code is too large."}
     return await _guarded(_execute_batch, code, stdins)
+
+
+_HELLO = 'public class Main { public static void main(String[] a){ System.out.println("sandbox-ok"); } }'
+_NET_PROBE = (
+    'import java.net.*;\n'
+    'public class Main { public static void main(String[] a) {\n'
+    '  try (Socket s = new Socket()) { s.connect(new InetSocketAddress("127.0.0.1", __PORT__), 3000);\n'
+    '    System.out.println("CONNECTED"); }\n'
+    '  catch (Exception e) { System.out.println("BLOCKED"); } } }'
+)
+
+
+def sandbox_self_test() -> str:
+    """Decide whether the seccomp filter can be switched on, and set sandbox.ENABLED / sandbox.STATUS.
+
+    Passes only if, with the filter on, (1) a normal Java program still compiles and runs and (2) a connection
+    to a listening local port is refused. Blocking: call from a thread at startup."""
+    sandbox.ENABLED = False
+    if os.environ.get("SANDBOX", "").lower() == "off":
+        sandbox.STATUS = "off (SANDBOX=off): network access from user code is NOT blocked"
+        return sandbox.STATUS
+    if not sandbox.supported():
+        sandbox.STATUS = "unavailable on this platform: network access from user code is NOT blocked"
+        return sandbox.STATUS
+    listener = socket.socket()
+    try:
+        listener.bind(("127.0.0.1", 0))
+        listener.listen(8)
+        port = listener.getsockname()[1]
+        sandbox.ENABLED = True
+        hello = _execute(_HELLO, "")
+        if hello.get("stage") != "run" or "sandbox-ok" not in hello.get("stdout", ""):
+            raise RuntimeError(f"normal program failed under the filter: {hello}")
+        probe = _execute(_NET_PROBE.replace("__PORT__", str(port)), "")
+        out = probe.get("stdout", "")
+        if probe.get("stage") != "run" or "BLOCKED" not in out or "CONNECTED" in out:
+            raise RuntimeError(f"network probe was not blocked: {probe}")
+        sandbox.STATUS = "on: user code cannot open network sockets (seccomp filter active)"
+    except Exception as exc:
+        sandbox.ENABLED = False
+        sandbox.STATUS = f"FAILED self-test, filter disabled, network NOT blocked: {exc}"
+        log.error("sandbox self-test failed: %s", exc)
+    finally:
+        listener.close()
+    log.info("sandbox: %s", sandbox.STATUS)
+    return sandbox.STATUS

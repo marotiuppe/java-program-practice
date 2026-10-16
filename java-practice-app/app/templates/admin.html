@@ -10,6 +10,8 @@
   <div class="stat"><b>{{ overview.open_reports }}</b><span>open reports</span></div>
 </div>
 
+<p class="muted">Sandbox: {{ sandbox_status }}</p>
+
 <h2>Events (all time)</h2>
 <p class="muted">{% for name, n in overview.events.items() %}{{ name }}: <b>{{ n }}</b>{% if not loop.last %} &middot; {% endif %}{% else %}No events yet.{% endfor %}</p>
 
