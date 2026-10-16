@@ -83,3 +83,7 @@ Learner code runs in a separate process with: a fresh temp directory, wall-clock
 On Linux a **seccomp filter** (`app/sandbox.py`) also stops learner code from opening network sockets (no outbound requests, DNS or listening servers) and blocks risky system calls. It is switched on at startup only after a self-test passes (a normal program still runs and a local connection is refused); the admin page shows the result. Set `SANDBOX=off` to disable it.
 
 **Not isolated:** it is not a full container. Learner code can still read world-readable files, write to `/tmp`, and start processes (limited in number) as the unprivileged user. A separate runner service with its own host is not possible on the free plan, so the web app and the runner share one machine. Verify with `docker run --rm -v "$PWD/tools:/app/tools" java-practice-test python tools/check_sandbox.py` after building the image.
+
+## Reminder emails
+
+Opt-in only (account page, or the checkbox at onboarding). At most one email per user per day, sent after `REMINDER_HOUR` (default 18) in the user's timezone: a streak nudge, one note after 3 days away and one after 14, and a Sunday recap. Needs the Gmail settings above plus `APP_BASE_URL` (so links point at your site). Optional: `REMINDER_HOUR`, `REMINDER_MAX_PER_RUN` (default 100), `REMINDER_CHECK_SECONDS` (default 1800). Sent mail is de-duplicated through the events table, so restarts never resend.

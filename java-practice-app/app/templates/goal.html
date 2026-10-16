@@ -12,6 +12,9 @@
         <span>{{ {1: 'Easy to keep up. Recommended to start.', 3: 'A solid daily session.', 5: 'A full day of the plan.'}[g] }}</span>
       </button>
     {% endfor %}
+    {% if first and mail_ready %}
+    <label class="check"><input type="checkbox" name="remind" value="1"> Also email me a reminder if I miss a day (optional, one click to stop)</label>
+    {% endif %}
   </form>
 </section>
 {% endblock %}

@@ -15,7 +15,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from starlette.middleware.sessions import SessionMiddleware
 
-from . import badges, content, db, grading, hints, mailer, ratelimit, sandbox, stats
+from . import badges, content, db, grading, hints, mailer, ratelimit, reminders, sandbox, stats
 from .runner import run_java, run_java_batch, sandbox_self_test
 
 logging.basicConfig(level=logging.INFO)
@@ -47,18 +47,36 @@ async def _keepalive_loop(url: str) -> None:
         await asyncio.to_thread(_ping, url)
 
 
+async def _reminder_loop() -> None:
+    """Checks every CHECK_SECONDS whether any reminder email is due (see app/reminders.py)."""
+    await asyncio.sleep(60)
+    while True:
+        base = (os.environ.get("APP_BASE_URL") or os.environ.get("RENDER_EXTERNAL_URL") or "").rstrip("/")
+        if base:
+            try:
+                await asyncio.to_thread(reminders.run_once, base)
+            except Exception:
+                log.exception("reminder run failed")
+        else:
+            log.warning("reminders skipped: set APP_BASE_URL so email links point at the site")
+        await asyncio.sleep(reminders.CHECK_SECONDS)
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     db.init()
     content.load()
     await asyncio.to_thread(sandbox_self_test)
     task = None
+    reminder_task = asyncio.create_task(_reminder_loop()) if mailer.configured() else None
     base = os.environ.get("KEEPALIVE_URL") or os.environ.get("RENDER_EXTERNAL_URL")
     if base:
         task = asyncio.create_task(_keepalive_loop(base.rstrip("/") + "/health"))
     yield
     if task:
         task.cancel()
+    if reminder_task:
+        reminder_task.cancel()
 
 
 app = FastAPI(lifespan=lifespan)
@@ -335,7 +353,8 @@ async def account_page(request: Request):
     user = current_user(request)
     if not user:
         return RedirectResponse("/login", status_code=303)
-    return render(request, "account.html", error=None)
+    return render(request, "account.html", error=None, saved=bool(request.query_params.get("saved")),
+                  reminders_on=bool(user["reminders"]), mail_ready=mailer.configured(), verified=bool(user["email_verified"]))
 
 
 @app.get("/account/export")
@@ -359,15 +378,49 @@ async def account_delete(request: Request, password: str = Form(...)):
     key = f"delete-fail:{user['id']}"
     wait = ratelimit.retry_after(key, *DELETE_FAIL)
     if wait:
-        return render(request, "account.html", status_code=429,
+        return render(request, "account.html", status_code=429, saved=False, reminders_on=bool(user["reminders"]),
+                      mail_ready=mailer.configured(), verified=bool(user["email_verified"]),
                       error=f"Too many wrong passwords. Try again in {ratelimit.human(wait)}.")
     if not db.verify_password(password, user["pw_hash"]):
         ratelimit.record(key)
-        return render(request, "account.html", status_code=400, error="That password is not correct.")
+        return render(request, "account.html", status_code=400, saved=False, reminders_on=bool(user["reminders"]),
+                      mail_ready=mailer.configured(), verified=bool(user["email_verified"]),
+                      error="That password is not correct.")
     db.delete_user(user["id"])
     request.session.clear()
     return render(request, "message.html", title="Account deleted",
                   text="Your account and all of its data have been permanently deleted.", href="/signup", link="Create a new account")
+
+
+@app.post("/account/reminders")
+async def account_reminders(request: Request, on: str = Form("")):
+    user = current_user(request)
+    if not user:
+        return RedirectResponse("/login", status_code=303)
+    db.set_reminders(user["id"], bool(on))
+    return RedirectResponse("/account?saved=1", status_code=303)
+
+
+async def _unsubscribe(request: Request, token: str):
+    uid = reminders.read_unsubscribe_token(token)
+    if uid is None:
+        return render(request, "message.html", status_code=400, title="Link not valid",
+                      text="This unsubscribe link is not valid. You can turn reminders off from your account page.",
+                      href="/account", link="Account settings")
+    db.set_reminders(uid, False)
+    return render(request, "message.html", title="You are unsubscribed",
+                  text="We will not send you reminder emails any more. You can turn them back on from your account page.",
+                  href="/", link="Back to Java Practice")
+
+
+@app.get("/unsubscribe/{token}")
+async def unsubscribe_get(request: Request, token: str):
+    return await _unsubscribe(request, token)
+
+
+@app.post("/unsubscribe/{token}")  # mail clients' one-click unsubscribe (RFC 8058) POST here
+async def unsubscribe_post(request: Request, token: str):
+    return await _unsubscribe(request, token)
 
 
 @app.post("/logout")
@@ -418,17 +471,19 @@ async def goal_page(request: Request):
     user = current_user(request)
     if not user:
         return RedirectResponse("/login", status_code=303)
-    return render(request, "goal.html", goals=GOALS, current=user["daily_goal"],
+    return render(request, "goal.html", goals=GOALS, current=user["daily_goal"], mail_ready=mailer.configured(),
                   first=bool(request.query_params.get("first")))
 
 
 @app.post("/goal")
-async def goal_set(request: Request, goal: int = Form(...), first: str = Form("")):
+async def goal_set(request: Request, goal: int = Form(...), first: str = Form(""), remind: str = Form("")):
     user = current_user(request)
     if not user:
         return RedirectResponse("/login", status_code=303)
     if goal in GOALS:
         db.set_daily_goal(user["id"], goal)
+    if first and mailer.configured():
+        db.set_reminders(user["id"], bool(remind))
     if first and user["level"]:
         return RedirectResponse("/day/1/q/1?welcome=1", status_code=303)
     return RedirectResponse("/dashboard", status_code=303)
@@ -455,6 +510,9 @@ async def dashboard(request: Request):
         state = "done" if s == 5 else "partial" if (s or a) else "todo"
         days.append({"n": n, "title": day["title"], "solved": s, "attempted": a, "state": state})
     total = sum(d["solved"] for d in days)
+    cookie_tz = request.cookies.get("tz", "")
+    if cookie_tz and cookie_tz != user["tz"] and stats._load_zone(cookie_tz):
+        db.set_tz(user["id"], cookie_tz)
     active_dates = db.get_active_dates(user["id"])
     streak = stats.streak_v2(active_dates)
     repair = None

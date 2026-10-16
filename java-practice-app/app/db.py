@@ -151,6 +151,8 @@ SCHEMA_PG = [
 MIGRATIONS = [
     ("users", "daily_goal", "INTEGER NOT NULL DEFAULT 1"),
     ("users", "email_verified", "INTEGER NOT NULL DEFAULT 1"),
+    ("users", "reminders", "INTEGER NOT NULL DEFAULT 0"),
+    ("users", "tz", "TEXT NOT NULL DEFAULT ''"),
     ("progress", "solved_at", "BIGINT"),
 ]
 
@@ -583,3 +585,20 @@ def delete_user(user_id: int) -> None:
         for table in USER_TABLES:
             _x(c, f"DELETE FROM {table} WHERE user_id = ?", (user_id,))
         _x(c, "DELETE FROM users WHERE id = ?", (user_id,))
+
+
+# ---- reminders ----
+def set_reminders(user_id: int, on: bool) -> None:
+    with connect() as c:
+        _x(c, "UPDATE users SET reminders = ? WHERE id = ?", (1 if on else 0, user_id))
+
+
+def set_tz(user_id: int, tz: str) -> None:
+    with connect() as c:
+        _x(c, "UPDATE users SET tz = ? WHERE id = ?", (tz, user_id))
+
+
+def list_reminder_users():
+    """Users who opted in to reminders and have a confirmed email address."""
+    with connect() as c:
+        return _x(c, "SELECT id, email, tz FROM users WHERE reminders = 1 AND email_verified = 1").fetchall()

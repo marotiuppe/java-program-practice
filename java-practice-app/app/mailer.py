@@ -29,10 +29,10 @@ def configured() -> bool:
     return MEMORY or bool(SMTP_USER and SMTP_PASSWORD)
 
 
-def send(to: str, subject: str, body: str) -> bool:
+def send(to: str, subject: str, body: str, headers: dict | None = None) -> bool:
     """Send one message. Blocking: call it from a background task. Returns False (and logs) on failure."""
     if MEMORY:
-        outbox.append({"to": to, "subject": subject, "body": body})
+        outbox.append({"to": to, "subject": subject, "body": body, "headers": headers or {}})
         return True
     if not configured():
         log.warning("mail not configured; would have sent %r to %s", subject, to)
@@ -41,6 +41,8 @@ def send(to: str, subject: str, body: str) -> bool:
     msg["From"] = MAIL_FROM
     msg["To"] = to
     msg["Subject"] = subject
+    for name, value in (headers or {}).items():
+        msg[name] = value
     msg.set_content(body)
     try:
         with smtplib.SMTP_SSL(SMTP_HOST, SMTP_PORT, context=ssl.create_default_context(), timeout=20) as s:
