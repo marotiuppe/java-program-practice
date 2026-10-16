@@ -37,6 +37,8 @@ RUNNER_UID = int(os.environ.get("RUNNER_UID", "10001"))
 _slot = asyncio.Semaphore(1)
 MAX_QUEUE = int(os.environ.get("RUN_QUEUE_MAX", "6"))  # programs allowed to wait for the slot
 _waiting = 0
+sandbox_ready = threading.Event()  # set once the sandbox self-test has finished (pass or fail)
+sandbox_check_started = threading.Event()  # set by the web app at startup; scripts that skip it never wait
 
 
 def queue_depth() -> int:
@@ -283,6 +285,13 @@ def _busy(waiting: int) -> dict:
 
 async def _guarded(fn, *args) -> dict:
     global _waiting
+    # Learner code must never run before we know whether the network filter works.
+    for _ in range(240):
+        if sandbox_ready.is_set() or not sandbox_check_started.is_set():
+            break
+        await asyncio.sleep(0.5)
+    else:
+        return {"stage": "busy", "ok": False, "error": "The server is still starting up. Please try again in a moment."}
     if _slot.locked() and _waiting >= MAX_QUEUE:  # refuse early instead of piling up requests
         log.warning("runner queue full (%d waiting)", _waiting)
         return _busy(_waiting)
@@ -332,6 +341,13 @@ def sandbox_self_test() -> str:
 
     Passes only if, with the filter on, (1) a normal Java program still compiles and runs and (2) a connection
     to a listening local port is refused. Blocking: call from a thread at startup."""
+    try:
+        return _sandbox_self_test()
+    finally:
+        sandbox_ready.set()
+
+
+def _sandbox_self_test() -> str:
     sandbox.ENABLED = False
     if os.environ.get("SANDBOX", "").lower() == "off":
         sandbox.STATUS = "off (SANDBOX=off): network access from user code is NOT blocked"

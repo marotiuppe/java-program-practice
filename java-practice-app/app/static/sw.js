@@ -1,6 +1,6 @@
 /* Service worker: caches the app shell and visited pages so question text can be read offline.
    Running code still needs the server. Bump VERSION to drop old caches after a change here. */
-const VERSION = 'v5';
+const VERSION = 'v6';
 const STATIC = 'static-' + VERSION;
 const PAGES = 'pages-' + VERSION;
 const SHELL = ['/static/style.css', '/static/editor.js', '/static/javalang.js', '/static/tabs.js', '/static/celebrate.js',
@@ -41,8 +41,9 @@ self.addEventListener('fetch', (e) => {
 
   if (req.mode === 'navigate') {
     // network first so progress is always current; fall back to the last copy when offline.
-    // If the server takes more than WAKE_AFTER_MS (a sleeping free instance), show a friendly
-    // "waking up" page that polls /health and reloads as soon as the server answers.
+    // If the page takes more than WAKE_AFTER_MS, probe /health. Only when the probe also fails or hangs
+    // (a sleeping free instance) show a friendly "waking up" page that reloads once the server answers.
+    // A server that answers /health but is just slow keeps waiting for the real page.
     const network = fetch(req).then((r) => {
       if (r.ok && !r.redirected && /^\/(day\/|dashboard)/.test(url.pathname)) {
         const copy = r.clone();
@@ -50,12 +51,20 @@ self.addEventListener('fetch', (e) => {
       }
       return r;
     });
-    const wake = new Promise((resolve) => setTimeout(() => resolve(wakingPage()), WAKE_AFTER_MS));
+    const wake = new Promise((resolve) => setTimeout(async () => {
+      const ctl = new AbortController();
+      const timer = setTimeout(() => ctl.abort(), PROBE_MS);
+      const awake = await fetch('/health', { cache: 'no-store', signal: ctl.signal })
+        .then((r) => r.ok).catch(() => false);
+      clearTimeout(timer);
+      if (!awake) resolve(wakingPage());  // otherwise never resolve: the network response wins the race
+    }, WAKE_AFTER_MS));
     e.respondWith(Promise.race([network, wake]).catch(async () => (await caches.match(req)) || offlinePage()));
   }
 });
 
-const WAKE_AFTER_MS = 5000;
+const WAKE_AFTER_MS = 6000;
+const PROBE_MS = 4000;
 const html = (body, status) => new Response(body, {
   status: status || 200, headers: { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-store' },
 });

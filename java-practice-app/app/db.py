@@ -189,14 +189,39 @@ def _x(c, sql, params=()):
     return c.execute(sql.replace("?", "%s") if PG else sql, params)
 
 
+_pool = None
+
+
+def _get_pool():
+    """Shared Postgres connection pool. Opening a connection to a remote database (TLS + auth) takes hundreds of
+    milliseconds, and a single page runs many queries, so connections are reused instead of opened per query."""
+    global _pool
+    if _pool is None:
+        from psycopg_pool import ConnectionPool
+
+        _pool = ConnectionPool(
+            DATABASE_URL,
+            min_size=1,
+            max_size=int(os.environ.get("DB_POOL_MAX", "8")),
+            max_idle=240,  # drop connections the host (e.g. Neon) would close anyway
+            timeout=30,
+            check=ConnectionPool.check_connection,  # replace a connection that went stale while idle
+            kwargs={"row_factory": dict_row, "connect_timeout": 15},
+            open=True,
+        )
+    return _pool
+
+
 @contextmanager
 def connect():
     if PG:
-        conn = psycopg.connect(DATABASE_URL, row_factory=dict_row, connect_timeout=15)
-    else:
-        conn = sqlite3.connect(DB_PATH, timeout=10)
-        conn.row_factory = sqlite3.Row
-        conn.execute("PRAGMA journal_mode=WAL")
+        # commits when the block ends normally, rolls back on an exception, then returns the connection
+        with _get_pool().connection() as conn:
+            yield conn
+        return
+    conn = sqlite3.connect(DB_PATH, timeout=10)
+    conn.row_factory = sqlite3.Row
+    conn.execute("PRAGMA journal_mode=WAL")
     try:
         yield conn
         conn.commit()

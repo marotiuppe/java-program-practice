@@ -16,7 +16,7 @@ from fastapi.templating import Jinja2Templates
 from starlette.middleware.sessions import SessionMiddleware
 
 from . import badges, content, db, grading, hints, mailer, ratelimit, reminders, sandbox, stats
-from .runner import run_java, run_java_batch, sandbox_self_test
+from .runner import run_java, run_java_batch, sandbox_check_started, sandbox_self_test
 
 logging.basicConfig(level=logging.INFO)
 log = logging.getLogger("app")
@@ -66,7 +66,9 @@ async def _reminder_loop() -> None:
 async def lifespan(app: FastAPI):
     db.init()
     content.load()
-    await asyncio.to_thread(sandbox_self_test)
+    # in the background: the web server starts answering at once; code runs wait until it finishes
+    sandbox_check_started.set()
+    selftest = asyncio.create_task(asyncio.to_thread(sandbox_self_test))
     task = None
     reminder_task = asyncio.create_task(_reminder_loop()) if mailer.configured() else None
     base = os.environ.get("KEEPALIVE_URL") or os.environ.get("RENDER_EXTERNAL_URL")
@@ -77,6 +79,7 @@ async def lifespan(app: FastAPI):
         task.cancel()
     if reminder_task:
         reminder_task.cancel()
+    selftest.cancel()
 
 
 app = FastAPI(lifespan=lifespan)
