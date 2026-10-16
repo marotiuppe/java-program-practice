@@ -400,3 +400,10 @@ def has_event(user_id: int, name: str, meta: str) -> bool:
     with connect() as c:
         return _x(c, "SELECT 1 FROM events WHERE user_id = ? AND name = ? AND meta = ?",
                   (user_id, name, meta)).fetchone() is not None
+
+
+def get_all_progress(user_id: int):
+    """(level, day, qnum, status) for every question the user has touched, across all levels."""
+    with connect() as c:
+        rows = _x(c, "SELECT level, day, qnum, status FROM progress WHERE user_id = ?", (user_id,)).fetchall()
+    return [(r["level"], r["day"], r["qnum"], r["status"]) for r in rows]

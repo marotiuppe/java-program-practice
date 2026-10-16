@@ -13,7 +13,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from starlette.middleware.sessions import SessionMiddleware
 
-from . import content, db, grading, stats
+from . import badges, content, db, grading, stats
 from .runner import run_java, run_java_batch
 
 logging.basicConfig(level=logging.INFO)
@@ -289,6 +289,25 @@ def _repair_streak_length(active_dates: list):
         return None
     gained = stats.streak_v2(active_dates + [yesterday])["current"]
     return gained if gained > stats.streak_v2(active_dates)["current"] else None
+
+
+def _kind_of(level: str, day: int, q: int) -> str:
+    _, question = _get_question(level, day, q)
+    return question["kind"] if question else "code"
+
+
+@app.get("/profile")
+async def profile(request: Request):
+    user = current_user(request)
+    if not user:
+        return RedirectResponse("/login", status_code=303)
+    streak = stats.streak_v2(db.get_active_dates(user["id"]))
+    result = badges.compute(
+        db.get_all_progress(user["id"]), _kind_of,
+        {lv: len(info["days"]) for lv, info in content.CONTENT.items()},
+        streak["longest"], db.has_event(user["id"], "first_run", ""),
+    )
+    return render(request, "profile.html", streak=streak, **result)
 
 
 HEAT_WEEKS = 12

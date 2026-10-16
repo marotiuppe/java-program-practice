@@ -19,6 +19,7 @@
     {% if user %}
       <button id="install-app" class="link" type="button" hidden>Install app</button>
       <a href="/dashboard">Dashboard</a>
+      <a href="/profile">Profile</a>
       <a href="/level">Level</a>
       {% if is_admin %}<a href="/admin">Admin</a>{% endif %}
       <span class="who"><span class="avatar">{{ user.email[:1] | upper }}</span><span class="muted">{{ user.email }}</span>

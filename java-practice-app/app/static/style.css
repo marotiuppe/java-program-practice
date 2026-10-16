@@ -213,3 +213,11 @@ form.inline{display:inline}
 .heat-cell.h3{background:color-mix(in srgb,var(--accent) 75%,var(--line))}
 .heat-cell.h4{background:var(--accent)}
 .heat-cell.frozen{box-shadow:inset 0 0 0 2px #38bdf8}
+
+/* ---- profile, XP and badges (roadmap 2.5) ---- */
+.xp-head{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;margin-bottom:8px}
+.badge-shelf{display:grid;gap:12px;grid-template-columns:repeat(auto-fill,minmax(200px,1fr))}
+.badge-card{display:flex;flex-direction:column;gap:4px;padding:14px;border:1px solid var(--line);border-radius:var(--r);background:var(--card);box-shadow:var(--shadow)}
+.badge-card.earned{border-color:var(--accent)}
+.badge-card.locked{opacity:.6}
+.badge-icon{font-size:30px;line-height:1}

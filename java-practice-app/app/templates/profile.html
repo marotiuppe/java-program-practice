@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block title %}Profile{% endblock %}
+{% block content %}
+<h1>Your progress</h1>
+<div class="card">
+  <div class="xp-head"><b>Learner level {{ learner.level }}</b><span class="muted">{{ learner.xp }} XP &middot; {{ learner.next - learner.xp }} XP to level {{ learner.level + 1 }}</span></div>
+  <div class="meter"><i style="width:{{ learner.pct }}%"></i></div>
+  <p class="muted small">10 XP per solved question, 50 for completing a day, 300 for completing a level.</p>
+</div>
+<div class="stats">
+  <div class="stat"><b>{{ solved_total }}</b><span>questions solved</span></div>
+  <div class="stat"><b>{{ streak.current }}</b><span>day streak</span></div>
+  <div class="stat"><b>{{ streak.longest }}</b><span>longest streak</span></div>
+  <div class="stat"><b>{{ badges | selectattr('earned') | list | length }}/{{ badges | length }}</b><span>badges earned</span></div>
+</div>
+<h2>Badges</h2>
+<div class="badge-shelf">
+  {% for b in badges %}
+  <div class="badge-card {{ 'earned' if b.earned else 'locked' }}">
+    <div class="badge-icon" aria-hidden="true">{{ '&#127941;' if b.earned else '&#128274;' }}</div>
+    <b>{{ b.title }}</b>
+    <span class="muted small">{{ b.how }}</span>
+    <span class="small">{{ 'Earned' if b.earned else 'Not yet' }}</span>
+  </div>
+  {% endfor %}
+</div>
+{% endblock %}
