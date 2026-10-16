@@ -504,5 +504,27 @@
     });
   }
 
+  /* ---------------- keyboard-aware layout (touch devices) ---------------- */
+  // While the editor is focused, the editor shrinks to the visible area and the symbol bar sits just
+  // above the on-screen keyboard. CSS reads --vvh (visible height) and --kb (keyboard height).
+  if (window.visualViewport && window.matchMedia('(pointer: coarse)').matches) {
+    const vv = window.visualViewport, root = document.documentElement;
+    const updateViewport = () => {
+      root.style.setProperty('--vvh', vv.height + 'px');
+      root.style.setProperty('--kb', Math.max(0, window.innerHeight - vv.height - vv.offsetTop) + 'px');
+    };
+    vv.addEventListener('resize', updateViewport);
+    vv.addEventListener('scroll', updateViewport);
+    updateViewport();
+    code.addEventListener('focus', () => {
+      document.body.classList.add('typing');
+      updateViewport();
+      setTimeout(() => { updateViewport(); area.parentElement.scrollIntoView({ block: 'start' }); }, 300);
+    });
+    code.addEventListener('blur', () => setTimeout(() => {
+      if (document.activeElement !== code) document.body.classList.remove('typing');
+    }, 200));
+  }
+
   refresh();
 })();
