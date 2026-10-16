@@ -201,3 +201,15 @@ form.inline{display:inline}
 .ring-bg{stroke:var(--line)}
 .ring-fg{stroke:var(--accent);stroke-linecap:round}
 .ring-text{font-size:17px;font-weight:700;fill:var(--fg)}
+
+/* ---- streak v2 (roadmap 2.4) ---- */
+.repair{margin:10px 0;padding:10px 14px;border:1px solid var(--accent);background:var(--accent-soft);border-radius:8px;display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.heat{display:flex;gap:4px;margin:10px 0 18px;overflow-x:auto;padding-bottom:4px}
+.heat-col{display:flex;flex-direction:column;gap:4px}
+.heat-cell{width:14px;height:14px;border-radius:3px;background:var(--line);display:block}
+.heat-cell.blank{background:transparent}
+.heat-cell.h1{background:color-mix(in srgb,var(--accent) 28%,var(--line))}
+.heat-cell.h2{background:color-mix(in srgb,var(--accent) 50%,var(--line))}
+.heat-cell.h3{background:color-mix(in srgb,var(--accent) 75%,var(--line))}
+.heat-cell.h4{background:var(--accent)}
+.heat-cell.frozen{box-shadow:inset 0 0 0 2px #38bdf8}

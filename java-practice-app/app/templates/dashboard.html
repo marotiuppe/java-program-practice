@@ -25,9 +25,25 @@
 </div>
 <div class="stats">
   <div class="stat"><b>{{ streak.current }}</b><span>day streak{% if streak.current and not streak.today %} (practice today to keep it){% endif %}</span></div>
-  <div class="stat"><b>{{ streak.longest }}</b><span>longest streak</span></div>
+  <div class="stat"><b>{{ streak.longest }}</b><span>longest streak{% if streak.longest and streak.longest == streak.current %} &#127942;{% endif %}</span></div>
+  <div class="stat"><b>{{ streak.freezes }}/2</b><span>streak freezes{% if streak.next_freeze_in %} &middot; next in {{ streak.next_freeze_in }} day{{ '' if streak.next_freeze_in == 1 else 's' }}{% endif %}</span></div>
   <div class="stat"><b>{{ streak.total }}</b><span>days practiced</span></div>
-  <div class="stat"><b>{{ total_solved }}</b><span>solved in this level</span></div>
+</div>
+{% if repair %}
+<form method="post" action="/streak/repair" class="repair">
+  You missed yesterday. Repair it (once a month) to get back to a {{ repair }}-day streak.
+  <button class="primary">Repair streak</button>
+</form>
+{% endif %}
+<p class="muted small">A freeze is earned every 7 practice days (keep up to 2) and saves your streak automatically on a day you miss.</p>
+<div class="heat" role="img" aria-label="Practice calendar for the last {{ heatmap | length }} weeks">
+  {% for week in heatmap %}
+  <div class="heat-col">
+    {% for c in week %}
+      {% if c %}<i class="heat-cell h{{ c.level }}{{ ' frozen' if c.frozen }}" title="{{ c.date }}: {{ c.n }} solved{{ ' (freeze used)' if c.frozen }}"></i>{% else %}<i class="heat-cell blank"></i>{% endif %}
+    {% endfor %}
+  </div>
+  {% endfor %}
 </div>
 <div class="grid">
   {% for d in days %}

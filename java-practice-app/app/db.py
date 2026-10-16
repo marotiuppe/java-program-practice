@@ -386,3 +386,17 @@ def hardest_questions(limit: int = 15, min_users: int = 2):
                      "FROM progress GROUP BY level, day, qnum HAVING COUNT(*) >= ? "
                      "ORDER BY (1.0 * SUM(CASE WHEN status = 'solved' THEN 1 ELSE 0 END) / COUNT(*)) ASC, "
                      "SUM(attempts) DESC LIMIT ?", (min_users, limit)).fetchall()
+
+
+def get_solved_epochs(user_id: int) -> list:
+    """Solve times (unix seconds) of all questions the user has solved, for the activity heatmap."""
+    with connect() as c:
+        rows = _x(c, "SELECT solved_at FROM progress WHERE user_id = ? AND status = 'solved' "
+                     "AND solved_at IS NOT NULL", (user_id,)).fetchall()
+    return [r["solved_at"] for r in rows]
+
+
+def has_event(user_id: int, name: str, meta: str) -> bool:
+    with connect() as c:
+        return _x(c, "SELECT 1 FROM events WHERE user_id = ? AND name = ? AND meta = ?",
+                  (user_id, name, meta)).fetchone() is not None

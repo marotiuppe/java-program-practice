@@ -4,7 +4,7 @@ import os
 import re
 import time
 import urllib.request
-from datetime import date, timedelta
+from datetime import date, datetime, timedelta
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, Form, Request
@@ -76,6 +76,13 @@ async def unhandled_error(request: Request, exc: Exception):
     if request.url.path.startswith("/api/"):
         return JSONResponse({"error": "Something went wrong on the server."}, status_code=500)
     return JSONResponse({"error": "Something went wrong on the server. Please try again."}, status_code=500)
+
+
+@app.middleware("http")
+async def user_timezone(request: Request, call_next):
+    """The browser sends its timezone in a cookie; "today" and streaks then follow the learner's clock."""
+    stats.set_request_timezone(request.cookies.get("tz"))
+    return await call_next(request)
 
 
 def current_user(request: Request):
@@ -185,6 +192,19 @@ async def level_set(request: Request, level: str = Form(...)):
     return RedirectResponse("/dashboard", status_code=303)
 
 
+@app.post("/streak/repair")
+async def streak_repair(request: Request):
+    """Once a month, count yesterday as practiced so a one-day slip does not wipe the streak."""
+    user = current_user(request)
+    if not user:
+        return RedirectResponse("/login", status_code=303)
+    active = db.get_active_dates(user["id"])
+    if _repair_streak_length(active) and db.log_event(
+            user["id"], "streak_repair", stats.today_str()[:7], once=True):
+        db.touch_activity(user["id"], (stats.today() - timedelta(days=1)).isoformat())
+    return RedirectResponse("/dashboard", status_code=303)
+
+
 GOALS = (1, 3, 5)
 
 
@@ -230,13 +250,19 @@ async def dashboard(request: Request):
         state = "done" if s == 5 else "partial" if (s or a) else "todo"
         days.append({"n": n, "title": day["title"], "solved": s, "attempted": a, "state": state})
     total = sum(d["solved"] for d in days)
-    streak = stats.compute(db.get_active_dates(user["id"]))
+    active_dates = db.get_active_dates(user["id"])
+    streak = stats.streak_v2(active_dates)
+    repair = None
+    if not db.has_event(user["id"], "streak_repair", stats.today_str()[:7]):
+        repair = _repair_streak_length(active_dates)
     return render(
         request,
         "dashboard.html",
         days=days,
         next_q=_next_unsolved(user["level"], solved_set),
         solved_today=db.count_solved_since(user["id"], stats.today_start_epoch()),
+        heatmap=_heatmap(db.get_solved_epochs(user["id"]), set(active_dates), set(map(str, streak["frozen"]))),
+        repair=repair,
         daily_goal=user["daily_goal"],
         started=bool(solved_set or attempted),
         level_label=content.CONTENT[level]["label"],
@@ -252,6 +278,45 @@ def _next_unsolved(level: str, solved_set: set):
             if (n, q) not in solved_set:
                 return {"day": n, "q": q}
     return None
+
+
+def _repair_streak_length(active_dates: list):
+    """The streak length a repair would restore, or None when repairing makes no sense: yesterday was
+    missed AND the day before was a practice day, so there really was a streak to save."""
+    today = stats.today()
+    yesterday, before = (today - timedelta(days=1)).isoformat(), (today - timedelta(days=2)).isoformat()
+    if yesterday in active_dates or before not in active_dates:
+        return None
+    gained = stats.streak_v2(active_dates + [yesterday])["current"]
+    return gained if gained > stats.streak_v2(active_dates)["current"] else None
+
+
+HEAT_WEEKS = 12
+
+
+def _heatmap(solved_epochs, active: set, frozen: set):
+    """Weeks (Monday first) ending with the current week. Level 0 none, 1 practiced, 2-4 by questions solved."""
+    per_day = {}
+    zone = stats.zone()
+    for t in solved_epochs:
+        d = datetime.fromtimestamp(t, zone).date().isoformat()
+        per_day[d] = per_day.get(d, 0) + 1
+    today = stats.today()
+    start = today - timedelta(days=today.weekday() + 7 * (HEAT_WEEKS - 1))
+    weeks = []
+    for w in range(HEAT_WEEKS):
+        col = []
+        for i in range(7):
+            d = start + timedelta(days=7 * w + i)
+            ds = d.isoformat()
+            if d > today:
+                col.append(None)
+                continue
+            n = per_day.get(ds, 0)
+            level = 0 if ds not in active and not n else 1 if not n else 2 if n < 3 else 3 if n < 5 else 4
+            col.append({"date": ds, "n": n, "level": level, "frozen": ds in frozen})
+        weeks.append(col)
+    return weeks
 
 
 def _get_question(level: str, day: int, q: int):

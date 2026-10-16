@@ -1,5 +1,11 @@
 /* Registers the service worker and offers "Install app" where the browser supports it. */
 (function () {
+  // Tell the server our timezone so "today" and streaks follow the learner's own clock.
+  try {
+    const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    if (tz) document.cookie = 'tz=' + encodeURIComponent(tz) + '; path=/; max-age=31536000; samesite=lax';
+  } catch (e) { /* cookie stays unset: server falls back to its default zone */ }
+
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
       navigator.serviceWorker.register('/sw.js').catch(() => {});
