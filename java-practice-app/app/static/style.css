@@ -245,3 +245,19 @@ form.inline{display:inline}
 .hints{margin:8px 0;padding:8px 12px;border:1px dashed var(--line);border-radius:8px}
 .hints ol{margin:4px 0 8px 18px;padding:0}
 .hints li{margin:4px 0}
+
+/* ---- landing and public plan pages (roadmap 4.8) ---- */
+.hero{text-align:center;max-width:720px;margin:24px auto 36px}
+.hero h1{font-size:40px;line-height:1.15;margin:12px 0}
+.lead{font-size:18px;color:var(--muted)}
+.cta{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin:18px 0}
+.plan-list + .muted,.cta{align-items:center}
+.btn-ghost{display:inline-block;padding:12px 20px;border-radius:8px;border:1px solid var(--line);text-decoration:none;font-weight:600;color:var(--fg)}
+.kinds{margin-bottom:24px;grid-template-columns:repeat(auto-fit,minmax(170px,1fr))}
+.level-card{text-decoration:none;color:var(--fg)}
+.level-card span{color:var(--accent);font-weight:600}
+.feature-list{max-width:760px;line-height:1.7}
+.plan-list{columns:2 320px;gap:24px;padding-left:22px}
+.plan-list li{margin:4px 0;break-inside:avoid}
+details.card summary{cursor:pointer}
+@media (max-width:700px){.hero h1{font-size:30px}}

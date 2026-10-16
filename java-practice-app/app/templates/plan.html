@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block title %}{{ label }} Java 30-day plan{% endblock %}
+{% block description %}The {{ label }} Java practice plan: 30 days, 5 questions a day. {{ blurb }}{% endblock %}
+{% block content %}
+<h1>{{ label }} Java: 30-day plan</h1>
+<p class="lead">{{ blurb }} Five questions a day: a real-world scenario, an interview question, an assessment-style problem, a predict-the-output, and a debugging task.</p>
+<p class="cta"><a class="btn-continue" href="/signup">Start this plan free</a></p>
+<ol class="plan-list">
+  {% for d in days %}
+  <li><a href="/plan/{{ level }}/day/{{ d.n }}"><b>Day {{ d.n }}</b> {{ d.title }}</a></li>
+  {% endfor %}
+</ol>
+<p class="muted">Other levels: {% for k, l in [('beginner','Beginner'),('intermediate','Intermediate'),('advanced','Advanced')] if k != level %}<a href="/plan/{{ k }}">{{ l }}</a>{% if not loop.last %} &middot; {% endif %}{% endfor %}</p>
+{% endblock %}

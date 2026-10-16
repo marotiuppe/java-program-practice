@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% block title %}Java Practice: learn Java in 30 days{% endblock %}
+{% block title_suffix %}{% endblock %}
+{% block description %}A free 30-day Java practice plan: {{ total }} questions, a built-in editor that compiles and runs your code, instant feedback, streaks and review. Works on your phone.{% endblock %}
+{% block content %}
+<section class="hero">
+  <img src="/static/logo.svg" width="72" height="72" alt="">
+  <h1>Learn Java in 30 days</h1>
+  <p class="lead">One practice plan, a real editor in your browser, and instant feedback. Five questions a day, three levels, completely free.</p>
+  <p class="cta">
+    <a class="btn-continue" href="/signup">Start free</a>
+    <a class="btn-ghost" href="/login">Log in</a>
+  </p>
+  <p class="muted small">No install. Works on your phone. Your progress is saved.</p>
+</section>
+
+<h2>Every day, five different kinds of question</h2>
+<div class="grid kinds">
+  {% for title, text in kinds %}
+  <div class="card"><b>{{ loop.index }}. {{ title }}</b><p class="muted">{{ text }}</p></div>
+  {% endfor %}
+</div>
+
+<h2>Pick your level</h2>
+<div class="grid kinds">
+  {% for key, label, blurb in levels %}
+  <a class="card level-card" href="/plan/{{ key }}"><b>{{ label }}</b><p class="muted">{{ blurb }}</p><span>See the 30-day plan &rarr;</span></a>
+  {% endfor %}
+</div>
+
+<h2>Built to help you keep going</h2>
+<ul class="feature-list">
+  <li><b>Run Java in the browser.</b> Write, compile and run with input and instant error messages explained in plain language.</li>
+  <li><b>Check your work.</b> Run the samples, hidden tests and debug checks, or predict the output and see if you were right.</li>
+  <li><b>Daily goal and streaks.</b> Pick 1, 3 or 5 questions a day. Streak freezes forgive a missed day.</li>
+  <li><b>Review queue.</b> Hard questions come back after 1, 3, 7 and 21 days so they stick.</li>
+  <li><b>Phone friendly.</b> Install it like an app and practice anywhere, with a symbol bar for easy typing.</li>
+  <li><b>Private.</b> Download or delete all your data at any time.</li>
+</ul>
+
+<h2>Questions</h2>
+<details class="card"><summary><b>Is it really free?</b></summary><p>Yes. There are no ads and no paid tier at the moment.</p></details>
+<details class="card"><summary><b>Do I need to install Java?</b></summary><p>No. Your code runs on our server and the output appears in your browser.</p></details>
+<details class="card"><summary><b>Can I use it with no experience?</b></summary><p>Yes. The Beginner plan starts from your first program and builds up day by day.</p></details>
+<details class="card"><summary><b>Are the questions checked?</b></summary><p>They are written with AI assistance and checked step by step. Every question has a "Report an issue" button, and we fix problems quickly.</p></details>
+{% endblock %}

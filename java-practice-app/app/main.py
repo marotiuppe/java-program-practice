@@ -166,7 +166,9 @@ def is_admin(user) -> bool:
 
 def render(request: Request, name: str, status_code: int = 200, **ctx):
     return templates.TemplateResponse(
-        request, name, {"user": (u := current_user(request)), "is_admin": is_admin(u), **ctx}, status_code=status_code)
+        request, name,
+        {"user": (u := current_user(request)), "is_admin": is_admin(u), "site_url": base_url(request), **ctx},
+        status_code=status_code)
 
 
 def client_ip(request: Request) -> str:
@@ -211,14 +213,70 @@ async def health():
     return {"status": "ok"}
 
 
+LEVEL_BLURBS = {
+    "beginner": "Syntax, loops, strings, arrays and basic OOP. No experience needed.",
+    "intermediate": "OOP in depth, collections, algorithms, Java 17 features and streams.",
+    "advanced": "Data structures, graphs, dynamic programming, concurrency and design.",
+}
+QUESTION_KINDS = [
+    ("Real-world scenarios", "Small programs that mirror jobs like billing, grading and inventory."),
+    ("Interview questions", "The classics that come up in screening rounds."),
+    ("Assessment style", "Company-style problems with samples and edge cases."),
+    ("Predict the output", "Trace code in your head, then check your answer."),
+    ("Debug the code", "Find and fix what is broken, the way you do at work."),
+]
+
+
 @app.get("/")
 async def index(request: Request):
     user = current_user(request)
     if not user:
-        return RedirectResponse("/login", status_code=303)
+        levels = [(k, v["label"], LEVEL_BLURBS[k]) for k, v in content.CONTENT.items()]
+        total = sum(len(d["questions"]) for v in content.CONTENT.values() for d in v["days"].values())
+        return render(request, "landing.html", levels=levels, total=total, kinds=QUESTION_KINDS)
     if not user["level"]:
         return RedirectResponse("/level", status_code=303)
     return RedirectResponse("/dashboard", status_code=303)
+
+
+@app.get("/plan/{level}")
+async def plan_page(request: Request, level: str):
+    info = content.CONTENT.get(level)
+    if not info:
+        return JSONResponse({"error": "Not found."}, status_code=404)
+    days = [{"n": n, "title": d["title"]} for n, d in sorted(info["days"].items())]
+    return render(request, "plan.html", level=level, label=info["label"], blurb=LEVEL_BLURBS[level], days=days)
+
+
+@app.get("/plan/{level}/day/{n}")
+async def plan_day_page(request: Request, level: str, n: int):
+    d = content.CONTENT.get(level, {}).get("days", {}).get(n)
+    if not d:
+        return JSONResponse({"error": "Not found."}, status_code=404)
+    cats = [q["category"] for _, q in sorted(d["questions"].items())]
+    last = max(content.CONTENT[level]["days"])
+    return render(request, "plan_day.html", level=level, label=content.CONTENT[level]["label"], day=d,
+                  categories=cats, prev_n=n - 1 if n > 1 else None, next_n=n + 1 if n < last else None)
+
+
+@app.get("/robots.txt", include_in_schema=False)
+async def robots(request: Request):
+    body = ("User-agent: *\nAllow: /\nDisallow: /api/\nDisallow: /admin\nDisallow: /account\nDisallow: /day/\n"
+            "Disallow: /dashboard\nDisallow: /review\nDisallow: /profile\nDisallow: /reset/\nDisallow: /verify/\n"
+            f"Sitemap: {base_url(request)}/sitemap.xml\n")
+    return Response(body, media_type="text/plain")
+
+
+@app.get("/sitemap.xml", include_in_schema=False)
+async def sitemap(request: Request):
+    root = base_url(request)
+    urls = [f"{root}/", f"{root}/privacy", f"{root}/signup"]
+    for level, info in content.CONTENT.items():
+        urls.append(f"{root}/plan/{level}")
+        urls += [f"{root}/plan/{level}/day/{n}" for n in sorted(info["days"])]
+    xml = ('<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
+           + "".join(f"  <url><loc>{u}</loc></url>\n" for u in urls) + "</urlset>\n")
+    return Response(xml, media_type="application/xml")
 
 
 @app.get("/signup")

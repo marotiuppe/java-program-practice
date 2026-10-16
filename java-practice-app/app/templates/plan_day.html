@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block title %}{{ label }} Java, Day {{ day.n }}: {{ day.title }}{% endblock %}
+{% block description %}Day {{ day.n }} of the {{ label }} Java plan: {{ day.title }}. Five practice questions with a built-in Java editor.{% endblock %}
+{% block content %}
+<p><a href="/plan/{{ level }}">&larr; {{ label }} plan</a></p>
+<h1>Day {{ day.n }}: {{ day.title }}</h1>
+<div class="card prose">{{ day.objectives_html | safe }}</div>
+<h2>Today&rsquo;s five questions</h2>
+<ol class="qlist">
+  {% for c in categories %}<li>{{ c }}</li>{% endfor %}
+</ol>
+<p class="cta"><a class="btn-continue" href="/signup">Practice Day {{ day.n }} free</a></p>
+<p>
+  {% if prev_n %}<a href="/plan/{{ level }}/day/{{ prev_n }}">&larr; Day {{ prev_n }}</a>{% endif %}
+  {% if next_n %}<a style="margin-left:16px" href="/plan/{{ level }}/day/{{ next_n }}">Day {{ next_n }} &rarr;</a>{% endif %}
+</p>
+{% endblock %}

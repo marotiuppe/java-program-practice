@@ -3,7 +3,16 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>{% block title %}Java Practice{% endblock %}</title>
+<title>{% block title %}Java Practice{% endblock %}{% block title_suffix %} · Java Practice{% endblock %}</title>
+<meta name="description" content="{% block description %}A free 30-day Java practice plan with a built-in editor that compiles and runs your code. Beginner, intermediate and advanced levels.{% endblock %}">
+<link rel="canonical" href="{{ site_url }}{{ request.url.path }}">
+<meta property="og:site_name" content="Java Practice">
+<meta property="og:type" content="website">
+<meta property="og:title" content="{{ self.title() | striptags }}">
+<meta property="og:description" content="{{ self.description() | striptags }}">
+<meta property="og:url" content="{{ site_url }}{{ request.url.path }}">
+<meta property="og:image" content="{{ site_url }}/static/og-image.png">
+<meta name="twitter:card" content="summary_large_image">
 <meta name="theme-color" content="#4f46e5">
 <link rel="icon" href="/static/favicon.svg" type="image/svg+xml">
 <link rel="manifest" href="/static/manifest.webmanifest">
