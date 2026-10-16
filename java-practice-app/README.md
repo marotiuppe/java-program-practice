@@ -65,16 +65,14 @@ Tick each item on the deployed URL. Use a throwaway account.
 - [ ] **Report an issue** sends; the report shows on `/admin` (if your email is in `ADMIN_EMAILS`).
 - [ ] Redeploy (or restart) the service, log in again; the account, progress and code survived.
 
-## Email (verification and password reset)
+## Email (verification, password reset, reminders)
 
-Mail goes through Gmail SMTP. Set these environment variables on Render (never commit them):
+**Important:** Render's free plan blocks outbound SMTP (ports 25, 465, 587), so Gmail SMTP does **not** work there. Pick one:
 
-- `SMTP_USER`: the Gmail address that sends the mail.
-- `SMTP_PASSWORD`: a Gmail **app password** (Google Account → Security → 2-Step Verification → App passwords). Your normal password will not work.
-- `MAIL_FROM` (optional sender name/address), `APP_BASE_URL` (the public site URL used in links; defaults to `RENDER_EXTERNAL_URL`).
+1. **Brevo HTTP API (works on the free plan).** Create a free Brevo account, add and verify your sender address (Senders, domains & dedicated IPs), create an API key (Settings, SMTP & API), then set on Render: `BREVO_API_KEY` and `MAIL_FROM` (the verified sender, e.g. `Java Practice <you@example.com>`). About 300 emails a day are free. A sender on a free mailbox domain such as gmail.com may land in spam more often; a sender on your own domain with DKIM set up in Brevo is best.
+2. **Gmail or any SMTP**, on a host that allows outbound SMTP (a paid Render instance, or your own machine): set `SMTP_USER` and `SMTP_PASSWORD` (for Gmail an **app password**: Google Account, Security, 2-Step Verification, App passwords), optionally `SMTP_HOST`/`SMTP_PORT` (default `smtp.gmail.com`/`465`) and `MAIL_FROM`.
 
-Without `SMTP_USER`/`SMTP_PASSWORD`, new accounts are marked verified automatically and "Forgot password" says reset is not set up.
-A personal Gmail account sends about 500 messages a day. If you outgrow that, switch `SMTP_HOST`/`SMTP_PORT` to another provider; no code change is needed.
+Also set `APP_BASE_URL` to the public site URL (links in emails use it). If both options are set, the HTTP API is used. Without any of them, new accounts are marked verified automatically and "Forgot password" says reset is not set up. The admin System page shows which method is active.
 
 ## Sandbox: what is and is not isolated
 
@@ -86,7 +84,7 @@ On Linux a **seccomp filter** (`app/sandbox.py`) also stops learner code from op
 
 ## Reminder emails
 
-Opt-in only (account page, or the checkbox at onboarding). At most one email per user per day, sent after `REMINDER_HOUR` (default 18) in the user's timezone: a streak nudge, one note after 3 days away and one after 14, and a Sunday recap. Needs the Gmail settings above plus `APP_BASE_URL` (so links point at your site). Optional: `REMINDER_HOUR`, `REMINDER_MAX_PER_RUN` (default 100), `REMINDER_CHECK_SECONDS` (default 1800). Sent mail is de-duplicated through the events table, so restarts never resend.
+Opt-in only (account page, or the checkbox at onboarding). At most one email per user per day, sent after `REMINDER_HOUR` (default 18) in the user's timezone: a streak nudge, one note after 3 days away and one after 14, and a Sunday recap. Needs the email settings above plus `APP_BASE_URL` (so links point at your site). Optional: `REMINDER_HOUR`, `REMINDER_MAX_PER_RUN` (default 100), `REMINDER_CHECK_SECONDS` (default 1800). Sent mail is de-duplicated through the events table, so restarts never resend.
 
 ## Backups and restore
 

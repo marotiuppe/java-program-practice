@@ -384,7 +384,7 @@ async def system(request: Request):
     info = [
         ("Database", "Postgres" if db.PG else "SQLite (local file, wiped on redeploy on the free plan)"),
         ("Sandbox", sandbox.STATUS),
-        ("Email sending", "configured (" + (mailer.SMTP_USER or "memory backend") + ")" if mailer.configured()
+        ("Email sending", mailer.backend() if mailer.configured()
          else "NOT configured: verification and reset emails are disabled"),
         ("Public URL (APP_BASE_URL)", os.environ.get("APP_BASE_URL") or os.environ.get("RENDER_EXTERNAL_URL") or "not set"),
         ("Reminder emails", f"after {reminders.REMINDER_HOUR}:00 local time, checked every {reminders.CHECK_SECONDS // 60} min"
