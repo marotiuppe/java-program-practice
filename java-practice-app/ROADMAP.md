@@ -106,7 +106,7 @@ Goal: know that it works, and hear about problems fast.
 ### Phase 1 — Mobile-first experience *(1–2 weeks)*
 Goal: practising on a phone feels natural. This should come early — the audience likely studies on phones.
 
-- [ ] **1.1 Responsive redesign (M).** On narrow screens switch the question page to **tabs: Problem · Code · Output**, a sticky bottom action bar (Run, Samples, Save), larger tap targets (≥44px), and inputs at 16px+ so iOS does not zoom. *Outcome:* usable one-handed on a 360px-wide screen; no horizontal scroll.
+- [x] **1.1 Responsive redesign (M).** On narrow screens switch the question page to **tabs: Problem · Code · Output**, a sticky bottom action bar (Run, Samples, Save), larger tap targets (≥44px), and inputs at 16px+ so iOS does not zoom. *Outcome:* usable one-handed on a 360px-wide screen; no horizontal scroll.
 - [ ] **1.2 Symbol toolbar for the editor (M).** A row above the keyboard: `Tab ( ) { } [ ] ; " . = < > ! & | ,` plus ← → ↑ ↓ and undo. Show only on touch devices. *Outcome:* a program can be typed without leaving the letter keyboard.
 - [ ] **1.3 Keyboard-aware layout (S).** Use the visual-viewport API so the editor and autocomplete popup stay visible above the on-screen keyboard. *Outcome:* the caret line is never hidden.
 - [ ] **1.4 Mobile autocomplete (S).** Popup appears above the caret on small screens, tap to accept. *Outcome:* suggestions work by touch.

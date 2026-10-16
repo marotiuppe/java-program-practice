@@ -137,3 +137,30 @@ form.inline{display:inline}
 .admin-table th,.admin-table td{text-align:left;padding:6px 10px;border-bottom:1px solid var(--line)}
 
 .welcome{margin:10px 0;padding:10px 14px;border-radius:8px;background:var(--accent-soft);border:1px solid var(--accent)}
+
+/* ---- phone layout (roadmap 1.1) ---- */
+.tabs{display:none}
+@media (max-width:700px){
+  main{padding-left:12px;padding-right:12px}
+  .tabs{display:flex;gap:6px;margin:0 0 10px}
+  .tabs button{flex:1;min-height:44px}
+  .tabs button.on{background:var(--accent);border-color:var(--accent);color:var(--accent-fg)}
+  .split[data-tab=problem] > .work,.split[data-tab=code] > .prose,.split[data-tab=output] > .prose{display:none}
+  .split[data-tab=code] .tabpart[data-tab=output],.split[data-tab=output] .tabpart[data-tab=code]{display:none}
+  .pane{padding:12px}
+  .actions{position:sticky;bottom:0;z-index:15;margin:10px -12px -12px;padding:8px 12px;background:var(--card);border-top:1px solid var(--line)}
+  .actions button{min-height:44px;flex:1 1 auto}
+  .actions #msg{flex-basis:100%}
+  .editor-wrap{height:min(420px,55vh)}
+  #gutter,#code,#hl{font-size:16px}
+  #stdin,#predict,.report select,.report textarea,input[type=email],input[type=password]{font-size:16px}
+  .qhead{flex-wrap:wrap;gap:6px}
+  .qhead a{display:inline-block;padding:8px 0}
+}
+@media (max-width:700px){
+  .top{padding:8px 12px}
+  .brand{font-size:15px;gap:6px}
+  .top nav{display:flex;align-items:center;gap:0}
+  .top nav a{padding:8px 8px}
+  .who{margin-left:4px;padding-left:8px;gap:6px}
+}

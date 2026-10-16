@@ -309,7 +309,10 @@
     return post('/api/save', Object.assign({ day: day, q: q, code: code.value }, extra || {}));
   }
 
+  const showOutput = () => { if (window.showTab) window.showTab('output'); };
+
   async function run() {
+    showOutput();
     runBtn.disabled = true;
     out.className = 'output';
     out.textContent = 'Compiling and running...';
@@ -359,6 +362,7 @@
   const testBtn = document.getElementById('test');
   const testsBox = document.getElementById('tests');
   async function runSamples() {
+    showOutput();
     testBtn.disabled = true;
     testsBox.hidden = false;
     testsBox.textContent = 'Compiling and running the samples...';

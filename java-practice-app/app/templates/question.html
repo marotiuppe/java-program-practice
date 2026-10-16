@@ -12,12 +12,18 @@
     {% if question.q < 5 %}<a href="/day/{{ day.n }}/q/{{ question.q + 1 }}">Next</a>{% endif %}
   </span>
 </div>
-<div class="split">
-  <section class="pane prose">
+<nav class="tabs" id="tabs" aria-label="Question sections">
+  <button type="button" data-tab="problem" class="on">Problem</button>
+  <button type="button" data-tab="code">Code</button>
+  <button type="button" data-tab="output">Output</button>
+</nav>
+<div class="split" id="split" data-tab="problem">
+  <section class="pane prose" data-tab="problem">
     <h2>Question {{ question.q }}: {{ question.category }}</h2>
     {{ question.html | safe }}
   </section>
-  <section class="pane">
+  <section class="pane work">
+    <div class="tabpart" data-tab="code">
     {% if question.kind == 'predict' %}
     <div class="predict">
       <label>Your predicted output
@@ -44,7 +50,8 @@
     <label class="stdin-label">Input (stdin)
       <textarea id="stdin" rows="3" spellcheck="false" placeholder="Program input goes here"></textarea>
     </label>
-    <div class="bar">
+    </div>
+    <div class="bar actions">
       <button id="run" class="primary">Run (Ctrl+Enter)</button>
       {% if question.check_count %}<button id="test">{{ 'Run checks' if question.kind == 'debug' else 'Run samples' }} ({{ question.check_count }})</button>{% endif %}
       <button id="save">Save</button>
@@ -52,6 +59,7 @@
       <button id="reset" class="link">Reset code</button>
       <span id="msg" class="muted"></span>
     </div>
+    <div class="tabpart" data-tab="output">
     <details id="report" class="report">
       <summary>Report an issue with this question</summary>
       <select id="report-cat" aria-label="Problem type">
@@ -66,9 +74,11 @@
     </details>
     <div id="tests" class="tests" hidden></div>
     <pre id="output" class="output" aria-live="polite">Output appears here. The first run after the server has been idle can take a while.</pre>
+    </div>
   </section>
 </div>
 <script>const STARTER = {{ question.starter | tojson }};</script>
+<script src="/static/tabs.js"></script>
 <script src="/static/javalang.js"></script>
 <script src="/static/editor.js"></script>
 <script src="/static/report.js"></script>
