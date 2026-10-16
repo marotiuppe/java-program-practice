@@ -244,7 +244,7 @@ async def user_reset(request: Request, background: BackgroundTasks, uid: int):
     if not target or not mailer.configured():
         return RedirectResponse(f"/admin/users/{uid}?msg=noreset", status_code=303)
     token = db.create_token(uid, "reset", m.RESET_TTL)
-    background.add_task(m._send_reset, target["email"], f"{m.base_url(request)}/reset/{token}")
+    background.add_task(m._send_reset, target["email"], f"{m.base_url(request)}/reset/{token}", m.base_url(request))
     return RedirectResponse(f"/admin/users/{uid}?msg=reset", status_code=303)
 
 
@@ -382,9 +382,10 @@ async def test_email(request: Request):
     user, bad = _guard(request)
     if bad:
         return bad
-    ok = mailer.configured() and await asyncio.to_thread(
-        mailer.send, user["email"], "Java Practice test email",
-        "This is a test email from the Java Practice admin page.\nIf you can read this, email sending works.\n")
+    from . import email_templates, main as m
+
+    subject, text, html = email_templates.render("test", m.base_url(request))
+    ok = mailer.configured() and await asyncio.to_thread(mailer.send, user["email"], subject, text, None, html)
     return RedirectResponse(f"/admin/system?msg={'testok' if ok else 'testfail'}", status_code=303)
 
 

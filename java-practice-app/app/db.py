@@ -599,7 +599,7 @@ def set_tz(user_id: int, tz: str) -> None:
 def list_reminder_users():
     """Users who opted in to reminders and have a confirmed email address."""
     with connect() as c:
-        return _x(c, "SELECT id, email, tz FROM users WHERE reminders = 1 AND email_verified = 1").fetchall()
+        return _x(c, "SELECT id, email, tz, level, daily_goal FROM users WHERE reminders = 1 AND email_verified = 1").fetchall()
 
 
 # ---- hints (opt-in) ----

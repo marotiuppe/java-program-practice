@@ -1,0 +1,159 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<meta name="supported-color-schemes" content="light dark">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<title>{{ e.subject }}</title>
+<style>
+  body{margin:0;padding:0;-webkit-text-size-adjust:100%;-ms-text-size-adjust:100%}
+  table{border-collapse:collapse}
+  img{border:0;outline:none;text-decoration:none;-ms-interpolation-mode:bicubic}
+  a{color:#4f46e5}
+  @media only screen and (max-width:620px){
+    .container{width:100% !important}
+    .px{padding-left:22px !important;padding-right:22px !important}
+    .tile{padding:12px 4px !important}
+    h1{font-size:24px !important;line-height:30px !important}
+    .btn a{display:block !important}
+  }
+  @media (prefers-color-scheme:dark){
+    .bg{background-color:#0f1220 !important}
+    .card{background-color:#181c2e !important}
+    .ink{color:#e8eaf4 !important}
+    .muted{color:#9aa3b8 !important}
+    .tile{background-color:#22274a !important}
+    .rule,.card{border-color:#2a3047 !important}
+    .bar-off{background-color:#2a3047 !important}
+    a.link{color:#a5b4fc !important}
+  }
+</style>
+</head>
+<body class="bg" style="margin:0;padding:0;background-color:#f5f6fb;">
+
+<!-- preheader: the grey preview text next to the subject in the inbox -->
+<div style="display:none;font-size:1px;line-height:1px;max-height:0;max-width:0;opacity:0;overflow:hidden;mso-hide:all;">
+  {{ e.preheader }}{% for _ in range(60) %}&#8199;&#847;{% endfor %}
+</div>
+
+<table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" class="bg" bgcolor="#f5f6fb" style="background-color:#f5f6fb;">
+<tr><td align="center" style="padding:24px 12px;">
+
+  <table role="presentation" width="600" cellspacing="0" cellpadding="0" border="0" class="container" style="width:600px;max-width:600px;">
+
+    <!-- header: logo and name -->
+    <tr><td align="center" style="padding:4px 0 18px 0;">
+      <a href="{{ base }}" style="text-decoration:none;">
+        <img src="{{ base }}/static/email/logo.png" width="40" height="40" alt="" style="display:inline-block;vertical-align:middle;width:40px;height:40px;border-radius:10px;">
+        <span class="ink" style="display:inline-block;vertical-align:middle;margin-left:10px;font-family:-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:20px;font-weight:700;letter-spacing:-0.01em;color:#1a1d2e;">Java Practice</span>
+      </a>
+    </td></tr>
+
+    <!-- card -->
+    <tr><td class="card" bgcolor="#ffffff" style="background-color:#ffffff;border-radius:16px;overflow:hidden;border:1px solid #e3e6f0;">
+      <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0">
+
+        <tr><td style="line-height:0;font-size:0;">
+          <img src="{{ base }}/static/email/{{ e.hero }}" width="600" alt="{{ e.hero_alt }}" style="display:block;width:100%;max-width:600px;height:auto;background-color:#4f46e5;">
+        </td></tr>
+
+        <tr><td class="px" style="padding:32px 40px 8px 40px;font-family:-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;">
+          <h1 class="ink" style="margin:0 0 16px 0;font-size:28px;line-height:34px;font-weight:800;letter-spacing:-0.02em;color:#1a1d2e;">{{ e.heading }}</h1>
+          {% for p in e.paras %}
+          <p class="ink" style="margin:0 0 16px 0;font-size:16px;line-height:26px;color:#1a1d2e;">{{ p }}</p>
+          {% endfor %}
+        </td></tr>
+
+        {% if e.goal %}
+        <!-- today's goal progress bar -->
+        <tr><td class="px" style="padding:4px 40px 12px 40px;font-family:-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;">
+          <p class="muted" style="margin:0 0 6px 0;font-size:13px;line-height:18px;color:#667085;">Today&rsquo;s goal: <b class="ink" style="color:#1a1d2e;">{{ e.goal.done }} of {{ e.goal.total }}</b> solved</p>
+          <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="border-radius:99px;overflow:hidden;">
+            <tr>
+              {% if e.goal.pct %}<td width="{{ e.goal.pct }}%" height="10" bgcolor="#4f46e5" style="background-color:#4f46e5;height:10px;font-size:0;line-height:0;">&nbsp;</td>{% endif %}
+              {% if e.goal.pct < 100 %}<td width="{{ 100 - e.goal.pct }}%" height="10" class="bar-off" bgcolor="#e3e6f0" style="background-color:#e3e6f0;height:10px;font-size:0;line-height:0;">&nbsp;</td>{% endif %}
+            </tr>
+          </table>
+        </td></tr>
+        {% endif %}
+
+        {% if e.stats %}
+        <!-- stat tiles -->
+        <tr><td class="px" style="padding:8px 40px 8px 40px;">
+          <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0">
+            <tr>
+              {% for s in e.stats %}
+              <td class="stat" width="{{ (100 / e.stats | length) | int }}%" valign="top" style="padding:0;">
+                <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0">
+                  <tr><td class="tile" align="center" bgcolor="#eef0ff" style="background-color:#eef0ff;border-radius:12px;padding:16px 8px;font-family:-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;">
+                    <div style="font-size:28px;line-height:32px;font-weight:800;color:#4f46e5;">{{ s.value }}</div>
+                    <div class="muted" style="font-size:12px;line-height:16px;color:#667085;margin-top:2px;">{{ s.label }}</div>
+                  </td></tr>
+                </table>
+              </td>
+              {% if not loop.last %}<td class="stat-gap" width="10" style="font-size:0;line-height:0;">&nbsp;</td>{% endif %}
+              {% endfor %}
+            </tr>
+          </table>
+        </td></tr>
+        {% endif %}
+
+        {% if e.next %}
+        <!-- next question -->
+        <tr><td class="px" style="padding:12px 40px 8px 40px;">
+          <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0">
+            <tr><td class="rule" style="border:1px solid #e3e6f0;border-left:4px solid #4f46e5;border-radius:10px;padding:14px 16px;font-family:-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;">
+              <div class="muted" style="font-size:12px;line-height:16px;text-transform:uppercase;letter-spacing:.06em;color:#667085;">Your next question</div>
+              <div class="ink" style="font-size:16px;line-height:24px;font-weight:700;color:#1a1d2e;margin-top:4px;">Day {{ e.next.day }} &middot; Question {{ e.next.q }}</div>
+              <div class="muted" style="font-size:14px;line-height:20px;color:#667085;">{{ e.next.title }}{% if e.next.category %} &mdash; {{ e.next.category }}{% endif %}</div>
+            </td></tr>
+          </table>
+        </td></tr>
+        {% endif %}
+
+        {% if e.button %}
+        <!-- call to action: a table-based button works in every email client -->
+        <tr><td class="px" align="center" style="padding:20px 40px 12px 40px;">
+          <table role="presentation" cellspacing="0" cellpadding="0" border="0" class="btn" align="center">
+            <tr><td align="center" bgcolor="#4f46e5" style="background-color:#4f46e5;border-radius:10px;">
+              <a href="{{ e.button.url }}" target="_blank" style="display:inline-block;padding:15px 32px;font-family:-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:16px;line-height:20px;font-weight:700;color:#ffffff;text-decoration:none;border-radius:10px;background-color:#4f46e5;">{{ e.button.label }}</a>
+            </td></tr>
+          </table>
+        </td></tr>
+        <tr><td class="px" align="center" style="padding:4px 40px 8px 40px;font-family:-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;">
+          <p class="muted" style="margin:0;font-size:12px;line-height:18px;color:#667085;">Button not working? Copy this link into your browser:<br>
+            <a class="link" href="{{ e.button.url }}" style="color:#4f46e5;word-break:break-all;">{{ e.button.url }}</a></p>
+        </td></tr>
+        {% endif %}
+
+        {% if e.note %}
+        <tr><td class="px" style="padding:16px 40px 0 40px;font-family:-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;">
+          <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0"><tr><td class="rule" style="border-top:1px solid #e3e6f0;padding-top:16px;">
+            <p class="muted" style="margin:0;font-size:13px;line-height:20px;color:#667085;">{{ e.note }}</p>
+          </td></tr></table>
+        </td></tr>
+        {% endif %}
+
+        <tr><td style="height:28px;line-height:28px;font-size:0;">&nbsp;</td></tr>
+      </table>
+    </td></tr>
+
+    <!-- footer -->
+    <tr><td align="center" class="px" style="padding:22px 24px 8px 24px;font-family:-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;">
+      <p class="muted" style="margin:0 0 8px 0;font-size:13px;line-height:20px;color:#667085;"><b>Java Practice</b> &middot; a free 30-day Java practice plan</p>
+      <p class="muted" style="margin:0 0 10px 0;font-size:12px;line-height:20px;color:#667085;">
+        <a class="link" href="{{ base }}/dashboard" style="color:#4f46e5;text-decoration:underline;">Open the app</a>
+        &nbsp;&middot;&nbsp;<a class="link" href="{{ base }}/privacy" style="color:#4f46e5;text-decoration:underline;">Privacy</a>
+        {% if e.unsub %}&nbsp;&middot;&nbsp;<a class="link" href="{{ base }}/account" style="color:#4f46e5;text-decoration:underline;">Email settings</a>
+        &nbsp;&middot;&nbsp;<a class="link" href="{{ e.unsub }}" style="color:#4f46e5;text-decoration:underline;">Unsubscribe</a>{% endif %}
+      </p>
+      <p class="muted" style="margin:0;font-size:12px;line-height:18px;color:#8a92a6;">{{ e.reason }}</p>
+    </td></tr>
+
+  </table>
+</td></tr>
+</table>
+</body>
+</html>

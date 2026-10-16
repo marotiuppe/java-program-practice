@@ -111,3 +111,7 @@ Then point the Render service's `DATABASE_URL` at it and redeploy. The tool refu
 ## Automated checks
 
 `.github/workflows/ci.yml` runs on every push: question tests against reference solutions, the 90 Predict snippets (twice each, to catch flaky output), compile-error help against real javac, the network sandbox, and a smoke test of the main flows. Run any of them locally from `java-practice-app/` with `python tools/<name>.py` (needs JDK 17+; `smoke_test.py` also accepts `SMOKE_DATABASE_URL` to test against a throwaway Postgres).
+
+## Email design
+
+Every email (confirm email, reset password, password changed, streak nudge, "we saved your place", weekly recap, admin test) is built in `app/email_templates.py` and `app/templates/email/layout.html`: logo, a banner image, one clear button, a footer with Privacy and (for reminders) Unsubscribe, a hidden preview line, a dark-mode version, and a plain-text copy sent alongside the HTML. Banner images and the logo live in `app/static/email/` and are loaded from `APP_BASE_URL`, so set that variable. To see every email in your browser run `python tools/preview_emails.py` (it writes HTML files to `email-preview/`). To change the artwork edit and re-run `python tools/make_email_images.py`.

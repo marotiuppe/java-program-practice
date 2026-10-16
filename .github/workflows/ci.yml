@@ -31,5 +31,7 @@ jobs:
         run: python tools/check_hints.py
       - name: Sandbox blocks the network and still runs normal programs
         run: python tools/check_sandbox.py
+      - name: Every email template renders
+        run: python tools/preview_emails.py /tmp/email-preview
       - name: Smoke test of the main flows
         run: python tools/smoke_test.py

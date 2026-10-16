@@ -51,10 +51,12 @@ def backend() -> str:
     return "not configured"
 
 
-def _send_brevo(to: str, subject: str, body: str, headers: dict | None) -> bool:
+def _send_brevo(to: str, subject: str, body: str, headers: dict | None, html: str | None = None) -> bool:
     name, address = parseaddr(MAIL_FROM)
     payload = {"sender": {"email": address, **({"name": name} if name else {})}, "to": [{"email": to}],
                "subject": subject, "textContent": body}
+    if html:
+        payload["htmlContent"] = html
     if headers:
         payload["headers"] = headers
     req = urllib.request.Request(
@@ -76,16 +78,17 @@ def _send_brevo(to: str, subject: str, body: str, headers: dict | None) -> bool:
     return False
 
 
-def send(to: str, subject: str, body: str, headers: dict | None = None) -> bool:
-    """Send one message. Blocking: call it from a background task. Returns False (and logs) on failure."""
+def send(to: str, subject: str, body: str, headers: dict | None = None, html: str | None = None) -> bool:
+    """Send one message (plain text `body`, plus an optional `html` version). Blocking: call it from a
+    background task. Returns False (and logs) on failure."""
     if MEMORY:
-        outbox.append({"to": to, "subject": subject, "body": body, "headers": headers or {}})
+        outbox.append({"to": to, "subject": subject, "body": body, "headers": headers or {}, "html": html})
         return True
     if not configured():
         log.warning("mail not configured; would have sent %r to %s", subject, to)
         return False
     if BREVO_API_KEY and MAIL_FROM:
-        return _send_brevo(to, subject, body, headers)
+        return _send_brevo(to, subject, body, headers, html)
     msg = EmailMessage()
     msg["From"] = MAIL_FROM
     msg["To"] = to
@@ -93,6 +96,8 @@ def send(to: str, subject: str, body: str, headers: dict | None = None) -> bool:
     for name, value in (headers or {}).items():
         msg[name] = value
     msg.set_content(body)
+    if html:
+        msg.add_alternative(html, subtype="html")
     global last_error
     try:
         ctx = ssl.create_default_context()

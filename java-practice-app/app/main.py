@@ -15,7 +15,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from starlette.middleware.sessions import SessionMiddleware
 
-from . import admin, badges, content, db, grading, hints, mailer, ratelimit, reminders, sandbox, stats
+from . import admin, badges, content, db, email_templates, grading, hints, mailer, ratelimit, reminders, sandbox, stats
 from .runner import run_java, run_java_batch, sandbox_check_started, sandbox_self_test
 
 logging.basicConfig(level=logging.INFO)
@@ -146,23 +146,21 @@ FORGOT_EMAIL = (3, 3600)
 RESEND_USER = (3, 3600)
 
 
-def _send_verification(email: str, link: str) -> None:
-    mailer.send(email, "Confirm your email for Java Practice",
-                f"Welcome to Java Practice!\n\nConfirm your email address by opening this link (valid for 24 hours):\n{link}\n\n"
-                "If you did not create an account, you can ignore this message.\n")
+def _send_email(kind: str, to: str, base: str, headers: dict | None = None, **ctx) -> None:
+    subject, text, html = email_templates.render(kind, base, **ctx)
+    mailer.send(to, subject, text, headers=headers, html=html)
 
 
-def _send_reset(email: str, link: str) -> None:
-    mailer.send(email, "Reset your Java Practice password",
-                f"Someone (hopefully you) asked to reset the password for this account.\n\n"
-                f"Open this link within 30 minutes to choose a new password:\n{link}\n\n"
-                "If you did not ask for this, ignore this message. Your password stays the same.\n")
+def _send_verification(email: str, link: str, base: str) -> None:
+    _send_email("verify", email, base, link=link)
 
 
-def _send_password_changed(email: str) -> None:
-    mailer.send(email, "Your Java Practice password was changed",
-                "The password for your Java Practice account was just changed.\n\n"
-                "If this was not you, reset your password again right away from the login page.\n")
+def _send_reset(email: str, link: str, base: str) -> None:
+    _send_email("reset", email, base, link=link)
+
+
+def _send_password_changed(email: str, base: str) -> None:
+    _send_email("changed", email, base)
 
 
 def is_admin(user) -> bool:
@@ -309,7 +307,7 @@ async def signup(request: Request, background: BackgroundTasks, email: str = For
     db.log_event(uid, "signup")
     if mailer.configured():
         token = db.create_token(uid, "verify", VERIFY_TTL)
-        background.add_task(_send_verification, email, f"{base_url(request)}/verify/{token}")
+        background.add_task(_send_verification, email, f"{base_url(request)}/verify/{token}", base_url(request))
     return RedirectResponse("/level", status_code=303)
 
 
@@ -356,7 +354,7 @@ async def forgot(request: Request, background: BackgroundTasks, email: str = For
         user = db.get_user_by_email(email)
         if user:
             token = db.create_token(user["id"], "reset", RESET_TTL)
-            background.add_task(_send_reset, email, f"{base_url(request)}/reset/{token}")
+            background.add_task(_send_reset, email, f"{base_url(request)}/reset/{token}", base_url(request))
             log.info("password reset requested for user %s", user["id"])
     return render(request, "forgot.html", error=None, sent=True)
 
@@ -381,7 +379,7 @@ async def reset(request: Request, background: BackgroundTasks, token: str, passw
     user = db.get_user(uid)
     db.mark_verified(uid)  # they proved they control the mailbox
     request.session.clear()
-    background.add_task(_send_password_changed, user["email"])
+    background.add_task(_send_password_changed, user["email"], base_url(request))
     return RedirectResponse("/login?reset=1", status_code=303)
 
 
@@ -404,7 +402,7 @@ async def verify_resend(request: Request, background: BackgroundTasks):
         return RedirectResponse("/login", status_code=303)
     if not user["email_verified"] and mailer.configured() and not ratelimit.hit(f"resend:{user['id']}", *RESEND_USER):
         token = db.create_token(user["id"], "verify", VERIFY_TTL)
-        background.add_task(_send_verification, user["email"], f"{base_url(request)}/verify/{token}")
+        background.add_task(_send_verification, user["email"], f"{base_url(request)}/verify/{token}", base_url(request))
     return RedirectResponse("/dashboard?sent=1", status_code=303)
 
 

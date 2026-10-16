@@ -14,7 +14,7 @@ from datetime import date, datetime, timedelta, timezone
 
 from itsdangerous import BadSignature, URLSafeSerializer
 
-from . import db, mailer, stats
+from . import content, db, email_templates, mailer, stats
 
 log = logging.getLogger("reminders")
 
@@ -59,24 +59,16 @@ def choose(active: set, today: date, hour: int, solved_this_week: int):
     return None
 
 
-def compose(kind: str, user: dict, ctx: dict, base_url: str, unsub_url: str):
-    name_line = "Hi,\n\n"
-    if kind == "streak":
-        subject = f"Keep your {ctx['streak']}-day streak going"
-        body = (f"{name_line}You practiced yesterday, so a single question today keeps your {ctx['streak']}-day streak alive.\n"
-                f"It only takes a few minutes: {base_url}/dashboard\n")
-    elif kind == "lapsed":
-        subject = "Your Java practice is saved. Pick up where you left off"
-        body = (f"{name_line}It has been a few days. Your progress and your place in the plan are exactly as you left them.\n"
-                f"One question is enough to get going again: {base_url}/dashboard\n")
-    else:
-        subject = "Your week in Java practice"
-        body = (f"{name_line}This week you solved {ctx['solved_week']} question{'' if ctx['solved_week'] == 1 else 's'} "
-                f"and your current streak is {ctx['streak']} day{'' if ctx['streak'] == 1 else 's'}.\n"
-                f"Next up: {base_url}/dashboard\n")
-    footer = ("\n--\nYou get this because you turned on reminders for Java Practice.\n"
-              f"Stop these emails with one click: {unsub_url}\n")
-    return subject, body + footer
+def next_question(level: str, user_id: int):
+    """First question in plan order that is not solved yet, with its day title, or None."""
+    if level not in content.CONTENT:
+        return None
+    solved = {(r["day"], r["qnum"]) for r in db.get_progress(user_id, level) if r["status"] == "solved"}
+    for n, day in sorted(content.CONTENT[level]["days"].items()):
+        for q in sorted(day["questions"]):
+            if (n, q) not in solved:
+                return {"day": n, "q": q, "title": day["title"], "category": day["questions"][q]["category"]}
+    return None
 
 
 def run_once(base_url: str, now_utc: datetime | None = None) -> int:
@@ -105,8 +97,15 @@ def run_once(base_url: str, now_utc: datetime | None = None) -> int:
                 continue
             streak = stats.streak_v2([d.isoformat() for d in active], local.date())["current"]
             unsub = f"{base_url}/unsubscribe/{unsubscribe_token(user['id'])}"
-            subject, body = compose(kind, user, {"streak": streak, "solved_week": solved_week}, base_url, unsub)
-            if mailer.send(user["email"], subject, body, headers={
+            day_start = int(datetime.combine(local.date(), datetime.min.time(), tzinfo=zone).timestamp())
+            ctx = {
+                "streak": streak, "solved_week": solved_week, "unsub": unsub,
+                "solved_today": db.count_solved_since(user["id"], day_start), "goal": user["daily_goal"],
+                "solved_total": sum(1 for r in db.get_all_progress(user["id"]) if r[3] == "solved"),
+                "review_due": db.count_due_reviews(user["id"]), "next": next_question(user["level"], user["id"]),
+            }
+            subject, text, html = email_templates.render(kind, base_url, **ctx)
+            if mailer.send(user["email"], subject, text, html=html, headers={
                     "List-Unsubscribe": f"<{unsub}>", "List-Unsubscribe-Post": "List-Unsubscribe=One-Click"}):
                 sent += 1
         except Exception:
