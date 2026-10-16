@@ -5,6 +5,18 @@
 {% if welcome %}
 <div class="welcome">Welcome! Read the question, then press <b>Run</b> to see your first program's output. You can always come back to this from the dashboard.</div>
 {% endif %}
+{% if in_review %}
+<div class="review-bar" id="review-bar" data-day="{{ day.n }}" data-q="{{ question.q }}">
+  <b>Review:</b> solve it again without peeking, then rate how it went.
+  <span class="review-btns">
+    <button data-rating="forgot">Forgot</button>
+    <button data-rating="hard">Hard</button>
+    <button data-rating="good">Good</button>
+    <button data-rating="easy">Easy</button>
+  </span>
+  <span id="review-msg" class="muted small"></span>
+</div>
+{% endif %}
 <div class="qhead">
   <a href="/day/{{ day.n }}">&larr; Day {{ day.n }}: {{ day.title }}</a>
   <span>
@@ -84,4 +96,5 @@
 <script src="/static/javalang.js"></script>
 <script src="/static/editor.js"></script>
 <script src="/static/report.js"></script>
+<script src="/static/review.js"></script>
 {% endblock %}

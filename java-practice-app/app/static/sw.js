@@ -1,10 +1,10 @@
 /* Service worker: caches the app shell and visited pages so question text can be read offline.
    Running code still needs the server. Bump VERSION to drop old caches after a change here. */
-const VERSION = 'v3';
+const VERSION = 'v4';
 const STATIC = 'static-' + VERSION;
 const PAGES = 'pages-' + VERSION;
 const SHELL = ['/static/style.css', '/static/editor.js', '/static/javalang.js', '/static/tabs.js', '/static/celebrate.js',
-  '/static/report.js', '/static/mock.js', '/static/pwa.js', '/static/logo.svg', '/static/favicon.svg'];
+  '/static/report.js', '/static/review.js', '/static/mock.js', '/static/pwa.js', '/static/logo.svg', '/static/favicon.svg'];
 
 self.addEventListener('install', (e) => {
   e.waitUntil(caches.open(STATIC).then((c) => c.addAll(SHELL)).then(() => self.skipWaiting()));

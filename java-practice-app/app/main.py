@@ -263,6 +263,7 @@ async def dashboard(request: Request):
         solved_today=db.count_solved_since(user["id"], stats.today_start_epoch()),
         heatmap=_heatmap(db.get_solved_epochs(user["id"]), set(active_dates), set(map(str, streak["frozen"]))),
         repair=repair,
+        review_due=_review_due_count(user),
         daily_goal=user["daily_goal"],
         started=bool(solved_set or attempted),
         level_label=content.CONTENT[level]["label"],
@@ -308,6 +309,11 @@ async def profile(request: Request):
         streak["longest"], db.has_event(user["id"], "first_run", ""),
     )
     return render(request, "profile.html", streak=streak, **result)
+
+
+def _review_due_count(user) -> int:
+    _sweep_abandoned(user)
+    return db.count_due_reviews(user["id"])
 
 
 HEAT_WEEKS = 12
@@ -378,6 +384,7 @@ async def question_page(request: Request, day: int, q: int):
         status=saved["status"] if saved else "todo",
         level=user["level"],
         welcome=bool(request.query_params.get("welcome")),
+        in_review=bool(request.query_params.get("review")) and db.get_review(user["id"], user["level"], day, q) is not None,
     )
 
 
@@ -401,10 +408,32 @@ def _log_run(user_id: int) -> None:
     db.log_event(user_id, "run")
 
 
-def _solve_feedback(user, day: int):
+REVIEW_ATTEMPTS = 4      # solved only after this many attempts -> worth reviewing
+ABANDONED_AFTER = 3 * 86400  # attempted but untouched this long -> comes back for review
+
+
+def _queue_once(user, level: str, day: int, q: int) -> None:
+    """Queue a question for review the first time only, so graduating from the queue is final."""
+    if db.log_event(user["id"], "review_added", f"{level}:{day}:{q}", once=True):
+        db.enqueue_review(user["id"], level, day, q)
+
+
+def _maybe_queue_review(user, day: int, q: int) -> None:
+    row = db.get_question_progress(user["id"], user["level"], day, q)
+    if row and row["attempts"] >= REVIEW_ATTEMPTS:
+        _queue_once(user, user["level"], day, q)
+
+
+def _sweep_abandoned(user) -> None:
+    for r in db.abandoned_questions(user["id"], int(time.time()) - ABANDONED_AFTER):
+        _queue_once(user, r["level"], r["day"], r["qnum"])
+
+
+def _solve_feedback(user, day: int, q: int):
     """Called after a question becomes solved. Returns what to celebrate (or None): the day just
     became complete, and/or today's goal was just reached. Each fires once (via the events table)."""
     fb = {}
+    _maybe_queue_review(user, day, q)
     if db.count_solved_in_day(user["id"], user["level"], day) >= 5 and db.log_event(
             user["id"], "day_complete", f"{user['level']}:{day}", once=True):
         nxt = content.CONTENT[user["level"]]["days"].get(day + 1)
@@ -465,7 +494,7 @@ async def api_test(request: Request):
     if all_passed:
         db.log_event(user["id"], "samples_pass", f"{user['level']}:{day}:{q}", once=True)
     return {"stage": "tests", "results": items, "all_passed": all_passed,
-            "celebrate": _solve_feedback(user, day) if all_passed else None}
+            "celebrate": _solve_feedback(user, day, q) if all_passed else None}
 
 
 _predict_cache = {}
@@ -502,10 +531,11 @@ async def api_predict(request: Request):
     db.touch_activity(user["id"], stats.today_str())
     if body.get("reveal"):
         db.set_status(user["id"], user["level"], day, q, "attempted")
+        _queue_once(user, user["level"], day, q)
         return {"revealed": True, "expected": expected}
     correct = grading.same(str(body.get("answer", ""))[:5000], expected)
     db.set_status(user["id"], user["level"], day, q, "solved" if correct else "attempted")
-    return {"correct": correct, "celebrate": _solve_feedback(user, day) if correct else None}
+    return {"correct": correct, "celebrate": _solve_feedback(user, day, q) if correct else None}
 
 
 @app.post("/api/save")
@@ -527,7 +557,7 @@ async def api_save(request: Request):
     code = str(body.get("code", ""))[:50_000]
     db.save_progress(user["id"], user["level"], day, q, code, status, bool(body.get("ran")))
     db.touch_activity(user["id"], stats.today_str())
-    return {"ok": True, "celebrate": _solve_feedback(user, day) if status == "solved" else None}
+    return {"ok": True, "celebrate": _solve_feedback(user, day, q) if status == "solved" else None}
 
 
 @app.post("/api/report")
@@ -576,3 +606,40 @@ async def admin_resolve(request: Request, report_id: int):
         return JSONResponse({"error": "Not found."}, status_code=404)
     db.resolve_report(report_id)
     return RedirectResponse("/admin", status_code=303)
+
+
+def _review_item(row) -> dict:
+    d, question = _get_question(row["level"], row["day"], row["qnum"])
+    return {"level": row["level"], "day": row["day"], "q": row["qnum"], "stage": row["stage"], "due_at": row["due_at"],
+            "title": d["title"] if d else "", "category": question["category"] if question else ""}
+
+
+@app.get("/review")
+async def review_page(request: Request):
+    user = current_user(request)
+    if not user:
+        return RedirectResponse("/login", status_code=303)
+    _sweep_abandoned(user)
+    due = [_review_item(r) for r in db.due_reviews(user["id"]) if r["level"] == user["level"]]
+    later = [_review_item(r) for r in db.upcoming_reviews(user["id"]) if r["level"] == user["level"]]
+    return render(request, "review.html", due=due, later=later, now=int(time.time()))
+
+
+@app.post("/api/review/rate")
+async def api_review_rate(request: Request):
+    user = current_user(request)
+    if not user:
+        return JSONResponse({"error": "Please log in."}, status_code=401)
+    body = await request.json()
+    try:
+        day, q = int(body["day"]), int(body["q"])
+    except (KeyError, ValueError, TypeError):
+        return JSONResponse({"error": "Bad request."}, status_code=400)
+    result = db.rate_review(user["id"], user["level"], day, q, str(body.get("rating", "")))
+    if result is None:
+        return JSONResponse({"error": "That question is not in your review queue."}, status_code=404)
+    db.touch_activity(user["id"], stats.today_str())
+    db.log_event(user["id"], "review_done", f"{user['level']}:{day}:{q}:{body.get('rating')}")
+    nxt = [r for r in db.due_reviews(user["id"]) if r["level"] == user["level"]]
+    return {"ok": True, "result": result,
+            "next": f"/day/{nxt[0]['day']}/q/{nxt[0]['qnum']}?review=1" if nxt else "/review"}

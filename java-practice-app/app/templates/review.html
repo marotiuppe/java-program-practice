@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block title %}Review{% endblock %}
+{% block content %}
+<h1>Review</h1>
+<p class="muted">Questions that were hard, revealed, or left unfinished come back after 1, 3, 7 and 21 days. Re-solving after a gap is what makes them stick.</p>
+{% if due %}
+<p><a class="btn-continue" href="/day/{{ due[0].day }}/q/{{ due[0].q }}?review=1">Start review ({{ due | length }} due) &rarr;</a></p>
+<ol class="qlist">
+  {% for r in due %}
+  <li><a href="/day/{{ r.day }}/q/{{ r.q }}?review=1">Day {{ r.day }} &middot; Q{{ r.q }}: {{ r.category }}</a>
+    <span class="muted small">{{ r.title }}</span></li>
+  {% endfor %}
+</ol>
+{% else %}
+<p class="card">Nothing to review right now. Nice work!</p>
+{% endif %}
+{% if later %}
+<h2>Coming up</h2>
+<ul class="qlist">
+  {% for r in later %}
+  <li>Day {{ r.day }} &middot; Q{{ r.q }}: {{ r.category }}
+    <span class="muted small">in {{ ((r.due_at - now) / 86400) | round(0, 'ceil') | int }} day(s)</span></li>
+  {% endfor %}
+</ul>
+{% endif %}
+{% endblock %}

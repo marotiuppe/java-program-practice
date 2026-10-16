@@ -23,6 +23,9 @@
     <span class="muted">{{ solved_today }} of {{ daily_goal }} solved today &middot; <a href="/goal">change goal</a></span>
   </div>
 </div>
+{% if review_due %}
+<p class="review-note"><a href="/review">{{ review_due }} question{{ '' if review_due == 1 else 's' }} ready to review</a> &mdash; a quick refresher helps it stick.</p>
+{% endif %}
 <div class="stats">
   <div class="stat"><b>{{ streak.current }}</b><span>day streak{% if streak.current and not streak.today %} (practice today to keep it){% endif %}</span></div>
   <div class="stat"><b>{{ streak.longest }}</b><span>longest streak{% if streak.longest and streak.longest == streak.current %} &#127942;{% endif %}</span></div>

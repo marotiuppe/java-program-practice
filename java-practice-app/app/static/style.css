@@ -221,3 +221,8 @@ form.inline{display:inline}
 .badge-card.earned{border-color:var(--accent)}
 .badge-card.locked{opacity:.6}
 .badge-icon{font-size:30px;line-height:1}
+
+/* ---- review queue (roadmap 2.6) ---- */
+.review-bar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:10px 0;padding:10px 14px;border:1px solid var(--accent);background:var(--accent-soft);border-radius:8px}
+.review-btns{display:flex;gap:6px;flex-wrap:wrap}
+.review-note{margin:8px 0}
