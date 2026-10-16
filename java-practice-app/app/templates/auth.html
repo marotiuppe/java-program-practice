@@ -2,7 +2,7 @@
 {% block title %}{{ 'Sign up' if mode == 'signup' else 'Log in' }}{% endblock %}
 {% block content %}
 <section class="card narrow auth-card">
-  <img class="auth-logo" src="/static/logo.svg" width="56" height="56" alt="">
+  <img class="auth-logo" src="{{ static('logo.svg') }}" width="56" height="56" alt="">
   <h1>{{ 'Create account' if mode == 'signup' else 'Log in' }}</h1>
   <p class="muted tag">30 days of Java, from beginner to advanced.</p>
   {% if notice %}<p class="notice">{{ notice }}</p>{% endif %}

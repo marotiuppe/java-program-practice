@@ -136,9 +136,20 @@ def _attach_hints(level: str, days: dict) -> None:
             q["hints"] = [h for h in data.get(f"{dn}:{qn}", []) if isinstance(h, str) and h.strip()][:3]
 
 
+def _attach_expected(level: str, days: dict) -> None:
+    """Predict-the-output answers computed ahead of time (tools/check_predict.py --write), so checking an answer
+    does not need to compile and run Java. {"<day>:<q>": "<exact stdout>"}"""
+    path = BASE / "predict_outputs" / f"{level}.json"
+    data = json.loads(path.read_text(encoding="utf-8")) if path.exists() else {}
+    for dn, day in days.items():
+        for qn, q in day["questions"].items():
+            q["expected"] = data.get(f"{dn}:{qn}") if q["kind"] == "predict" else None
+
+
 def load() -> None:
     for key, (label, filename) in LEVELS.items():
         days = _parse_level(BASE / filename)
         _attach_tests(key, days)
         _attach_hints(key, days)
+        _attach_expected(key, days)
         CONTENT[key] = {"label": label, "days": days}

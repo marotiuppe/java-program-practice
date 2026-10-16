@@ -1,0 +1,26 @@
+[
+ {
+  "input": "0 0 0 0 0 0 0",
+  "output": "Total: 0\r\nAverage: 0.00\r\nBest day: 1 (0)\r"
+ },
+ {
+  "input": "0 0 0 0 0 0 5",
+  "output": "Total: 5\r\nAverage: 0.71\r\nBest day: 7 (5)\r"
+ },
+ {
+  "input": "100000 100000 100000 100000 100000 100000 100000",
+  "output": "Total: 700000\r\nAverage: 100000.00\r\nBest day: 1 (100000)\r"
+ },
+ {
+  "input": "1 2 3 4 5 6 7",
+  "output": "Total: 28\r\nAverage: 4.00\r\nBest day: 7 (7)\r"
+ },
+ {
+  "input": "7 6 5 4 3 2 1",
+  "output": "Total: 28\r\nAverage: 4.00\r\nBest day: 1 (7)\r"
+ },
+ {
+  "input": "5 9 9 0 9 1 2",
+  "output": "Total: 35\r\nAverage: 5.00\r\nBest day: 2 (9)\r"
+ }
+]

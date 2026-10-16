@@ -1,0 +1,38 @@
+[
+ {
+  "input": "abcd1",
+  "output": "Valid\r"
+ },
+ {
+  "input": "abcde",
+  "output": "Invalid\r"
+ },
+ {
+  "input": "abcdefghij12",
+  "output": "Valid\r"
+ },
+ {
+  "input": "abcdefghijkl1",
+  "output": "Invalid\r"
+ },
+ {
+  "input": "abcdefghijklm1",
+  "output": "Invalid\r"
+ },
+ {
+  "input": "12345",
+  "output": "Invalid\r"
+ },
+ {
+  "input": "a1b2c",
+  "output": "Valid\r"
+ },
+ {
+  "input": "user1",
+  "output": "Valid\r"
+ },
+ {
+  "input": "abcde1",
+  "output": "Valid\r"
+ }
+]

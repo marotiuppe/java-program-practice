@@ -1,13 +1,11 @@
 /* Service worker: caches the app shell and visited pages so question text can be read offline.
    Running code still needs the server. Bump VERSION to drop old caches after a change here. */
-const VERSION = 'v7';
+const VERSION = 'v8';
 const STATIC = 'static-' + VERSION;
 const PAGES = 'pages-' + VERSION;
-const SHELL = ['/static/style.css', '/static/editor.js', '/static/javalang.js', '/static/tabs.js', '/static/celebrate.js',
-  '/static/report.js', '/static/review.js', '/static/hints.js', '/static/mock.js', '/static/pwa.js', '/static/logo.svg', '/static/favicon.svg'];
 
 self.addEventListener('install', (e) => {
-  e.waitUntil(caches.open(STATIC).then((c) => c.addAll(SHELL)).then(() => self.skipWaiting()));
+  e.waitUntil(self.skipWaiting());  // assets are cached as pages request them (see the fetch handler)
 });
 
 self.addEventListener('activate', (e) => {
@@ -30,9 +28,11 @@ self.addEventListener('fetch', (e) => {
   if (url.origin !== location.origin || url.pathname.startsWith('/api/') || url.pathname === '/health') return;
 
   if (url.pathname.startsWith('/static/')) {
-    // stale-while-revalidate: fast, and refreshed in the background
+    // ?v=<hash> URLs never change: serve from cache, fetch only once. Others: stale-while-revalidate.
+    const versioned = url.searchParams.has('v');
     e.respondWith(caches.open(STATIC).then(async (cache) => {
       const hit = await cache.match(req);
+      if (hit && versioned) return hit;
       const fresh = fetch(req).then((r) => { if (r.ok) cache.put(req, r.clone()); return r; }).catch(() => hit);
       return hit || fresh;
     }));

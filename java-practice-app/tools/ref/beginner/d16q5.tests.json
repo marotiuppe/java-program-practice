@@ -1,0 +1,10 @@
+[
+ {
+  "input": "Education",
+  "output": "Vowels: 5\r"
+ },
+ {
+  "input": "xyz",
+  "output": "Vowels: 0\r"
+ }
+]

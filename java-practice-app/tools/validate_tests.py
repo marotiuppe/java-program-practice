@@ -5,7 +5,7 @@ For every reference found, this runs it against the question's visible samples A
 from app/content/tests/<level>.json and reports any mismatch. It also lists coding questions whose
 samples have no reference yet ("unverified").
 
-Usage (from java-practice-app/):   python tools/validate_tests.py [--level beginner] [--missing]
+Usage (from java-practice-app/):   python tools/validate_tests.py [--level beginner] [--days 1-10] [--missing]
 Set JAVA_BIN_DIR to a JDK 17+ bin folder if java/javac on PATH are older.
 """
 import argparse
@@ -21,8 +21,14 @@ from app import content, grading, runner  # noqa: E402
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--level", choices=list(content.LEVELS), help="only this level")
+    ap.add_argument("--days", help="only days in this range, e.g. 1-10 or 7")
     ap.add_argument("--missing", action="store_true", help="list questions that have checks but no reference")
     args = ap.parse_args()
+
+    lo, hi = (0, 99)
+    if args.days:
+        a, _, b = args.days.partition("-")
+        lo, hi = int(a), int(b or a)
 
     content.load()
     failures = checked = unverified = 0
@@ -30,6 +36,8 @@ def main() -> int:
         if args.level and level != args.level:
             continue
         for dn, day in sorted(data["days"].items()):
+            if not lo <= dn <= hi:
+                continue
             for qn, q in sorted(day["questions"].items()):
                 if not q["check_count"]:
                     continue

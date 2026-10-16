@@ -1,0 +1,10 @@
+[
+ {
+  "input": "Listen Silent",
+  "output": "Anagrams\r"
+ },
+ {
+  "input": "abc abcd",
+  "output": "Not anagrams\r"
+ }
+]

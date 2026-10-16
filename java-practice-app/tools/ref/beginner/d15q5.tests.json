@@ -1,0 +1,10 @@
+[
+ {
+  "input": "admin",
+  "output": "Welcome, administrator\r\nFirst: a, Last: n\r\nUpper: ADMIN\r"
+ },
+ {
+  "input": "Zed",
+  "output": "First: Z, Last: d\r\nUpper: ZED\r"
+ }
+]

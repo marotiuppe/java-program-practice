@@ -1,0 +1,22 @@
+[
+ {
+  "input": "racecar",
+  "output": "racecar\r"
+ },
+ {
+  "input": "A b C",
+  "output": "C b A\r"
+ },
+ {
+  "input": "x y z 1",
+  "output": "1 z y x\r"
+ },
+ {
+  "input": "12345",
+  "output": "54321\r"
+ },
+ {
+  "input": "Hello, World!",
+  "output": "!dlroW ,olleH\r"
+ }
+]

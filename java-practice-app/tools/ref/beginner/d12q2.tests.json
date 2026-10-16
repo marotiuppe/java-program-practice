@@ -1,0 +1,38 @@
+[
+ {
+  "input": "0",
+  "output": "Not prime\r"
+ },
+ {
+  "input": "2",
+  "output": "Prime\r"
+ },
+ {
+  "input": "-7",
+  "output": "Not prime\r"
+ },
+ {
+  "input": "97",
+  "output": "Prime\r"
+ },
+ {
+  "input": "3",
+  "output": "Prime\r"
+ },
+ {
+  "input": "4",
+  "output": "Not prime\r"
+ },
+ {
+  "input": "1000000",
+  "output": "Not prime\r"
+ },
+ {
+  "input": "999983",
+  "output": "Prime\r"
+ },
+ {
+  "input": "49",
+  "output": "Not prime\r"
+ }
+]

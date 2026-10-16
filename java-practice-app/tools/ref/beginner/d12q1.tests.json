@@ -1,0 +1,22 @@
+[
+ {
+  "input": "2",
+  "output": "Box sizes: 1 2\r\nOptions: 2\r"
+ },
+ {
+  "input": "36",
+  "output": "Box sizes: 1 2 3 4 6 9 12 18 36\r\nOptions: 9\r"
+ },
+ {
+  "input": "97",
+  "output": "Box sizes: 1 97\r\nOptions: 2\r"
+ },
+ {
+  "input": "100000",
+  "output": "Box sizes: 1 2 4 5 8 10 16 20 25 32 40 50 80 100 125 160 200 250 400 500 625 800 1000 1250 2000 2500 3125 4000 5000 6250 10000 12500 20000 25000 50000 100000\r\nOptions: 36\r"
+ },
+ {
+  "input": "1000",
+  "output": "Box sizes: 1 2 4 5 8 10 20 25 40 50 100 125 200 250 500 1000\r\nOptions: 16\r"
+ }
+]

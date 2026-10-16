@@ -1,0 +1,26 @@
+[
+ {
+  "input": "a",
+  "output": "Palindrome phrase\r"
+ },
+ {
+  "input": "Ab",
+  "output": "Not a palindrome phrase\r"
+ },
+ {
+  "input": "A Santa at NASA",
+  "output": "Palindrome phrase\r"
+ },
+ {
+  "input": "Was it a car or a cat I saw",
+  "output": "Palindrome phrase\r"
+ },
+ {
+  "input": "abc",
+  "output": "Not a palindrome phrase\r"
+ },
+ {
+  "input": "aa b b aa",
+  "output": "Palindrome phrase\r"
+ }
+]

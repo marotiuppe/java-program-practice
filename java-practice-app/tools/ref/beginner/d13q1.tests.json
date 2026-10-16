@@ -1,0 +1,18 @@
+[
+ {
+  "input": "1 1",
+  "output": "A1\r"
+ },
+ {
+  "input": "26 1",
+  "output": "A1\r\nB1\r\nC1\r\nD1\r\nE1\r\nF1\r\nG1\r\nH1\r\nI1\r\nJ1\r\nK1\r\nL1\r\nM1\r\nN1\r\nO1\r\nP1\r\nQ1\r\nR1\r\nS1\r\nT1\r\nU1\r\nV1\r\nW1\r\nX1\r\nY1\r\nZ1\r"
+ },
+ {
+  "input": "2 30",
+  "output": "A1 A2 A3 A4 A5 A6 A7 A8 A9 A10 A11 A12 A13 A14 A15 A16 A17 A18 A19 A20 A21 A22 A23 A24 A25 A26 A27 A28 A29 A30\r\nB1 B2 B3 B4 B5 B6 B7 B8 B9 B10 B11 B12 B13 B14 B15 B16 B17 B18 B19 B20 B21 B22 B23 B24 B25 B26 B27 B28 B29 B30\r"
+ },
+ {
+  "input": "5 3",
+  "output": "A1 A2 A3\r\nB1 B2 B3\r\nC1 C2 C3\r\nD1 D2 D3\r\nE1 E2 E3\r"
+ }
+]

@@ -1,0 +1,10 @@
+[
+ {
+  "input": "121",
+  "output": "Palindrome\r"
+ },
+ {
+  "input": "123",
+  "output": "Not a palindrome\r"
+ }
+]

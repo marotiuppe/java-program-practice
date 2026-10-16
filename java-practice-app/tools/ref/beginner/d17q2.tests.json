@@ -1,0 +1,30 @@
+[
+ {
+  "input": "a A",
+  "output": "Anagrams\r"
+ },
+ {
+  "input": "ab abc",
+  "output": "Not anagrams\r"
+ },
+ {
+  "input": "Race Care",
+  "output": "Anagrams\r"
+ },
+ {
+  "input": "aab abb",
+  "output": "Not anagrams\r"
+ },
+ {
+  "input": "Astronomer MoonStarer",
+  "output": "Anagrams\r"
+ },
+ {
+  "input": "Hello hello",
+  "output": "Anagrams\r"
+ },
+ {
+  "input": "Anna nana",
+  "output": "Anagrams\r"
+ }
+]

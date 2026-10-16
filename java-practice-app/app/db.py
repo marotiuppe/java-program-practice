@@ -620,3 +620,18 @@ def raise_hint_level(user_id, level, day, qnum, hint_level: int) -> None:
         elif hint_level > row["hint_level"]:
             _x(c, "UPDATE progress SET hint_level = ? WHERE user_id = ? AND level = ? AND day = ? AND qnum = ?",
                (hint_level, user_id, level, day, qnum))
+
+
+def get_progress_rows(user_id: int, level: str):
+    """Progress for one level without the (large) saved code: enough to draw the dashboard in one query."""
+    with connect() as c:
+        return _x(c, "SELECT day, qnum, status, hint_level, updated_at, "
+                     "CASE WHEN code <> '' THEN 1 ELSE 0 END AS has_code "
+                     "FROM progress WHERE user_id = ? AND level = ?", (user_id, level)).fetchall()
+
+
+def event_metas(user_id: int, name: str) -> set:
+    """All `meta` values of one event name for a user, in one query."""
+    with connect() as c:
+        return {r["meta"] for r in _x(c, "SELECT meta FROM events WHERE user_id = ? AND name = ?",
+                                      (user_id, name)).fetchall()}

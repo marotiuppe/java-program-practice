@@ -1,0 +1,22 @@
+[
+ {
+  "input": "a",
+  "output": "Characters: 1\r\nWords: 1\r\nVowels: 1\r"
+ },
+ {
+  "input": "AEIOU",
+  "output": "Characters: 5\r\nWords: 1\r\nVowels: 5\r"
+ },
+ {
+  "input": "xyz",
+  "output": "Characters: 3\r\nWords: 1\r\nVowels: 0\r"
+ },
+ {
+  "input": "Why do we fall Sir",
+  "output": "Characters: 18\r\nWords: 5\r\nVowels: 4\r"
+ },
+ {
+  "input": "This Is A Test",
+  "output": "Characters: 14\r\nWords: 4\r\nVowels: 4\r"
+ }
+]

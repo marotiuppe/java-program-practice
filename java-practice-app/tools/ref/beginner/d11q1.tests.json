@@ -1,0 +1,30 @@
+[
+ {
+  "input": "1",
+  "output": "Reversed: 1\r\nRejected: palindrome code\r"
+ },
+ {
+  "input": "10",
+  "output": "Reversed: 1\r\nAccepted\r"
+ },
+ {
+  "input": "7",
+  "output": "Reversed: 7\r\nRejected: palindrome code\r"
+ },
+ {
+  "input": "999999998",
+  "output": "Reversed: 899999999\r\nAccepted\r"
+ },
+ {
+  "input": "1001",
+  "output": "Reversed: 1001\r\nRejected: palindrome code\r"
+ },
+ {
+  "input": "12321",
+  "output": "Reversed: 12321\r\nRejected: palindrome code\r"
+ },
+ {
+  "input": "100",
+  "output": "Reversed: 1\r\nAccepted\r"
+ }
+]

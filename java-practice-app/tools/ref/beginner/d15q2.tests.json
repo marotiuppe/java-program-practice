@@ -1,0 +1,26 @@
+[
+ {
+  "input": "a A",
+  "output": "Equal ignoring case\r"
+ },
+ {
+  "input": "abc123 abc123",
+  "output": "Equal\r"
+ },
+ {
+  "input": "Ab ab",
+  "output": "Equal ignoring case\r"
+ },
+ {
+  "input": "x y",
+  "output": "Different\r"
+ },
+ {
+  "input": "Test Tes",
+  "output": "Different\r"
+ },
+ {
+  "input": "A1 a1",
+  "output": "Equal ignoring case\r"
+ }
+]

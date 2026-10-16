@@ -1,0 +1,26 @@
+[
+ {
+  "input": "1 1",
+  "output": "No primes\r"
+ },
+ {
+  "input": "2 2",
+  "output": "2\r\nCount: 1\r"
+ },
+ {
+  "input": "1 2",
+  "output": "2\r\nCount: 1\r"
+ },
+ {
+  "input": "14 16",
+  "output": "No primes\r"
+ },
+ {
+  "input": "9990 10000",
+  "output": "No primes\r"
+ },
+ {
+  "input": "90 97",
+  "output": "97\r\nCount: 1\r"
+ }
+]

@@ -1,0 +1,26 @@
+[
+ {
+  "input": "10",
+  "output": "Steps: 1\r\nPalindrome: 11\r"
+ },
+ {
+  "input": "19",
+  "output": "Steps: 2\r\nPalindrome: 121\r"
+ },
+ {
+  "input": "78",
+  "output": "Steps: 4\r\nPalindrome: 4884\r"
+ },
+ {
+  "input": "1",
+  "output": "Steps: 0\r\nPalindrome: 1\r"
+ },
+ {
+  "input": "80",
+  "output": "Steps: 1\r\nPalindrome: 88\r"
+ },
+ {
+  "input": "69",
+  "output": "Steps: 4\r\nPalindrome: 4884\r"
+ }
+]

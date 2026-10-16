@@ -1,0 +1,26 @@
+[
+ {
+  "input": "abc abc abc",
+  "output": "Anagram pairs: 3\r"
+ },
+ {
+  "input": "abc ab abcd",
+  "output": "Anagram pairs: 0\r"
+ },
+ {
+  "input": "Tea EAT ate",
+  "output": "Anagram pairs: 3\r"
+ },
+ {
+  "input": "a b a",
+  "output": "Anagram pairs: 1\r"
+ },
+ {
+  "input": "aab aba baa",
+  "output": "Anagram pairs: 3\r"
+ },
+ {
+  "input": "abc cab xyz",
+  "output": "Anagram pairs: 1\r"
+ }
+]

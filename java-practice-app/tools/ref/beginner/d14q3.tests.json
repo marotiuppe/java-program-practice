@@ -1,0 +1,42 @@
+[
+ {
+  "input": "2",
+  "output": "Not emirp\r"
+ },
+ {
+  "input": "1",
+  "output": "Not emirp\r"
+ },
+ {
+  "input": "17",
+  "output": "Emirp\r"
+ },
+ {
+  "input": "31",
+  "output": "Emirp\r"
+ },
+ {
+  "input": "101",
+  "output": "Not emirp\r"
+ },
+ {
+  "input": "100000",
+  "output": "Not emirp\r"
+ },
+ {
+  "input": "7",
+  "output": "Not emirp\r"
+ },
+ {
+  "input": "13",
+  "output": "Emirp\r"
+ },
+ {
+  "input": "73",
+  "output": "Emirp\r"
+ },
+ {
+  "input": "97",
+  "output": "Emirp\r"
+ }
+]

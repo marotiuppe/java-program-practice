@@ -10,6 +10,7 @@ from datetime import date, datetime, timedelta
 from contextlib import asynccontextmanager
 
 from fastapi import BackgroundTasks, FastAPI, Form, Request
+from starlette.middleware.gzip import GZipMiddleware
 from fastapi.responses import FileResponse, JSONResponse, RedirectResponse, Response
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
@@ -22,6 +23,23 @@ logging.basicConfig(level=logging.INFO)
 log = logging.getLogger("app")
 HERE = os.path.dirname(__file__)
 templates = Jinja2Templates(directory=os.path.join(HERE, "templates"))
+_asset_hash = {}
+
+
+def static_url(path: str) -> str:
+    """/static/<path>?v=<content hash>: changes whenever the file changes, so it can be cached forever."""
+    v = _asset_hash.get(path)
+    if v is None:
+        try:
+            with open(os.path.join(HERE, "static", path), "rb") as f:
+                v = hashlib.sha1(f.read()).hexdigest()[:10]
+        except OSError:
+            v = "0"
+        _asset_hash[path] = v
+    return f"/static/{path}?v={v}"
+
+
+templates.env.globals["static"] = static_url
 templates.env.filters["ts"] = lambda t: datetime.fromtimestamp(t, stats.zone()).strftime("%Y-%m-%d %H:%M") if t else ""
 
 EMAIL_RE = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
@@ -92,7 +110,20 @@ app.add_middleware(
     max_age=60 * 60 * 24 * 30,
 )
 app.include_router(admin.router)
-app.mount("/static", StaticFiles(directory=os.path.join(HERE, "static")), name="static")
+class CachedStatic(StaticFiles):
+    """Static files with browser caching: URLs that carry ?v=<hash> (see static_url) never change, so they are
+    cached for a year; anything else for an hour."""
+
+    async def get_response(self, path, scope):
+        resp = await super().get_response(path, scope)
+        if resp.status_code == 200:
+            resp.headers["Cache-Control"] = ("public, max-age=31536000, immutable" if scope.get("query_string")
+                                             else "public, max-age=3600")
+        return resp
+
+
+app.mount("/static", CachedStatic(directory=os.path.join(HERE, "static")), name="static")
+app.add_middleware(GZipMiddleware, minimum_size=500)  # added last = outermost: compresses every response
 
 
 @app.exception_handler(Exception)
@@ -111,7 +142,24 @@ async def user_timezone(request: Request, call_next):
     return await call_next(request)
 
 
+_UNSET = object()
+
+
 def current_user(request: Request):
+    """The logged-in user row, looked up once per request (handlers and render() both ask)."""
+    cached = getattr(request.state, "user_cache", _UNSET)
+    if cached is not _UNSET:
+        return cached
+    request.state.user_cache = _load_user(request)
+    return request.state.user_cache
+
+
+def forget_user(request: Request) -> None:
+    """Drop the per-request copy after changing the user or the session, so the next lookup is fresh."""
+    request.state.user_cache = _UNSET
+
+
+def _load_user(request: Request):
     uid = request.session.get("uid")
     if not uid:
         return None
@@ -391,6 +439,7 @@ async def verify(request: Request, token: str):
                       text="This confirmation link is invalid, expired or already used. Log in and request a new one.",
                       href="/login", link="Log in")
     db.mark_verified(uid)
+    forget_user(request)  # the page header must not still say "confirm your email"
     return render(request, "message.html", title="Email confirmed", text="Thanks, your email address is confirmed.",
                   href="/dashboard", link="Continue")
 
@@ -451,6 +500,7 @@ async def account_delete(request: Request, password: str = Form(...)):
                       error="That password is not correct.")
     db.delete_user(user["id"])
     request.session.clear()
+    forget_user(request)
     return render(request, "message.html", title="Account deleted",
                   text="Your account and all of its data have been permanently deleted.", href="/signup", link="Create a new account")
 
@@ -572,7 +622,8 @@ async def dashboard(request: Request):
     if level not in content.CONTENT:
         return RedirectResponse("/level", status_code=303)
     solved, attempted, solved_set = {}, {}, set()
-    for row in db.get_progress(user["id"], level):
+    rows = db.get_progress_rows(user["id"], level)
+    for row in rows:
         if row["status"] == "solved":
             solved_set.add((row["day"], row["qnum"]))
             solved[row["day"]] = solved.get(row["day"], 0) + 1
@@ -589,18 +640,20 @@ async def dashboard(request: Request):
         db.set_tz(user["id"], cookie_tz)
     active_dates = db.get_active_dates(user["id"])
     streak = stats.streak_v2(active_dates)
-    repair = None
-    if not db.has_event(user["id"], "streak_repair", stats.today_str()[:7]):
-        repair = _repair_streak_length(active_dates)
+    repair = _repair_streak_length(active_dates)  # pure calculation; only then check the monthly limit
+    if repair and db.has_event(user["id"], "streak_repair", stats.today_str()[:7]):
+        repair = None
+    solved_epochs = db.get_solved_epochs(user["id"])
+    day_start = stats.today_start_epoch()
     return render(
         request,
         "dashboard.html",
         days=days,
         next_q=_next_unsolved(user["level"], solved_set),
-        solved_today=db.count_solved_since(user["id"], stats.today_start_epoch()),
-        heatmap=_heatmap(db.get_solved_epochs(user["id"]), set(active_dates), set(map(str, streak["frozen"]))),
+        solved_today=sum(1 for t in solved_epochs if t >= day_start),
+        heatmap=_heatmap(solved_epochs, set(active_dates), set(map(str, streak["frozen"]))),
         repair=repair,
-        review_due=_review_due_count(user),
+        review_due=_review_due_from_rows(user, rows),
         daily_goal=user["daily_goal"],
         started=bool(solved_set or attempted),
         level_label=content.CONTENT[level]["label"],
@@ -646,6 +699,18 @@ async def profile(request: Request):
         streak["longest"], db.has_event(user["id"], "first_run", ""),
     )
     return render(request, "profile.html", streak=streak, **result)
+
+
+def _review_due_from_rows(user, rows) -> int:
+    """Dashboard version of the review count: finds abandoned questions in rows we already loaded."""
+    cutoff = int(time.time()) - ABANDONED_AFTER
+    cands = [r for r in rows if r["status"] == "attempted" and r["has_code"] and r["updated_at"] < cutoff]
+    if cands:
+        seen = db.event_metas(user["id"], "review_added")
+        for r in cands:
+            if f"{user['level']}:{r['day']}:{r['qnum']}" not in seen:
+                _queue_once(user, user["level"], r["day"], r["qnum"])
+    return db.count_due_reviews(user["id"])
 
 
 def _review_due_count(user) -> int:
@@ -855,6 +920,8 @@ _predict_cache = {}
 
 async def _expected_output(level: str, day: int, q: int, question: dict):
     """The real output of a predict-the-output snippet, computed once by running it on the server."""
+    if question.get("expected") is not None:  # computed ahead of time: no Java run needed
+        return question["expected"]
     key = (level, day, q)
     if key in _predict_cache:
         return _predict_cache[key]
