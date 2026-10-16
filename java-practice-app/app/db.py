@@ -115,15 +115,36 @@ SCHEMA_PG = [
 ]
 
 
+# Columns added after the first release. Each is applied only when missing, so old databases upgrade in place.
+MIGRATIONS = [
+    ("users", "daily_goal", "INTEGER NOT NULL DEFAULT 1"),
+    ("progress", "solved_at", "BIGINT"),
+]
+
+
+def _migrate(c) -> None:
+    for table, column, ddl in MIGRATIONS:
+        if PG:
+            c.execute(f"ALTER TABLE {table} ADD COLUMN IF NOT EXISTS {column} {ddl}")
+        else:
+            cols = {r["name"] for r in c.execute(f"PRAGMA table_info({table})").fetchall()}
+            if column not in cols:
+                c.execute(f"ALTER TABLE {table} ADD COLUMN {column} {ddl}")
+    # Rows solved before solved_at existed: use their last update time as the best available estimate.
+    c.execute("UPDATE progress SET solved_at = updated_at WHERE status = 'solved' AND solved_at IS NULL")
+
+
 def init() -> None:
     if PG:
         with connect() as c:
             for stmt in SCHEMA_PG:
                 c.execute(stmt)
+            _migrate(c)
         return
     os.makedirs(os.path.dirname(os.path.abspath(DB_PATH)), exist_ok=True)
     with connect() as c:
         c.executescript(SCHEMA)
+        _migrate(c)
 
 
 def _x(c, sql, params=()):
@@ -184,6 +205,18 @@ def get_user(user_id: int):
         return _x(c, "SELECT * FROM users WHERE id = ?", (user_id,)).fetchone()
 
 
+def set_daily_goal(user_id: int, goal: int) -> None:
+    with connect() as c:
+        _x(c, "UPDATE users SET daily_goal = ? WHERE id = ?", (goal, user_id))
+
+
+def count_solved_since(user_id: int, since_epoch: int) -> int:
+    """Questions (any level) that became solved at or after the given time."""
+    with connect() as c:
+        return _x(c, "SELECT COUNT(*) AS n FROM progress WHERE user_id = ? AND status = 'solved' "
+                     "AND solved_at >= ?", (user_id, since_epoch)).fetchone()["n"]
+
+
 def set_level(user_id: int, level: str) -> None:
     with connect() as c:
         _x(c, "UPDATE users SET level = ? WHERE id = ?", (level, user_id))
@@ -216,18 +249,36 @@ def save_progress(user_id, level, day, qnum, code, status, count_attempt):
             (user_id, level, day, qnum),
         ).fetchone()
         if row is None:
+            new_status = status or "attempted"
             _x(c,
-                "INSERT INTO progress (user_id, level, day, qnum, status, code, attempts, updated_at) "
-                "VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
-                (user_id, level, day, qnum, status or "attempted", code, 1 if count_attempt else 0, now),
+                "INSERT INTO progress (user_id, level, day, qnum, status, code, attempts, updated_at, solved_at) "
+                "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                (user_id, level, day, qnum, new_status, code, 1 if count_attempt else 0, now,
+                 now if new_status == "solved" else None),
             )
         else:
             new_status = status or ("attempted" if row["status"] == "todo" else row["status"])
             _x(c,
-                "UPDATE progress SET status = ?, code = ?, attempts = attempts + ?, updated_at = ? "
+                "UPDATE progress SET status = ?, code = ?, attempts = attempts + ?, updated_at = ?, "
+                "solved_at = " + _solved_at_sql(row["status"], new_status) + " "
                 "WHERE user_id = ? AND level = ? AND day = ? AND qnum = ?",
-                (new_status, code, 1 if count_attempt else 0, now, user_id, level, day, qnum),
+                (new_status, code, 1 if count_attempt else 0, now, *_solved_at_params(row["status"], new_status, now),
+                 user_id, level, day, qnum),
             )
+
+
+def _solved_at_sql(old: str, new: str) -> str:
+    """solved_at is stamped when a question becomes solved, cleared when it stops being solved,
+    and left alone otherwise (so re-saving a solved question keeps its original solve time)."""
+    if new == "solved" and old != "solved":
+        return "?"
+    if new != "solved":
+        return "NULL"
+    return "solved_at"
+
+
+def _solved_at_params(old: str, new: str, now: int) -> tuple:
+    return (now,) if (new == "solved" and old != "solved") else ()
 
 
 _RANK = {"todo": 0, "attempted": 1, "solved": 2}
@@ -244,16 +295,19 @@ def set_status(user_id, level, day, qnum, status, count_attempt=True):
         ).fetchone()
         if row is None:
             _x(c,
-                "INSERT INTO progress (user_id, level, day, qnum, status, code, attempts, updated_at) "
-                "VALUES (?, ?, ?, ?, ?, '', ?, ?)",
-                (user_id, level, day, qnum, status, 1 if count_attempt else 0, now),
+                "INSERT INTO progress (user_id, level, day, qnum, status, code, attempts, updated_at, solved_at) "
+                "VALUES (?, ?, ?, ?, ?, '', ?, ?, ?)",
+                (user_id, level, day, qnum, status, 1 if count_attempt else 0, now,
+                 now if status == "solved" else None),
             )
         else:
             new_status = status if _RANK[status] > _RANK[row["status"]] else row["status"]
             _x(c,
-                "UPDATE progress SET status = ?, attempts = attempts + ?, updated_at = ? "
+                "UPDATE progress SET status = ?, attempts = attempts + ?, updated_at = ?, "
+                "solved_at = " + _solved_at_sql(row["status"], new_status) + " "
                 "WHERE user_id = ? AND level = ? AND day = ? AND qnum = ?",
-                (new_status, 1 if count_attempt else 0, now, user_id, level, day, qnum),
+                (new_status, 1 if count_attempt else 0, now, *_solved_at_params(row["status"], new_status, now),
+                 user_id, level, day, qnum),
             )
 
 

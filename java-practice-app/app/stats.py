@@ -26,6 +26,11 @@ def today_str() -> str:
     return today().isoformat()
 
 
+def today_start_epoch() -> int:
+    """Unix time of local midnight (APP_TIMEZONE) at the start of today."""
+    return int(datetime.combine(today(), datetime.min.time(), tzinfo=_tz()).timestamp())
+
+
 def compute(date_strings, today_date=None) -> dict:
     """current: consecutive days ending today (or yesterday, so the streak is not lost until the day ends);
     longest: best run ever; total: number of active days."""

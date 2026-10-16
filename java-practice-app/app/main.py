@@ -180,8 +180,32 @@ async def level_set(request: Request, level: str = Form(...)):
     if level in content.LEVELS:
         first_time = not user["level"]
         db.set_level(user["id"], level)
-        if first_time:  # onboarding: straight to the first question instead of the dashboard
-            return RedirectResponse("/day/1/q/1?welcome=1", status_code=303)
+        if first_time:  # onboarding: pick a daily goal, then straight to the first question
+            return RedirectResponse("/goal?first=1", status_code=303)
+    return RedirectResponse("/dashboard", status_code=303)
+
+
+GOALS = (1, 3, 5)
+
+
+@app.get("/goal")
+async def goal_page(request: Request):
+    user = current_user(request)
+    if not user:
+        return RedirectResponse("/login", status_code=303)
+    return render(request, "goal.html", goals=GOALS, current=user["daily_goal"],
+                  first=bool(request.query_params.get("first")))
+
+
+@app.post("/goal")
+async def goal_set(request: Request, goal: int = Form(...), first: str = Form("")):
+    user = current_user(request)
+    if not user:
+        return RedirectResponse("/login", status_code=303)
+    if goal in GOALS:
+        db.set_daily_goal(user["id"], goal)
+    if first and user["level"]:
+        return RedirectResponse("/day/1/q/1?welcome=1", status_code=303)
     return RedirectResponse("/dashboard", status_code=303)
 
 
@@ -212,6 +236,8 @@ async def dashboard(request: Request):
         "dashboard.html",
         days=days,
         next_q=_next_unsolved(user["level"], solved_set),
+        solved_today=db.count_solved_since(user["id"], stats.today_start_epoch()),
+        daily_goal=user["daily_goal"],
         started=bool(solved_set or attempted),
         level_label=content.CONTENT[level]["label"],
         total_solved=total,

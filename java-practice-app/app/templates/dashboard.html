@@ -11,6 +11,8 @@
 {% else %}
 <p class="muted">You have solved every question in this level. Well done!</p>
 {% endif %}
+<p class="goal-line">Today: <b>{{ solved_today }}</b> of <b>{{ daily_goal }}</b> solved{% if solved_today >= daily_goal %} &mdash; goal reached!{% endif %}
+  &middot; <a href="/goal">change goal</a></p>
 <div class="stats">
   <div class="stat"><b>{{ streak.current }}</b><span>day streak{% if streak.current and not streak.today %} (practice today to keep it){% endif %}</span></div>
   <div class="stat"><b>{{ streak.longest }}</b><span>longest streak</span></div>

@@ -185,3 +185,5 @@ form.inline{display:inline}
   .ac{max-height:176px;max-width:min(420px,calc(100vw - 48px));font-size:15px;-webkit-overflow-scrolling:touch}
   .ac .item{min-height:44px;align-items:center;padding:4px 10px}
 }
+
+.goal-line{margin:6px 0 14px}
