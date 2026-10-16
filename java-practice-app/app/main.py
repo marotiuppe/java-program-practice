@@ -15,13 +15,14 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from starlette.middleware.sessions import SessionMiddleware
 
-from . import badges, content, db, grading, hints, mailer, ratelimit, reminders, sandbox, stats
+from . import admin, badges, content, db, grading, hints, mailer, ratelimit, reminders, sandbox, stats
 from .runner import run_java, run_java_batch, sandbox_check_started, sandbox_self_test
 
 logging.basicConfig(level=logging.INFO)
 log = logging.getLogger("app")
 HERE = os.path.dirname(__file__)
 templates = Jinja2Templates(directory=os.path.join(HERE, "templates"))
+templates.env.filters["ts"] = lambda t: datetime.fromtimestamp(t, stats.zone()).strftime("%Y-%m-%d %H:%M") if t else ""
 
 EMAIL_RE = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
 ADMIN_EMAILS = {e.strip().lower() for e in os.environ.get("ADMIN_EMAILS", "").split(",") if e.strip()}
@@ -90,6 +91,7 @@ app.add_middleware(
     https_only=bool(os.environ.get("RENDER")),
     max_age=60 * 60 * 24 * 30,
 )
+app.include_router(admin.router)
 app.mount("/static", StaticFiles(directory=os.path.join(HERE, "static")), name="static")
 
 
@@ -332,7 +334,7 @@ async def login(request: Request, email: str = Form(...), password: str = Form(.
         return render(request, "auth.html", mode="login", error="Wrong email or password.")
     _login_session(request, user)
     db.log_event(user["id"], "return_visit", stats.today_str(), once=True)
-    return RedirectResponse("/", status_code=303)
+    return RedirectResponse("/admin" if is_admin(user) else "/", status_code=303)
 
 
 @app.get("/forgot")
@@ -968,32 +970,6 @@ async def api_report(request: Request):
                   str(body.get("note", ""))[:2000], str(body.get("code", ""))[:50_000])
     return {"ok": True}
 
-
-@app.get("/admin")
-async def admin_page(request: Request):
-    user = current_user(request)
-    if not user:
-        return RedirectResponse("/login", status_code=303)
-    if not is_admin(user):
-        return JSONResponse({"error": "Not found."}, status_code=404)
-    today = stats.today_str()
-    week_start = (date.fromisoformat(today) - timedelta(days=6)).isoformat()
-    return render(
-        request, "admin.html",
-        overview=db.admin_overview(today, week_start),
-        reports=db.list_reports(),
-        hardest=db.hardest_questions(),
-        sandbox_status=sandbox.STATUS,
-    )
-
-
-@app.post("/admin/reports/{report_id}/resolve")
-async def admin_resolve(request: Request, report_id: int):
-    user = current_user(request)
-    if not is_admin(user):
-        return JSONResponse({"error": "Not found."}, status_code=404)
-    db.resolve_report(report_id)
-    return RedirectResponse("/admin", status_code=303)
 
 
 def _review_item(row) -> dict:

@@ -23,13 +23,23 @@
 </head>
 <body>
 <header class="top{{ ' has-menu' if user }}">
-  <a class="brand" href="/"><img src="/static/logo.svg" width="30" height="30" alt="">Java Practice</a>
+  <a class="brand" href="{{ '/admin' if (user and admin_area) else '/' }}"><img src="/static/logo.svg" width="30" height="30" alt="">Java Practice{% if user and admin_area %} <span class="admin-tag">Admin</span>{% endif %}</a>
   {% if user %}
   <button id="nav-toggle" class="nav-toggle" type="button" aria-label="Menu" aria-expanded="false" aria-controls="main-nav"><span></span><span></span><span></span></button>
   {% endif %}
   <nav id="main-nav">
     {% set path = request.url.path %}
-    {% if user %}
+    {% if user and admin_area %}
+      <a href="/admin"{% if path == '/admin' %} class="active" aria-current="page"{% endif %}>Overview</a>
+      <a href="/admin/users"{% if path.startswith('/admin/users') %} class="active" aria-current="page"{% endif %}>Users</a>
+      <a href="/admin/reports"{% if path.startswith('/admin/reports') %} class="active" aria-current="page"{% endif %}>Reports</a>
+      <a href="/admin/questions"{% if path.startswith('/admin/questions') %} class="active" aria-current="page"{% endif %}>Questions</a>
+      <a href="/admin/activity"{% if path.startswith('/admin/activity') %} class="active" aria-current="page"{% endif %}>Activity</a>
+      <a href="/admin/system"{% if path.startswith('/admin/system') %} class="active" aria-current="page"{% endif %}>System</a>
+      <a href="/dashboard" class="muted">Learner view</a>
+      <span class="who"><span class="avatar">{{ user.email[:1] | upper }}</span><span class="muted">{{ user.email }}</span>
+      <form method="post" action="/logout" class="inline"><button class="link">Log out</button></form></span>
+    {% elif user %}
       <button id="install-app" class="link" type="button" hidden>Install app</button>
       <a href="/dashboard"{% if path == '/dashboard' or path.startswith('/day/') %} class="active" aria-current="page"{% endif %}>Dashboard</a>
       <a href="/review"{% if path == '/review' %} class="active" aria-current="page"{% endif %}>Review</a>

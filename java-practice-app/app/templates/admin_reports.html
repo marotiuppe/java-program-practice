@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block title %}Admin: reports{% endblock %}
+{% block content %}
+<h1>Issue reports</h1>
+{% if flash %}<p class="notice">{{ flash }}</p>{% endif %}
+<p class="tabs-inline">
+  <a href="/admin/reports?status=open" class="{{ 'on' if status == 'open' }}">Open ({{ counts.open }})</a>
+  <a href="/admin/reports?status=resolved" class="{{ 'on' if status == 'resolved' }}">Resolved ({{ counts.resolved }})</a>
+  <a href="/admin/reports?status=all" class="{{ 'on' if status == 'all' }}">All</a>
+</p>
+<p class="muted small">Open by type:
+  {% for c in ['wrong_sample','unclear','broken_code','other'] %}
+    <a href="/admin/reports?status={{ status }}&category={{ c }}">{{ c.replace('_', ' ') }}: <b>{{ by_cat.get(c, 0) }}</b></a>{% if not loop.last %} &middot; {% endif %}
+  {% endfor %}
+  {% if category %}&middot; <a href="/admin/reports?status={{ status }}">clear filter</a>{% endif %}
+</p>
+{% for r in reports %}
+<div class="card">
+  <p><b>{{ r.category.replace('_', ' ') }}</b> &middot; {{ r.level }} day {{ r.day }} Q{{ r.qnum }}
+    &middot; <a href="/day/{{ r.day }}/q/{{ r.qnum }}">open question</a>
+    &middot; {% if r.user_id and r.email %}<a href="/admin/users/{{ r.user_id }}">{{ r.email }}</a>{% else %}<span class="muted">deleted user</span>{% endif %}
+    &middot; <span class="muted">{{ r.created_at | ts }}</span>
+    {% if r.resolved %}<span class="badge solved">resolved</span>{% endif %}</p>
+  {% if r.note %}<p>{{ r.note }}</p>{% endif %}
+  {% if r.code %}<details><summary>Learner code</summary><pre class="output">{{ r.code }}</pre></details>{% endif %}
+  {% if r.resolved %}
+    <form method="post" action="/admin/reports/{{ r.id }}/reopen"><button>Reopen</button></form>
+  {% else %}
+    <form method="post" action="/admin/reports/{{ r.id }}/resolve"><button>Mark resolved</button></form>
+  {% endif %}
+</div>
+{% else %}<p class="card muted">No reports here.</p>{% endfor %}
+{% endblock %}

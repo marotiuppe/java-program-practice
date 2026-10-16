@@ -414,41 +414,12 @@ def add_report(user_id, level, day, qnum, category, note, code) -> None:
            (user_id, level, day, qnum, category, note, code, int(time.time())))
 
 
-def admin_overview(today: str, week_start: str) -> dict:
-    """Headline numbers for the admin page."""
-    with connect() as c:
-        one = lambda sql, p=(): _x(c, sql, p).fetchone()["n"]
-        return {
-            "users": one("SELECT COUNT(*) AS n FROM users"),
-            "dau": one("SELECT COUNT(*) AS n FROM activity WHERE day = ?", (today,)),
-            "wau": one("SELECT COUNT(DISTINCT user_id) AS n FROM activity WHERE day >= ?", (week_start,)),
-            "solves": one("SELECT COUNT(*) AS n FROM progress WHERE status = 'solved'"),
-            "open_reports": one("SELECT COUNT(*) AS n FROM reports WHERE resolved = 0"),
-            "events": {r["name"]: r["n"] for r in _x(
-                c, "SELECT name, COUNT(*) AS n FROM events GROUP BY name ORDER BY n DESC").fetchall()},
-        }
-
-
-def list_reports(include_resolved: bool = False, limit: int = 100):
-    with connect() as c:
-        where = "" if include_resolved else "WHERE r.resolved = 0 "
-        return _x(c, "SELECT r.*, u.email FROM reports r LEFT JOIN users u ON u.id = r.user_id "
-                     f"{where}ORDER BY r.id DESC LIMIT ?", (limit,)).fetchall()
-
-
 def resolve_report(report_id: int) -> None:
     with connect() as c:
         _x(c, "UPDATE reports SET resolved = 1 WHERE id = ?", (report_id,))
 
 
-def hardest_questions(limit: int = 15, min_users: int = 2):
-    """Questions with the most attempts per learner and the lowest solve rate."""
-    with connect() as c:
-        return _x(c, "SELECT level, day, qnum, COUNT(*) AS users, SUM(attempts) AS attempts, "
-                     "SUM(CASE WHEN status = 'solved' THEN 1 ELSE 0 END) AS solved "
-                     "FROM progress GROUP BY level, day, qnum HAVING COUNT(*) >= ? "
-                     "ORDER BY (1.0 * SUM(CASE WHEN status = 'solved' THEN 1 ELSE 0 END) / COUNT(*)) ASC, "
-                     "SUM(attempts) DESC LIMIT ?", (min_users, limit)).fetchall()
+
 
 
 def get_solved_epochs(user_id: int) -> list:

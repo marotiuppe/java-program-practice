@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block title %}Admin: activity{% endblock %}
+{% block content %}
+<h1>Activity</h1>
+<section class="card">
+  <h2>Last 7 days</h2>
+  <p>
+    {% for n, c in counts %}<a class="badge {{ 'earned-b' if n == event }}" href="/admin/activity?event={{ n }}">{{ n }}: {{ c }}</a> {% else %}<span class="muted">No events yet.</span>{% endfor %}
+    {% if event %}<a href="/admin/activity">show all</a>{% endif %}
+  </p>
+</section>
+<div class="table-wrap">
+<table class="admin-table">
+  <tr><th>When</th><th>User</th><th>Event</th><th>Detail</th></tr>
+  {% for e in feed %}
+  <tr>
+    <td>{{ e.created_at | ts }}</td>
+    <td>{% if e.email %}<a href="/admin/users/{{ e.user_id }}">{{ e.email }}</a>{% else %}<span class="muted">deleted</span>{% endif %}</td>
+    <td>{{ e.name }}</td>
+    <td class="muted">{{ e.meta }}</td>
+  </tr>
+  {% else %}<tr><td colspan="4" class="muted">Nothing yet.</td></tr>{% endfor %}
+</table>
+</div>
+<p class="muted small">The 100 most recent events{{ ' named ' ~ event if event }}.</p>
+{% endblock %}

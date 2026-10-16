@@ -18,6 +18,7 @@ else:
     os.environ.pop("DATABASE_URL", None)
 os.environ.setdefault("SANDBOX", "off")  # the sandbox has its own check (tools/check_sandbox.py)
 os.environ["MAIL_BACKEND"] = "memory"
+os.environ["ADMIN_EMAILS"] = "smoke@example.com"
 
 from fastapi.testclient import TestClient  # noqa: E402
 from app import content, db, mailer  # noqa: E402
@@ -88,6 +89,14 @@ with TestClient(app, follow_redirects=False) as c:
     check("reminder opt-in stored", db.get_user(uid)["reminders"] == 1)
     r = c.post("/api/predict", json={"day": 1, "q": 4, "answer": "definitely wrong"}).json()
     check("predict answer is checked", r.get("correct") is False, r)
+
+    # admin area: the smoke user is the admin once its email is confirmed
+    check("admin pages closed until email is confirmed", c.get("/admin").status_code == 404)
+    db.mark_verified(uid)
+    for path in ["/admin", "/admin/users", f"/admin/users/{uid}", "/admin/users?q=smoke&sort=solved", "/admin/reports",
+                 "/admin/questions", "/admin/questions?level=advanced&sort=reports", "/admin/activity",
+                 "/admin/activity?event=signup", "/admin/system"]:
+        check(f"admin page {path}", c.get(path).status_code == 200, c.get(path).status_code)
 
     c.post("/logout")
     r = c.post("/login", data={"email": "smoke@example.com", "password": "password123"})

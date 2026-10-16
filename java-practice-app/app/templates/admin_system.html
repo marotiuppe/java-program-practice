@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% block title %}Admin: system{% endblock %}
+{% block content %}
+<h1>System</h1>
+<div class="card">
+  <table class="kv">
+    {% for k, v in info %}<tr><td>{{ k }}</td><td>{{ v }}</td></tr>{% endfor %}
+  </table>
+</div>
+<p class="muted small">If Email sending says "NOT configured", set SMTP_USER and SMTP_PASSWORD on Render. If Sandbox does not say "on", learner code can reach the network, so fix that before promoting the site.</p>
+{% endblock %}

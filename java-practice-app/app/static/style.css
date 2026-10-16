@@ -279,3 +279,27 @@ details.card summary{cursor:pointer}
 }
 @media (prefers-reduced-motion:reduce){.nav-toggle span{transition:none}}
 [hidden]{display:none !important}
+
+/* ---- admin area ---- */
+.admin-tag{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;padding:2px 8px;border-radius:99px;background:var(--accent);color:var(--accent-fg)}
+.admin-cols{display:grid;gap:16px;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));align-items:start}
+.funnel-row{display:grid;grid-template-columns:150px 1fr 110px;gap:10px;align-items:center;margin:8px 0}
+@media (max-width:560px){.funnel-row{grid-template-columns:1fr;gap:2px}}
+.bars{display:flex;align-items:flex-end;gap:4px;height:120px;margin:8px 0}
+.bar-col{flex:1;height:100%;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;gap:4px;font-size:10px;color:var(--muted)}
+.bar-col i{display:block;width:100%;min-height:2px;background:var(--accent);border-radius:3px 3px 0 0}
+.table-wrap{overflow-x:auto;margin-bottom:16px}
+.filter-bar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:10px 0}
+.filter-bar input[type=search],.filter-bar input[type=text],.filter-bar input[type=number],.filter-bar select{padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--fg);font:inherit}
+.kv{border-collapse:collapse;width:100%}
+.kv td{padding:5px 8px;border-bottom:1px solid var(--line)}
+.kv td:first-child{color:var(--muted);width:42%}
+.day-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(34px,1fr));gap:4px;max-width:560px}
+.day-cell{display:grid;place-items:center;height:30px;border-radius:6px;background:var(--line);font-size:12px}
+.day-cell.part{background:color-mix(in srgb,var(--warn) 45%,var(--line))}
+.day-cell.done{background:var(--ok);color:#fff}
+.tabs-inline a{margin-right:14px;padding:4px 0;text-decoration:none;color:var(--muted)}
+.tabs-inline a.on{color:var(--accent);font-weight:700;border-bottom:2px solid var(--accent)}
+.pager{display:flex;gap:16px;align-items:center}
+.admin-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.badge.earned-b{border-color:var(--accent);color:var(--accent)}

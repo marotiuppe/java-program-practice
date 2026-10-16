@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block title %}Admin: users{% endblock %}
+{% block content %}
+<h1>Users <span class="muted small">({{ total }})</span></h1>
+{% if flash %}<p class="notice">{{ flash }}</p>{% endif %}
+<form method="get" action="/admin/users" class="filter-bar">
+  <input type="search" name="q" value="{{ q }}" placeholder="Search by email" aria-label="Search by email">
+  <select name="sort" aria-label="Sort by">
+    {% for s in sorts %}<option value="{{ s }}" {{ 'selected' if s == sort }}>{{ {'newest':'Newest first','oldest':'Oldest first','active':'Recently active','solved':'Most solved','email':'Email A-Z'}[s] }}</option>{% endfor %}
+  </select>
+  <button>Filter</button>
+</form>
+<div class="table-wrap">
+<table class="admin-table">
+  <tr><th>Email</th><th>Level</th><th>Goal</th><th>Solved</th><th>Last active</th><th>Joined</th><th>Reports</th></tr>
+  {% for u in users %}
+  <tr>
+    <td><a href="/admin/users/{{ u.id }}">{{ u.email }}</a>{% if not u.email_verified %} <span class="badge">unconfirmed</span>{% endif %}</td>
+    <td>{{ u.level or '-' }}</td>
+    <td>{{ u.daily_goal }}</td>
+    <td>{{ u.solved }}</td>
+    <td>{{ u.last_active or 'never' }}</td>
+    <td>{{ u.created_at | ts }}</td>
+    <td>{{ u.reports or '' }}</td>
+  </tr>
+  {% else %}<tr><td colspan="7" class="muted">No users match.</td></tr>{% endfor %}
+</table>
+</div>
+{% if pages > 1 %}
+<p class="pager">
+  {% if pg > 1 %}<a href="/admin/users?q={{ q | urlencode }}&sort={{ sort }}&page={{ pg - 1 }}">&larr; Previous</a>{% endif %}
+  <span class="muted">Page {{ pg }} of {{ pages }}</span>
+  {% if pg < pages %}<a href="/admin/users?q={{ q | urlencode }}&sort={{ sort }}&page={{ pg + 1 }}">Next &rarr;</a>{% endif %}
+</p>
+{% endif %}
+{% endblock %}

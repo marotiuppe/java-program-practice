@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+{% block title %}Admin: {{ t.email }}{% endblock %}
+{% block content %}
+<p><a href="/admin/users">&larr; All users</a></p>
+<h1>{{ t.email }}</h1>
+{% if flash %}<p class="notice">{{ flash }}</p>{% endif %}
+
+<div class="stats">
+  <div class="stat"><b>{{ xp.solved_total }}</b><span>questions solved</span></div>
+  <div class="stat"><b>{{ streak.current }}</b><span>day streak &middot; best {{ streak.longest }}</span></div>
+  <div class="stat"><b>{{ streak.total }}</b><span>days practiced{% if last_active %} &middot; last {{ last_active }}{% endif %}</span></div>
+  <div class="stat"><b>{{ xp.xp }}</b><span>XP &middot; learner level {{ xp.learner.level }}</span></div>
+  <div class="stat"><b>{{ xp.badges | selectattr('earned') | list | length }}/{{ xp.badges | length }}</b><span>badges</span></div>
+</div>
+
+<div class="admin-cols">
+  <section class="card">
+    <h2>Account</h2>
+    <table class="kv">
+      <tr><td>Joined</td><td>{{ account.created_at | ts }}</td></tr>
+      <tr><td>Email</td><td>{{ 'confirmed' if t.email_verified else 'NOT confirmed' }}</td></tr>
+      <tr><td>Level</td><td>{{ t.level or 'not chosen yet' }}</td></tr>
+      <tr><td>Daily goal</td><td>{{ t.daily_goal }}</td></tr>
+      <tr><td>Reminders</td><td>{{ 'on' if t.reminders else 'off' }}</td></tr>
+      <tr><td>Hints</td><td>{{ 'on' if t.hints_on else 'off' }}</td></tr>
+      <tr><td>Timezone</td><td>{{ t.tz or 'unknown' }}</td></tr>
+      <tr><td>Review queue</td><td>{{ reviews_due }} question{{ '' if reviews_due == 1 else 's' }}</td></tr>
+    </table>
+    <div class="admin-actions">
+      {% if not t.email_verified %}
+      <form method="post" action="/admin/users/{{ t.id }}/verify"><button>Mark email confirmed</button></form>
+      {% endif %}
+      {% if mail_ready %}
+      <form method="post" action="/admin/users/{{ t.id }}/reset" onsubmit="return confirm('Email this user a password reset link?');"><button>Send password reset email</button></form>
+      {% endif %}
+    </div>
+  </section>
+
+  <section class="card">
+    <h2>Badges</h2>
+    <p>{% for b in xp.badges %}<span class="badge {{ 'earned-b' if b.earned else '' }}" title="{{ b.how }}">{{ b.title }}{{ ' ✓' if b.earned else '' }}</span> {% endfor %}</p>
+    <h2>Reports from this user ({{ reports | length }})</h2>
+    {% for r in reports %}
+      <p class="small"><b>{{ r.category }}</b> &middot; {{ r.level }} day {{ r.day }} Q{{ r.qnum }} &middot; {{ 'resolved' if r.resolved else 'open' }}<br>{{ r.note or '(no note)' }}</p>
+    {% else %}<p class="muted">None.</p>{% endfor %}
+  </section>
+</div>
+
+{% for l in levels %}
+<section class="card">
+  <h2>{{ l.label }}: {{ l.solved }}/{{ l.total }} solved &middot; {{ l.days_done }} days complete</h2>
+  <p class="muted small">{{ l.attempts }} run attempts &middot; hints opened on {{ l.hints }} question{{ '' if l.hints == 1 else 's' }}. Each square is a day (green = all 5 solved).</p>
+  <div class="day-grid">
+    {% for c in l.grid %}
+    <span class="day-cell {{ 'done' if c.solved >= 5 else 'part' if (c.solved or c.attempted) else '' }}" title="Day {{ c.n }}: {{ c.solved }}/5 solved{{ ', ' ~ c.attempted ~ ' attempted' if c.attempted else '' }}">{{ c.n }}</span>
+    {% endfor %}
+  </div>
+</section>
+{% endfor %}
+
+<section class="card">
+  <h2>Recent activity</h2>
+  <div class="table-wrap"><table class="admin-table">
+    <tr><th>When</th><th>Event</th><th>Detail</th></tr>
+    {% for e in events %}<tr><td>{{ e.created_at | ts }}</td><td>{{ e.name }}</td><td class="muted">{{ e.meta }}</td></tr>
+    {% else %}<tr><td colspan="3" class="muted">No events yet.</td></tr>{% endfor %}
+  </table></div>
+</section>
+
+<section class="card danger">
+  <h2>Delete this account</h2>
+  {% if is_admin_account %}
+    <p class="muted">Admin accounts, and your own, cannot be deleted from here.</p>
+  {% else %}
+    <p>Permanently deletes the account and all of its data. Type the user's email to confirm.</p>
+    <form method="post" action="/admin/users/{{ t.id }}/delete" class="filter-bar">
+      <input type="text" name="confirm_email" placeholder="{{ t.email }}" required autocomplete="off">
+      <button class="danger-btn">Delete account</button>
+    </form>
+  {% endif %}
+</section>
+{% endblock %}

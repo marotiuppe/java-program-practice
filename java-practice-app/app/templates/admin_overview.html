@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% block title %}Admin: overview{% endblock %}
+{% block content %}
+<h1>Overview</h1>
+{% if flash %}<p class="notice">{{ flash }}</p>{% endif %}
+<div class="stats">
+  <div class="stat"><b>{{ kpis.users }}</b><span>users ({{ kpis.verified }} confirmed)</span></div>
+  <div class="stat"><b>{{ kpis.new_7 }}</b><span>new in 7 days &middot; {{ kpis.new_30 }} in 30</span></div>
+  <div class="stat"><b>{{ kpis.dau }}</b><span>active today</span></div>
+  <div class="stat"><b>{{ kpis.wau }}</b><span>active in 7 days</span></div>
+  <div class="stat"><b>{{ kpis.mau }}</b><span>active in 30 days</span></div>
+  <div class="stat"><b>{{ kpis.solves }}</b><span>questions solved</span></div>
+  <div class="stat"><a href="/admin/reports"><b>{{ kpis.open_reports }}</b></a><span>open reports</span></div>
+</div>
+
+<div class="admin-cols">
+  <section class="card">
+    <h2>Where learners drop off</h2>
+    <p class="muted small">Share of all sign-ups who reached each step.</p>
+    {% for f in funnel %}
+    <div class="funnel-row"><span>{{ f.label }}</span><div class="meter"><i style="width:{{ f.pct }}%"></i></div><b>{{ f.n }} <span class="muted small">({{ f.pct }}%)</span></b></div>
+    {% endfor %}
+  </section>
+  <section class="card">
+    <h2>Coming back</h2>
+    <p class="muted small">Sign-ups from the last 60 days who were active exactly N days after joining.</p>
+    <p><b>Day 1:</b> {{ retention[1].pct }}% <span class="muted small">({{ retention[1].kept }} of {{ retention[1].eligible }})</span></p>
+    <p><b>Day 7:</b> {{ retention[7].pct }}% <span class="muted small">({{ retention[7].kept }} of {{ retention[7].eligible }})</span></p>
+    <h2>Levels chosen</h2>
+    {% for l in levels %}<p>{{ l.label }}: <b>{{ l.n }}</b></p>{% endfor %}
+  </section>
+</div>
+
+<div class="admin-cols">
+  {% for title, series in charts %}
+  <section class="card">
+    <h2>{{ title }}</h2>
+    <div class="bars" role="img" aria-label="{{ title }}, last 14 days">
+      {% for b in series %}<div class="bar-col" title="{{ b.label }}: {{ b.n }}"><i style="height:{{ b.pct }}%"></i><span>{{ b.label[:2] }}</span></div>{% endfor %}
+    </div>
+    <p class="muted small">Last 14 days &middot; peak {{ series | map(attribute='n') | max }}</p>
+  </section>
+  {% endfor %}
+</div>
+{% endblock %}

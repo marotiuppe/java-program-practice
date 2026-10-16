@@ -48,7 +48,7 @@ full question set (the Docker image uses JDK 21 with `--release 17`).
 e.g. from Neon; when unset the app uses a local SQLite file at `DB_PATH`), `DB_PATH`, `JAVA_BIN_DIR`, `JAVAC_FLAGS`,
 `JAVA_FLAGS`, `COMPILE_TIMEOUT`, `RUN_TIMEOUT`, `KEEPALIVE_URL`, `KEEPALIVE_SECONDS`, `RUNNER_UID`.
 
-`ADMIN_EMAILS` (comma-separated emails allowed to open `/admin`: user counts, event totals, issue reports, hardest questions).
+`ADMIN_EMAILS` (comma-separated emails of admins; the account must also have a confirmed email). Admins land on `/admin`, which has its own menu: Overview (key numbers, sign-up funnel, retention, charts), Users (search, and each learner's progress with account actions), Reports (issue reports), Questions (solve rates, attempts, hints and reports per question), Activity (event feed) and System (database, sandbox, email status).
 
 
 ## Live smoke test (run after every deploy)
