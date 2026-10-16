@@ -2,12 +2,14 @@
 {% block title %}Dashboard{% endblock %}
 {% block content %}
 <h1>{{ level_label }} — 30-day plan</h1>
-<p class="muted">{{ total_solved }} of 150 questions solved.</p>
+<div class="overall"><span class="muted">{{ total_solved }} of 150 questions solved</span>
+  <div class="meter"><i style="width:{{ (total_solved * 100 / 150) | round(1) }}%"></i></div></div>
 <div class="grid">
   {% for d in days %}
     <a class="day {{ d.state }}" href="/day/{{ d.n }}">
       <span class="num">Day {{ d.n }}</span>
       <span class="ttl">{{ d.title }}</span>
+      <div class="meter"><i style="width:{{ d.solved * 20 }}%"></i></div>
       <span class="cnt">{{ d.solved }}/5 solved</span>
     </a>
   {% endfor %}

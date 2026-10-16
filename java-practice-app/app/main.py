@@ -80,6 +80,11 @@ def render(request: Request, name: str, **ctx):
     return templates.TemplateResponse(request, name, {"user": current_user(request), **ctx})
 
 
+@app.get("/favicon.ico", include_in_schema=False)
+async def favicon():
+    return RedirectResponse("/static/favicon.svg", status_code=301)
+
+
 @app.get("/health")
 async def health():
     return {"status": "ok"}

@@ -4,17 +4,19 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>{% block title %}Java Practice{% endblock %}</title>
+<meta name="theme-color" content="#4f46e5">
+<link rel="icon" href="/static/favicon.svg" type="image/svg+xml">
 <link rel="stylesheet" href="/static/style.css">
 </head>
 <body>
 <header class="top">
-  <a class="brand" href="/">Java Practice</a>
+  <a class="brand" href="/"><img src="/static/logo.svg" width="30" height="30" alt="">Java Practice</a>
   <nav>
     {% if user %}
       <a href="/dashboard">Dashboard</a>
       <a href="/level">Level</a>
-      <span class="muted">{{ user.email }}</span>
-      <form method="post" action="/logout" class="inline"><button class="link">Log out</button></form>
+      <span class="who"><span class="avatar">{{ user.email[:1] | upper }}</span><span class="muted">{{ user.email }}</span>
+      <form method="post" action="/logout" class="inline"><button class="link">Log out</button></form></span>
     {% endif %}
   </nav>
 </header>
