@@ -47,3 +47,5 @@ full question set (the Docker image uses JDK 21 with `--release 17`).
 `SECRET_KEY` (session signing, required in production), `DATABASE_URL` (Postgres connection string,
 e.g. from Neon; when unset the app uses a local SQLite file at `DB_PATH`), `DB_PATH`, `JAVA_BIN_DIR`, `JAVAC_FLAGS`,
 `JAVA_FLAGS`, `COMPILE_TIMEOUT`, `RUN_TIMEOUT`, `KEEPALIVE_URL`, `KEEPALIVE_SECONDS`, `RUNNER_UID`.
+
+`ADMIN_EMAILS` (comma-separated emails allowed to open `/admin`: user counts, event totals, issue reports, hardest questions).

@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block title %}Admin{% endblock %}
+{% block content %}
+<h1>Admin</h1>
+<div class="stats">
+  <div class="stat"><b>{{ overview.users }}</b><span>users</span></div>
+  <div class="stat"><b>{{ overview.dau }}</b><span>active today</span></div>
+  <div class="stat"><b>{{ overview.wau }}</b><span>active, last 7 days</span></div>
+  <div class="stat"><b>{{ overview.solves }}</b><span>questions solved</span></div>
+  <div class="stat"><b>{{ overview.open_reports }}</b><span>open reports</span></div>
+</div>
+
+<h2>Events (all time)</h2>
+<p class="muted">{% for name, n in overview.events.items() %}{{ name }}: <b>{{ n }}</b>{% if not loop.last %} &middot; {% endif %}{% else %}No events yet.{% endfor %}</p>
+
+<h2>Open reports</h2>
+{% for r in reports %}
+<div class="card">
+  <p><b>{{ r.category }}</b> &middot; {{ r.level }} day {{ r.day }} Q{{ r.qnum }} &middot; <span class="muted">{{ r.email or 'deleted user' }}</span>
+    &middot; <a href="/day/{{ r.day }}/q/{{ r.qnum }}">open question</a></p>
+  {% if r.note %}<p>{{ r.note }}</p>{% endif %}
+  {% if r.code %}<details><summary>Learner code</summary><pre class="output">{{ r.code }}</pre></details>{% endif %}
+  <form method="post" action="/admin/reports/{{ r.id }}/resolve"><button>Mark resolved</button></form>
+</div>
+{% else %}<p class="muted">No open reports.</p>{% endfor %}
+
+<h2>Hardest questions</h2>
+<p class="muted">Lowest solve rate first (questions attempted by at least 2 learners).</p>
+<table class="admin-table">
+  <tr><th>Level</th><th>Day</th><th>Q</th><th>Learners</th><th>Attempts</th><th>Solved</th></tr>
+  {% for h in hardest %}
+  <tr><td>{{ h.level }}</td><td>{{ h.day }}</td><td><a href="/day/{{ h.day }}/q/{{ h.qnum }}">{{ h.qnum }}</a></td><td>{{ h.users }}</td><td>{{ h.attempts }}</td><td>{{ h.solved }}</td></tr>
+  {% else %}<tr><td colspan="6" class="muted">Not enough data yet.</td></tr>{% endfor %}
+</table>
+{% endblock %}

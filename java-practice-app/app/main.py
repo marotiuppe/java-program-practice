@@ -4,6 +4,7 @@ import os
 import re
 import time
 import urllib.request
+from datetime import date, timedelta
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, Form, Request
@@ -21,6 +22,7 @@ HERE = os.path.dirname(__file__)
 templates = Jinja2Templates(directory=os.path.join(HERE, "templates"))
 
 EMAIL_RE = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
+ADMIN_EMAILS = {e.strip().lower() for e in os.environ.get("ADMIN_EMAILS", "").split(",") if e.strip()}
 REPORT_CATEGORIES = {"wrong_sample", "unclear", "broken_code", "other"}
 STATUSES = {"todo", "attempted", "solved"}
 KEEPALIVE_SECONDS = int(os.environ.get("KEEPALIVE_SECONDS", "300"))
@@ -77,8 +79,12 @@ def current_user(request: Request):
     return user
 
 
+def is_admin(user) -> bool:
+    return bool(user) and user["email"].lower() in ADMIN_EMAILS
+
+
 def render(request: Request, name: str, **ctx):
-    return templates.TemplateResponse(request, name, {"user": current_user(request), **ctx})
+    return templates.TemplateResponse(request, name, {"user": (u := current_user(request)), "is_admin": is_admin(u), **ctx})
 
 
 @app.get("/favicon.ico", include_in_schema=False)
@@ -409,3 +415,29 @@ async def api_report(request: Request):
     db.add_report(user["id"], user["level"], day, q, category,
                   str(body.get("note", ""))[:2000], str(body.get("code", ""))[:50_000])
     return {"ok": True}
+
+
+@app.get("/admin")
+async def admin_page(request: Request):
+    user = current_user(request)
+    if not user:
+        return RedirectResponse("/login", status_code=303)
+    if not is_admin(user):
+        return JSONResponse({"error": "Not found."}, status_code=404)
+    today = stats.today_str()
+    week_start = (date.fromisoformat(today) - timedelta(days=6)).isoformat()
+    return render(
+        request, "admin.html",
+        overview=db.admin_overview(today, week_start),
+        reports=db.list_reports(),
+        hardest=db.hardest_questions(),
+    )
+
+
+@app.post("/admin/reports/{report_id}/resolve")
+async def admin_resolve(request: Request, report_id: int):
+    user = current_user(request)
+    if not is_admin(user):
+        return JSONResponse({"error": "Not found."}, status_code=404)
+    db.resolve_report(report_id)
+    return RedirectResponse("/admin", status_code=303)

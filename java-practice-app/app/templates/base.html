@@ -15,6 +15,7 @@
     {% if user %}
       <a href="/dashboard">Dashboard</a>
       <a href="/level">Level</a>
+      {% if is_admin %}<a href="/admin">Admin</a>{% endif %}
       <span class="who"><span class="avatar">{{ user.email[:1] | upper }}</span><span class="muted">{{ user.email }}</span>
       <form method="post" action="/logout" class="inline"><button class="link">Log out</button></form></span>
     {% endif %}
