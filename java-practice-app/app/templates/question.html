@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 {% block title %}Day {{ day.n }} · Q{{ question.q }}{% endblock %}
 {% block content %}
+{% set show_start = False %}{% include "_mock.html" %}
 <div class="qhead">
   <a href="/day/{{ day.n }}">&larr; Day {{ day.n }}: {{ day.title }}</a>
   <span>
@@ -42,7 +43,7 @@
     </label>
     <div class="bar">
       <button id="run" class="primary">Run (Ctrl+Enter)</button>
-      {% if question.samples %}<button id="test">Run samples ({{ question.samples | length }})</button>{% endif %}
+      {% if question.check_count %}<button id="test">{{ 'Run checks' if question.kind == 'debug' else 'Run samples' }} ({{ question.check_count }})</button>{% endif %}
       <button id="save">Save</button>
       <button id="solve" data-status="{{ status }}">{{ 'Mark unsolved' if status == 'solved' else 'Mark solved' }}</button>
       <button id="reset" class="link">Reset code</button>

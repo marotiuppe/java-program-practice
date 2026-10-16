@@ -3,6 +3,7 @@
 {% block content %}
 <p><a href="/dashboard">&larr; Dashboard</a></p>
 <h1>Day {{ day.n }} — {{ day.title }}</h1>
+{% set show_start = True %}{% include "_mock.html" %}
 <div class="card prose">{{ day.objectives_html | safe }}</div>
 <ol class="qlist">
   {% for qn, q in day.questions.items() %}

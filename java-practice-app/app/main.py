@@ -204,7 +204,10 @@ async def day_page(request: Request, day: int):
     if not d:
         return RedirectResponse("/dashboard", status_code=303)
     status = {r["qnum"]: r["status"] for r in db.get_progress(user["id"], user["level"]) if r["day"] == day}
-    return render(request, "day.html", day=d, status=status, last_day=max(content.CONTENT[user["level"]]["days"]))
+    return render(
+        request, "day.html", day=d, status=status, level=user["level"],
+        last_day=max(content.CONTENT[user["level"]]["days"]),
+    )
 
 
 @app.get("/day/{day}/q/{q}")
@@ -264,24 +267,25 @@ async def api_test(request: Request):
     except (KeyError, ValueError, TypeError):
         return JSONResponse({"error": "Bad request."}, status_code=400)
     _, question = _get_question(user["level"], day, q)
-    if not question or not question["samples"]:
-        return JSONResponse({"error": "This question has no sample cases to test."}, status_code=404)
+    if not question or not question["check_count"]:
+        return JSONResponse({"error": "This question has no checks to run."}, status_code=404)
     code = str(body.get("code", ""))[:50_000]
-    samples = question["samples"]
-    res = await run_java_batch(code, [s["input"] for s in samples])
+    cases = [(s, False) for s in question["samples"]] + [(h, True) for h in question["hidden"]]
+    res = await run_java_batch(code, [c["input"] for c, _ in cases])
     if res.get("stage") != "tests":
         return JSONResponse(res)
     items = []
-    for n, (sample, r) in enumerate(zip(samples, res["results"]), start=1):
-        items.append({
+    for n, ((case, hidden), r) in enumerate(zip(cases, res["results"]), start=1):
+        item = {
             "n": n,
-            "pass": bool(r["ok"] and grading.same(r["stdout"], sample["output"])),
-            "input": sample["input"],
-            "expected": sample["output"],
-            "actual": r["stdout"],
+            "hidden": hidden,
+            "pass": bool(r["ok"] and grading.same(r["stdout"], case["output"])),
             "stderr": r["stderr"],
             "timed_out": r["timed_out"],
-        })
+        }
+        if not hidden:  # hidden cases never reveal their input or expected output
+            item.update({"input": case["input"], "expected": case["output"], "actual": r["stdout"]})
+        items.append(item)
     all_passed = all(i["pass"] for i in items)
     db.save_progress(user["id"], user["level"], day, q, code, "solved" if all_passed else None, True)
     db.touch_activity(user["id"], stats.today_str())

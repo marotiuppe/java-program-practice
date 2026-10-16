@@ -375,19 +375,23 @@
         const passed = res.results.filter((r) => r.pass).length;
         const total = res.results.length;
         testsBox.appendChild(el('div', 'summary ' + (res.all_passed ? 'ok' : 'bad'),
-          res.all_passed ? 'All ' + total + ' samples passed - marked solved.' : passed + ' of ' + total + ' samples passed'));
+          res.all_passed ? 'All ' + total + ' checks passed - marked solved.' : passed + ' of ' + total + ' checks passed'));
         let opened = false;
         res.results.forEach((r) => {
           const d = el('details');
           if (!r.pass && !opened) { d.open = true; opened = true; }
           const s = el('summary');
           s.appendChild(el('span', 'tag ' + (r.pass ? 'pass' : 'fail'), r.pass ? 'PASS' : 'FAIL'));
-          s.appendChild(el('span', '', 'Sample ' + r.n));
+          s.appendChild(el('span', '', (r.hidden ? 'Hidden test ' : 'Sample ') + r.n));
           d.appendChild(s);
           const detail = el('div', 'detail');
-          detail.appendChild(textBlock('Input', r.input.replace(/\n$/, '')));
-          detail.appendChild(textBlock('Expected output', r.expected));
-          detail.appendChild(textBlock('Your output', r.actual));
+          if (r.hidden) {
+            if (!r.pass && !r.stderr) detail.appendChild(textBlock('Result', 'Your output did not match the expected output for this hidden test.'));
+          } else {
+            detail.appendChild(textBlock('Input', r.input.replace(/\n$/, '')));
+            detail.appendChild(textBlock('Expected output', r.expected));
+            detail.appendChild(textBlock('Your output', r.actual));
+          }
           if (r.stderr) detail.appendChild(textBlock('Errors', r.stderr));
           d.appendChild(detail);
           testsBox.appendChild(d);

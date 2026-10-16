@@ -5,11 +5,13 @@ environment, output captured to size-capped files, and (when started as root in 
 container) the child drops to an unprivileged uid. It does NOT block network access.
 """
 import asyncio
+import hashlib
 import os
 import shutil
 import signal
 import subprocess
 import tempfile
+import threading
 
 JAVA_BIN_DIR = os.environ.get("JAVA_BIN_DIR", "")  # empty -> use PATH
 _JAVAC_BASE = "-J-Xmx192m -J-XX:+UseSerialGC -J-XX:TieredStopAtLevel=1 -encoding UTF-8 -proc:none"
@@ -152,7 +154,60 @@ def _compile(tmp: str, src: str, env: dict):
     return None
 
 
-def _run_one(tmp: str, env: dict, drop: bool, stdin_text: str, tag: int) -> dict:
+CACHE_DIR = os.path.join(tempfile.gettempdir(), "jcache")
+CACHE_MAX = int(os.environ.get("COMPILE_CACHE_MAX", "40"))
+_cache_lock = threading.Lock()
+
+
+def _cache_key(code: str) -> str:
+    return hashlib.sha256((" ".join(_javac_flags()) + "\n" + code).encode("utf-8")).hexdigest()[:32]
+
+
+def _cache_put(key: str, tmp: str) -> str:
+    """Keep the compiled classes for this exact source so a repeat run skips javac."""
+    dest = os.path.join(CACHE_DIR, key)
+    try:
+        with _cache_lock:
+            os.makedirs(CACHE_DIR, exist_ok=True)
+            os.chmod(CACHE_DIR, 0o755)
+            if os.path.isdir(dest):
+                return dest
+            stage = dest + ".tmp"
+            shutil.rmtree(stage, ignore_errors=True)
+            os.makedirs(stage)
+            for name in os.listdir(tmp):
+                if name.endswith(".class"):
+                    shutil.copy2(os.path.join(tmp, name), os.path.join(stage, name))
+            os.chmod(stage, 0o755)
+            os.rename(stage, dest)
+            entries = sorted(
+                (e for e in os.scandir(CACHE_DIR) if e.is_dir() and not e.name.endswith(".tmp")),
+                key=lambda e: e.stat().st_mtime,
+            )
+            for old in entries[:-CACHE_MAX]:
+                shutil.rmtree(old.path, ignore_errors=True)
+            return dest
+    except OSError:
+        return tmp  # caching is best effort; fall back to the freshly compiled classes
+
+
+def _build(tmp: str, src: str, env: dict, code: str):
+    """Returns (class_dir, None) on success or (None, failure_result)."""
+    key = _cache_key(code)
+    hit = os.path.join(CACHE_DIR, key)
+    if os.path.isdir(hit):
+        try:
+            os.utime(hit)
+        except OSError:
+            pass
+        return hit, None
+    failed = _compile(tmp, src, env)
+    if failed:
+        return None, failed
+    return _cache_put(key, tmp), None
+
+
+def _run_one(tmp: str, env: dict, drop: bool, stdin_text: str, tag: int, classdir: str) -> dict:
     in_path = os.path.join(tmp, f"stdin_{tag}.txt")
     out_path = os.path.join(tmp, f"out_{tag}.txt")
     err_path = os.path.join(tmp, f"err_{tag}.txt")
@@ -161,7 +216,7 @@ def _run_one(tmp: str, env: dict, drop: bool, stdin_text: str, tag: int) -> dict
     if drop:
         os.chown(in_path, RUNNER_UID, RUNNER_UID)
     rc, timed_out = _run_process(
-        [_exe("java"), *JAVA_FLAGS, f"-Djava.io.tmpdir={tmp}", "-cp", tmp, "Main"],
+        [_exe("java"), *JAVA_FLAGS, f"-Djava.io.tmpdir={tmp}", "-cp", classdir, "Main"],
         tmp, env, in_path, out_path, err_path, RUN_TIMEOUT
     )
     result = {
@@ -180,10 +235,10 @@ def _execute(code: str, stdin_text: str) -> dict:
     tmp = tempfile.mkdtemp(prefix="jrun_")
     try:
         src, env, drop = _prep(tmp, code)
-        failed = _compile(tmp, src, env)
+        classdir, failed = _build(tmp, src, env, code)
         if failed:
             return failed
-        result = _run_one(tmp, env, drop, stdin_text, 0)
+        result = _run_one(tmp, env, drop, stdin_text, 0, classdir)
         result["stage"] = "run"
         return result
     finally:
@@ -195,10 +250,10 @@ def _execute_batch(code: str, stdins: list) -> dict:
     tmp = tempfile.mkdtemp(prefix="jrun_")
     try:
         src, env, drop = _prep(tmp, code)
-        failed = _compile(tmp, src, env)
+        classdir, failed = _build(tmp, src, env, code)
         if failed:
             return failed
-        return {"stage": "tests", "results": [_run_one(tmp, env, drop, s, i) for i, s in enumerate(stdins)]}
+        return {"stage": "tests", "results": [_run_one(tmp, env, drop, s, i, classdir) for i, s in enumerate(stdins)]}
     finally:
         shutil.rmtree(tmp, ignore_errors=True)
 

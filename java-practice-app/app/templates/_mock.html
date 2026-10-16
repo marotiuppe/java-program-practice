@@ -1,0 +1,9 @@
+{% if day.n == 30 %}
+<div id="mock-bar" class="mock" data-level="{{ level }}" data-minutes="90" data-start="{{ '1' if show_start else '0' }}" hidden>
+  <strong>Mock assessment</strong>
+  <span id="mock-time" class="mock-time" hidden>90:00</span>
+  <button id="mock-start" class="primary">Start 90-minute timer</button>
+  <button id="mock-stop" class="link" hidden>End mock</button>
+</div>
+<script src="/static/mock.js"></script>
+{% endif %}

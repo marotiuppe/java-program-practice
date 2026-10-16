@@ -117,3 +117,10 @@ form.inline{display:inline}
 .tests .detail{display:grid;gap:8px;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));padding:6px 12px 12px}
 .tests .detail h4{margin:0 0 2px;font-size:12px;color:var(--muted);font-weight:600}
 .tests .detail pre{margin:0;padding:6px 8px;background:var(--bg);border:1px solid var(--line);border-radius:6px;white-space:pre-wrap;word-break:break-word;font:12px ui-monospace,Consolas,monospace;max-height:160px;overflow:auto}
+
+/* mock assessment timer */
+.mock{position:sticky;top:56px;z-index:15;display:flex;gap:14px;align-items:center;justify-content:center;padding:8px 14px;margin:0 0 14px;background:var(--accent-soft);border:1px solid var(--line);border-radius:10px}
+.mock[hidden]{display:none}
+.mock-time{font:700 20px ui-monospace,Consolas,monospace;color:var(--accent)}
+.mock.low .mock-time{color:var(--warn)}
+.mock.over{background:color-mix(in srgb,var(--err) 14%,var(--card))}.mock.over .mock-time{color:var(--err)}

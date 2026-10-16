@@ -1,0 +1,9 @@
+{
+  "2:2": [
+    {"input": "0", "output": "Fahrenheit: 32.00\nKelvin: 273.15"},
+    {"input": "36.6", "output": "Fahrenheit: 97.88\nKelvin: 309.75"}
+  ],
+  "1:5": [
+    {"input": "", "output": "Name: Riya\nAge: 20\nPassed: true"}
+  ]
+}

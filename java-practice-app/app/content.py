@@ -1,4 +1,5 @@
 """Loads the three workbook markdown files into a structure the app can serve."""
+import json
 import pathlib
 import re
 
@@ -109,6 +110,25 @@ def _parse_level(path: pathlib.Path) -> dict:
 CONTENT = {}
 
 
+def _attach_tests(level: str, days: dict) -> None:
+    """Hidden test cases live in content/tests/<level>.json as {"<day>:<q>": [{"input", "output"}, ...]}.
+    They are used by "Run samples/checks" for coding questions and as the checks for Debug questions."""
+    path = BASE / "tests" / f"{level}.json"
+    data = json.loads(path.read_text(encoding="utf-8")) if path.exists() else {}
+    for dn, day in days.items():
+        for qn, q in day["questions"].items():
+            cases = []
+            for c in data.get(f"{dn}:{qn}", []):
+                inp = c.get("input", "")
+                if inp and not inp.endswith("\n"):
+                    inp += "\n"
+                cases.append({"input": inp, "output": c["output"]})
+            q["hidden"] = cases
+            q["check_count"] = len(q["samples"]) + len(cases)
+
+
 def load() -> None:
     for key, (label, filename) in LEVELS.items():
-        CONTENT[key] = {"label": label, "days": _parse_level(BASE / filename)}
+        days = _parse_level(BASE / filename)
+        _attach_tests(key, days)
+        CONTENT[key] = {"label": label, "days": days}
