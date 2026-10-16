@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block title %}Privacy{% endblock %}
+{% block content %}
+<article class="card prose narrow-text">
+  <h1>Privacy</h1>
+  <p>Java Practice is a free practice site. This page explains in plain words what it stores and why.</p>
+
+  <h2>What we store</h2>
+  <ul>
+    <li><b>Your email address</b>, to log you in, confirm your account and let you reset your password.</li>
+    <li><b>A hashed password.</b> We never store the password itself.</li>
+    <li><b>Your learning data:</b> the level you chose, which questions you solved, the code you saved, your practice days, streaks, review queue and badges.</li>
+    <li><b>Usage events</b> such as signing up, running code and finishing a day, so we can see whether the site works and improve it.</li>
+    <li><b>Issue reports</b> you send, together with the code that was in your editor at the time.</li>
+  </ul>
+
+  <h2>Cookies and browser storage</h2>
+  <ul>
+    <li>A <b>session cookie</b> keeps you logged in.</li>
+    <li>A <b>timezone cookie</b> (<code>tz</code>) lets us count your day by your own clock.</li>
+    <li>Your browser also keeps a copy of your unsaved code, and offline copies of pages you visited, on your own device.</li>
+  </ul>
+  <p>We do not use advertising or tracking cookies.</p>
+
+  <h2>Who sees it</h2>
+  <p>Only the site owner. We do not sell or share your data. Emails are sent through Gmail. The site runs on Render and the database on a hosted Postgres service, which store the data on our behalf.</p>
+  <p>Your code runs on our server inside a restricted process with no internet access. Please do not put secrets or personal data in your code.</p>
+
+  <h2>Your control</h2>
+  <p>From your <a href="/account">account page</a> you can download everything we hold about you, or delete your account and all of its data permanently.</p>
+
+  <h2>Content note</h2>
+  <p>Questions are written with AI assistance and may contain mistakes. Use the "Report an issue" button on any question to tell us.</p>
+</article>
+{% endblock %}

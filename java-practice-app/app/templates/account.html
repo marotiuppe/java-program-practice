@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block title %}Account{% endblock %}
+{% block content %}
+<h1>Your account</h1>
+<div class="card">
+  <p><b>{{ user.email }}</b></p>
+  <p class="muted small">See what we store and how it is used on the <a href="/privacy">privacy page</a>.</p>
+</div>
+<div class="card">
+  <h2>Download your data</h2>
+  <p class="muted">Your progress, saved code, activity, review queue and reports as one JSON file.</p>
+  <p><a class="btn-continue" href="/account/export">Download my data</a></p>
+</div>
+<div class="card danger">
+  <h2>Delete your account</h2>
+  <p>This permanently deletes your account, progress, saved code and everything else we hold. It cannot be undone.</p>
+  {% if error %}<p class="error">{{ error }}</p>{% endif %}
+  <form method="post" action="/account/delete" onsubmit="return confirm('Delete your account and all your data for good?');">
+    <label>Confirm with your password <input type="password" name="password" required autocomplete="current-password"></label>
+    <button class="danger-btn">Delete my account</button>
+  </form>
+</div>
+{% endblock %}

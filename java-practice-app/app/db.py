@@ -552,3 +552,34 @@ def consume_token(raw: str, purpose: str):
         if cur.rowcount != 1:
             return None
         return _x(c, "SELECT user_id FROM auth_tokens WHERE token_hash = ?", (_token_hash(raw),)).fetchone()["user_id"]
+
+
+# ---- privacy: export and delete everything we hold about a user ----
+USER_TABLES = ["progress", "activity", "events", "reviews", "reports", "auth_tokens"]
+
+
+def export_user(user_id: int) -> dict:
+    """Everything stored for this user, as plain data (password hash and tokens are left out)."""
+    with connect() as c:
+        def rows(sql):
+            return [dict(r) for r in _x(c, sql, (user_id,)).fetchall()]
+        user = _x(c, "SELECT email, level, daily_goal, email_verified, created_at FROM users WHERE id = ?",
+                  (user_id,)).fetchone()
+        return {
+            "account": dict(user) if user else None,
+            "progress": rows("SELECT level, day, qnum, status, code, attempts, updated_at, solved_at FROM progress "
+                             "WHERE user_id = ? ORDER BY level, day, qnum"),
+            "active_days": [r["day"] for r in rows("SELECT day FROM activity WHERE user_id = ? ORDER BY day")],
+            "events": rows("SELECT name, meta, created_at FROM events WHERE user_id = ? ORDER BY id"),
+            "reviews": rows("SELECT level, day, qnum, stage, due_at FROM reviews WHERE user_id = ?"),
+            "reports": rows("SELECT level, day, qnum, category, note, code, resolved, created_at FROM reports "
+                            "WHERE user_id = ? ORDER BY id"),
+        }
+
+
+def delete_user(user_id: int) -> None:
+    """Permanently remove the account and all of its data."""
+    with connect() as c:
+        for table in USER_TABLES:
+            _x(c, f"DELETE FROM {table} WHERE user_id = ?", (user_id,))
+        _x(c, "DELETE FROM users WHERE id = ?", (user_id,))

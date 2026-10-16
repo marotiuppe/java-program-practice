@@ -1,4 +1,5 @@
 import asyncio
+import json
 import hashlib
 import logging
 import os
@@ -9,7 +10,7 @@ from datetime import date, datetime, timedelta
 from contextlib import asynccontextmanager
 
 from fastapi import BackgroundTasks, FastAPI, Form, Request
-from fastapi.responses import FileResponse, JSONResponse, RedirectResponse
+from fastapi.responses import FileResponse, JSONResponse, RedirectResponse, Response
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from starlette.middleware.sessions import SessionMiddleware
@@ -322,6 +323,51 @@ async def verify_resend(request: Request, background: BackgroundTasks):
         token = db.create_token(user["id"], "verify", VERIFY_TTL)
         background.add_task(_send_verification, user["email"], f"{base_url(request)}/verify/{token}")
     return RedirectResponse("/dashboard?sent=1", status_code=303)
+
+
+@app.get("/privacy")
+async def privacy(request: Request):
+    return render(request, "privacy.html")
+
+
+@app.get("/account")
+async def account_page(request: Request):
+    user = current_user(request)
+    if not user:
+        return RedirectResponse("/login", status_code=303)
+    return render(request, "account.html", error=None)
+
+
+@app.get("/account/export")
+async def account_export(request: Request):
+    user = current_user(request)
+    if not user:
+        return RedirectResponse("/login", status_code=303)
+    data = db.export_user(user["id"])
+    return Response(json.dumps(data, indent=2), media_type="application/json",
+                    headers={"Content-Disposition": 'attachment; filename="java-practice-data.json"'})
+
+
+DELETE_FAIL = (5, 900)
+
+
+@app.post("/account/delete")
+async def account_delete(request: Request, password: str = Form(...)):
+    user = current_user(request)
+    if not user:
+        return RedirectResponse("/login", status_code=303)
+    key = f"delete-fail:{user['id']}"
+    wait = ratelimit.retry_after(key, *DELETE_FAIL)
+    if wait:
+        return render(request, "account.html", status_code=429,
+                      error=f"Too many wrong passwords. Try again in {ratelimit.human(wait)}.")
+    if not db.verify_password(password, user["pw_hash"]):
+        ratelimit.record(key)
+        return render(request, "account.html", status_code=400, error="That password is not correct.")
+    db.delete_user(user["id"])
+    request.session.clear()
+    return render(request, "message.html", title="Account deleted",
+                  text="Your account and all of its data have been permanently deleted.", href="/signup", link="Create a new account")
 
 
 @app.post("/logout")
