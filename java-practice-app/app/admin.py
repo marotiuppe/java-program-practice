@@ -87,16 +87,17 @@ def _pct(part: int, whole: int) -> int:
 
 
 # ---------------------------------------------------------------- overview
-def _retention(today: date):
-    """Share of recent sign-ups who came back exactly 1 and 7 days after the day they joined."""
+def _retention(today: date, users):
+    """Share of recent sign-ups who came back exactly 1 and 7 days after the day they joined.
+    `users` are rows with id and created_at for sign-ups in the last 60 days."""
     zone = stats.zone()
-    since = int(time.time()) - 60 * 86400
-    users = _q("SELECT id, created_at FROM users WHERE created_at >= ?", (since,))
     joined = {u["id"]: datetime.fromtimestamp(u["created_at"], zone).date() for u in users}
     active = {}
-    for r in _q("SELECT a.user_id, a.day FROM activity a JOIN users u ON u.id = a.user_id WHERE u.created_at >= ?",
-                (since,)):
-        active.setdefault(r["user_id"], set()).add(r["day"])
+    if joined:
+        since = min(u["created_at"] for u in users)
+        for r in _q("SELECT a.user_id, a.day FROM activity a JOIN users u ON u.id = a.user_id WHERE u.created_at >= ?",
+                    (since,)):
+            active.setdefault(r["user_id"], set()).add(r["day"])
     out = {}
     for n in (1, 7):
         eligible = [uid for uid, d in joined.items() if d + timedelta(days=n) <= today]
@@ -106,45 +107,59 @@ def _retention(today: date):
 
 
 @router.get("")
-async def overview(request: Request):
+def overview(request: Request):
+    """Plain `def` on purpose: FastAPI runs it in a worker thread, so these queries (slow on a remote
+    database) never block the event loop that answers /health and every other request."""
     user, bad = _guard(request)
     if bad:
         return bad
     today = stats.today()
     day = lambda n: (today - timedelta(days=n)).isoformat()
     now = int(time.time())
-    total = _one("SELECT COUNT(*) AS n FROM users")
+    u = _q("SELECT COUNT(*) AS total, "
+           "SUM(CASE WHEN level != '' THEN 1 ELSE 0 END) AS chose, "
+           "SUM(CASE WHEN created_at >= ? THEN 1 ELSE 0 END) AS new_7, "
+           "SUM(CASE WHEN created_at >= ? THEN 1 ELSE 0 END) AS new_30, "
+           "SUM(CASE WHEN email_verified = 1 THEN 1 ELSE 0 END) AS verified FROM users",
+           (now - 7 * 86400, now - 30 * 86400))[0]
+    total = int(u["total"] or 0)
+    ev = {r["name"]: int(r["n"]) for r in _q(
+        "SELECT name, COUNT(DISTINCT user_id) AS n FROM events WHERE name IN ('first_run', 'day_complete') GROUP BY name")}
+    pr = _q("SELECT COUNT(DISTINCT user_id) AS users, COUNT(*) AS solves FROM progress WHERE status = 'solved'")[0]
+    act = _q("SELECT COUNT(DISTINCT CASE WHEN day = ? THEN user_id END) AS dau, "
+             "COUNT(DISTINCT CASE WHEN day >= ? THEN user_id END) AS wau, "
+             "COUNT(DISTINCT user_id) AS mau FROM activity WHERE day >= ?", (day(0), day(6), day(29)))[0]
+    seven = _one("SELECT COUNT(*) AS n FROM (SELECT user_id FROM activity GROUP BY user_id HAVING COUNT(*) >= 7) t")
     funnel = [
         ("Signed up", total),
-        ("Chose a level", _one("SELECT COUNT(*) AS n FROM users WHERE level != ''")),
-        ("Ran code", _one("SELECT COUNT(DISTINCT user_id) AS n FROM events WHERE name = 'first_run'")),
-        ("Solved a question", _one("SELECT COUNT(DISTINCT user_id) AS n FROM progress WHERE status = 'solved'")),
-        ("Completed a day", _one("SELECT COUNT(DISTINCT user_id) AS n FROM events WHERE name = 'day_complete'")),
-        ("Practiced 7+ days", _one("SELECT COUNT(*) AS n FROM (SELECT user_id FROM activity GROUP BY user_id "
-                                   "HAVING COUNT(*) >= 7) t")),
+        ("Chose a level", int(u["chose"] or 0)),
+        ("Ran code", ev.get("first_run", 0)),
+        ("Solved a question", int(pr["users"] or 0)),
+        ("Completed a day", ev.get("day_complete", 0)),
+        ("Practiced 7+ days", seven),
     ]
     funnel = [{"label": l, "n": n, "pct": _pct(n, total)} for l, n in funnel]
     kpis = {
         "users": total,
-        "new_7": _one("SELECT COUNT(*) AS n FROM users WHERE created_at >= ?", (now - 7 * 86400,)),
-        "new_30": _one("SELECT COUNT(*) AS n FROM users WHERE created_at >= ?", (now - 30 * 86400,)),
-        "verified": _one("SELECT COUNT(*) AS n FROM users WHERE email_verified = 1"),
-        "dau": _one("SELECT COUNT(DISTINCT user_id) AS n FROM activity WHERE day = ?", (day(0),)),
-        "wau": _one("SELECT COUNT(DISTINCT user_id) AS n FROM activity WHERE day >= ?", (day(6),)),
-        "mau": _one("SELECT COUNT(DISTINCT user_id) AS n FROM activity WHERE day >= ?", (day(29),)),
-        "solves": _one("SELECT COUNT(*) AS n FROM progress WHERE status = 'solved'"),
+        "new_7": int(u["new_7"] or 0),
+        "new_30": int(u["new_30"] or 0),
+        "verified": int(u["verified"] or 0),
+        "dau": int(act["dau"] or 0),
+        "wau": int(act["wau"] or 0),
+        "mau": int(act["mau"] or 0),
+        "solves": int(pr["solves"] or 0),
         "open_reports": _one("SELECT COUNT(*) AS n FROM reports WHERE resolved = 0"),
     }
     dau = {r["day"]: int(r["n"]) for r in _q(
         "SELECT day, COUNT(*) AS n FROM activity WHERE day >= ? GROUP BY day", (day(13),))}
-    signups = _epochs_by_day(r["created_at"] for r in _q(
-        "SELECT created_at FROM users WHERE created_at >= ?", (now - 15 * 86400,)))
+    recent = _q("SELECT id, created_at FROM users WHERE created_at >= ?", (now - 60 * 86400,))
+    signups = _epochs_by_day(r["created_at"] for r in recent if r["created_at"] >= now - 15 * 86400)
     solves = _epochs_by_day(r["solved_at"] for r in _q(
         "SELECT solved_at FROM progress WHERE solved_at IS NOT NULL AND solved_at >= ?", (now - 15 * 86400,)))
-    levels = [{"label": info["label"], "n": _one("SELECT COUNT(*) AS n FROM users WHERE level = ?", (key,))}
-              for key, info in content.CONTENT.items()]
+    by_level = {r["level"]: int(r["n"]) for r in _q("SELECT level, COUNT(*) AS n FROM users GROUP BY level")}
+    levels = [{"label": info["label"], "n": by_level.get(key, 0)} for key, info in content.CONTENT.items()]
     return _render(request, "admin_overview.html", page="overview", kpis=kpis, funnel=funnel,
-                   retention=_retention(today), levels=levels,
+                   retention=_retention(today, recent), levels=levels,
                    charts=[("Active users per day", _series(dau, 14)), ("New sign-ups per day", _series(signups, 14)),
                            ("Questions solved per day", _series(solves, 14))])
 
@@ -160,7 +175,7 @@ SORTS = {
 
 
 @router.get("/users")
-async def users(request: Request, q: str = "", sort: str = "newest", page: int = 1):
+def users(request: Request, q: str = "", sort: str = "newest", page: int = 1):
     user, bad = _guard(request)
     if bad:
         return bad
@@ -181,7 +196,7 @@ async def users(request: Request, q: str = "", sort: str = "newest", page: int =
 
 
 @router.get("/users/{uid}")
-async def user_detail(request: Request, uid: int):
+def user_detail(request: Request, uid: int):
     me, bad = _guard(request)
     if bad:
         return bad
@@ -224,7 +239,7 @@ async def user_detail(request: Request, uid: int):
 
 
 @router.post("/users/{uid}/verify")
-async def user_verify(request: Request, uid: int):
+def user_verify(request: Request, uid: int):
     user, bad = _guard(request)
     if bad:
         return bad
@@ -234,7 +249,7 @@ async def user_verify(request: Request, uid: int):
 
 
 @router.post("/users/{uid}/reset")
-async def user_reset(request: Request, background: BackgroundTasks, uid: int):
+def user_reset(request: Request, background: BackgroundTasks, uid: int):
     user, bad = _guard(request)
     if bad:
         return bad
@@ -249,7 +264,7 @@ async def user_reset(request: Request, background: BackgroundTasks, uid: int):
 
 
 @router.post("/users/{uid}/delete")
-async def user_delete(request: Request, uid: int, confirm_email: str = Form("")):
+def user_delete(request: Request, uid: int, confirm_email: str = Form("")):
     me, bad = _guard(request)
     if bad:
         return bad
@@ -269,7 +284,7 @@ async def user_delete(request: Request, uid: int, confirm_email: str = Form(""))
 
 # ---------------------------------------------------------------- reports
 @router.get("/reports")
-async def reports(request: Request, status: str = "open", category: str = ""):
+def reports(request: Request, status: str = "open", category: str = ""):
     user, bad = _guard(request)
     if bad:
         return bad
@@ -292,7 +307,7 @@ async def reports(request: Request, status: str = "open", category: str = ""):
 
 
 @router.post("/reports/{report_id}/resolve")
-async def report_resolve(request: Request, report_id: int):
+def report_resolve(request: Request, report_id: int):
     user, bad = _guard(request)
     if bad:
         return bad
@@ -301,7 +316,7 @@ async def report_resolve(request: Request, report_id: int):
 
 
 @router.post("/reports/{report_id}/reopen")
-async def report_reopen(request: Request, report_id: int):
+def report_reopen(request: Request, report_id: int):
     user, bad = _guard(request)
     if bad:
         return bad
@@ -315,7 +330,7 @@ QSORTS = ("hardest", "attempts", "reports", "hints", "disliked", "toohard", "too
 
 
 @router.get("/questions")
-async def questions(request: Request, level: str = "beginner", sort: str = "hardest", min_learners: int = 2):
+def questions(request: Request, level: str = "beginner", sort: str = "hardest", min_learners: int = 2):
     user, bad = _guard(request)
     if bad:
         return bad
@@ -370,7 +385,7 @@ async def questions(request: Request, level: str = "beginner", sort: str = "hard
 
 # ---------------------------------------------------------------- activity feed
 @router.get("/activity")
-async def activity(request: Request, event: str = ""):
+def activity(request: Request, event: str = ""):
     user, bad = _guard(request)
     if bad:
         return bad
@@ -400,7 +415,7 @@ async def test_email(request: Request):
 
 
 @router.get("/system")
-async def system(request: Request):
+def system(request: Request):
     user, bad = _guard(request)
     if bad:
         return bad
