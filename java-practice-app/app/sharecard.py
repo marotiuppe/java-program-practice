@@ -52,9 +52,16 @@ def read_token(token: str):
     return card
 
 
-@functools.lru_cache(maxsize=16)
+FONT_FILES = {  # all bundled in app/fonts and licensed under the SIL Open Font License
+    "Bold": "Poppins-Bold.ttf", "Medium": "Poppins-Medium.ttf",
+    "Serif": "CrimsonText-Regular.ttf", "SerifSemi": "CrimsonText-SemiBold.ttf", "SerifBold": "CrimsonText-Bold.ttf",
+    "SerifItalic": "CrimsonText-Italic.ttf", "Script": "GreatVibes-Regular.ttf",
+}
+
+
+@functools.lru_cache(maxsize=32)
 def _font(name: str, size: int):
-    return ImageFont.truetype(os.path.join(FONT_DIR, f"Poppins-{name}.ttf"), size)
+    return ImageFont.truetype(os.path.join(FONT_DIR, FONT_FILES.get(name, f"Poppins-{name}.ttf")), size)
 
 
 class _Canvas:
@@ -315,9 +322,14 @@ def render_cached(token: str, kind: str, site: str):
 
 # ---------------------------------------------------------------- certificates (roadmap 4.3)
 CERT_W, CERT_H = 1600, 1131  # A4 landscape proportions
-CREAM = (255, 253, 248)
-GOLD = (217, 160, 20)
+PAPER = (255, 253, 248)
+GOLD = (214, 164, 40)
+GOLD_DARK = (150, 104, 14)
 MUTED = (88, 97, 116)
+BODY = (62, 70, 92)
+SIDE = (238, 241, 252)
+NAVY = (38, 45, 92)
+RULE = (205, 211, 232)
 
 
 def cert_display_id(cid: str) -> str:
@@ -325,56 +337,185 @@ def cert_display_id(cid: str) -> str:
     return "JP-" + "-".join(cid[i:i + 4] for i in range(0, 12, 4))
 
 
-def _spaced(c: _Canvas, x: float, y: float, text: str, weight: str, size: int, fill, gap: float):
-    """Centred text with extra letter spacing (small caps look)."""
+def _spaced(c: _Canvas, x: float, y: float, text: str, weight: str, size: int, fill, gap: float, anchor="center"):
+    """Text with extra letter spacing (small caps look); `anchor` is where x sits: center, left or right."""
     widths = [c.width(ch, weight, size) for ch in text]
     total = sum(widths) + gap * (len(text) - 1)
-    cx = x - total / 2
+    cx = x - total / 2 if anchor == "center" else x if anchor == "left" else x - total
     for ch, w in zip(text, widths):
         c.text(cx, y, ch, weight, size, fill, anchor="ls")
         cx += w + gap
 
 
+def _wrap(c: _Canvas, text: str, weight: str, size: int, max_w: float, max_lines: int):
+    """Greedy word wrap to at most max_lines lines, with an ellipsis when the text is longer."""
+    lines, cur = [], ""
+    for word in text.split():
+        trial = (cur + " " + word).strip()
+        if c.width(trial, weight, size) <= max_w:
+            cur = trial
+        else:
+            lines.append(cur)
+            cur = word
+    lines.append(cur)
+    if len(lines) > max_lines:
+        lines = lines[:max_lines]
+        while lines[-1] and c.width(lines[-1] + "…", weight, size) > max_w:
+            lines[-1] = lines[-1][:-1]
+        lines[-1] = lines[-1].rstrip() + "…"
+    return lines
+
+
+def _guilloche(c: _Canvas, cx: float, cy: float, radius: float):
+    """A fine woven rosette, like the security patterns behind real certificates (very faint)."""
+    import math
+    for k in range(44):
+        ph = k * 0.143
+        pts = []
+        for i in range(721):
+            t = i * math.pi / 360
+            r = radius * (0.62 + 0.16 * math.sin(8 * t + ph) + 0.09 * math.sin(3 * t - ph * 1.3))
+            pts.append(((cx + r * math.cos(t)) * c.S, (cy + r * math.sin(t)) * c.S))
+        c.d.line(pts, fill=(176, 186, 226, 46), width=max(1, c.S // 2))
+
+
+def _ring_text(c: _Canvas, cx: float, cy: float, r: float, text: str, size: int, fill, center_deg: float, top: bool):
+    """Letters set along a circle: reading clockwise along the top, left to right along the bottom."""
+    import math
+    font = _font("Bold", size * c.S)
+    gap = size * 0.10
+    widths = [c.d.textlength(ch, font=font) / c.S for ch in text]
+    span = (sum(widths) + gap * (len(text) - 1)) / r  # radians
+    pos = -span / 2
+    for ch, w in zip(text, widths):
+        mid = pos + (w / 2) / r
+        pos += (w + gap) / r
+        ang = math.radians(center_deg) + (mid if top else -mid)
+        x, y = cx + r * math.cos(ang), cy + r * math.sin(ang)
+        tile = Image.new("RGBA", (int(size * 2.2 * c.S), int(size * 2.2 * c.S)), (0, 0, 0, 0))
+        td = ImageDraw.Draw(tile)
+        td.text((tile.width / 2, tile.height / 2), ch, font=font, fill=fill, anchor="mm")
+        rot = tile.rotate(-(math.degrees(ang) + 90) if top else -(math.degrees(ang) - 90), resample=Image.BICUBIC)
+        c.im.paste(rot, (int(x * c.S - rot.width / 2), int(y * c.S - rot.height / 2)), rot)
+
+
+def _star(c: _Canvas, cx: float, cy: float, r: float, fill):
+    import math
+    pts = []
+    for i in range(10):
+        ang = -math.pi / 2 + i * math.pi / 5
+        rr = r if i % 2 == 0 else r * 0.42
+        pts.append((cx + rr * math.cos(ang), cy + rr * math.sin(ang)))
+    c.poly(pts, fill)
+
+
+def _seal(c: _Canvas, cx: float, cy: float, R: float):
+    """A gold embossed seal: scalloped edge, rings, lettering and the Java Practice mark."""
+    import math
+    c.circle(cx, cy + R * 0.05, R * 1.02, (0, 0, 0, 38))
+    for i in range(36):  # scalloped rim
+        a = i * 2 * math.pi / 36
+        c.circle(cx + R * 0.93 * math.cos(a), cy + R * 0.93 * math.sin(a), R * 0.115, GOLD)
+    for i in range(24):  # soft radial shading, light at the top left
+        t = i / 23
+        col = tuple(int(g1 + (g2 - g1) * t) for g1, g2 in zip((244, 205, 98), (196, 144, 24)))
+        c.circle(cx - R * 0.05 * (1 - t), cy - R * 0.05 * (1 - t), R * 0.95 * (1 - 0.30 * t), col)
+    c.d.ellipse(c._s(cx - R * 0.80, cy - R * 0.80, cx + R * 0.80, cy + R * 0.80), outline=(255, 245, 205, 190), width=3 * c.S)
+    c.d.ellipse(c._s(cx - R * 0.50, cy - R * 0.50, cx + R * 0.50, cy + R * 0.50), outline=(255, 245, 205, 150), width=2 * c.S)
+    _ring_text(c, cx, cy, R * 0.655, "JAVA PRACTICE", int(R * 0.13), GOLD_DARK + (255,), -90, True)
+    _ring_text(c, cx, cy, R * 0.655, "LEVEL COMPLETE", int(R * 0.13), GOLD_DARK + (255,), 90, False)
+    _star(c, cx - R * 0.655, cy, R * 0.075, GOLD_DARK)
+    _star(c, cx + R * 0.655, cy, R * 0.075, GOLD_DARK)
+    c.circle(cx, cy, R * 0.43, INDIGO)  # the app mark in the middle
+    k = R * 0.43 * 2 / 64
+    ox, oy = cx - 32 * k, cy - 32 * k
+    c.line([(ox + 30 * k, oy + 16 * k), (ox + 46 * k, oy + 16 * k)], 6 * k, WHITE)
+    c.line([(ox + 39 * k, oy + 16 * k), (ox + 39 * k, oy + 37 * k)], 6 * k, WHITE)
+    c.line(_bezier([(ox + 39 * k, oy + 37 * k), ((ox + 39 * k, oy + 49 * k), (ox + 27 * k, oy + 49 * k), (ox + 27 * k, oy + 49 * k)),
+                    ((ox + 19 * k, oy + 49 * k), (ox + 16 * k, oy + 43 * k), (ox + 16 * k, oy + 43 * k))]), 6 * k, WHITE)
+    c.rrect(ox + 42 * k, oy + 44 * k, 11 * k, 5 * k, 2.5 * k, AMBER)
+
+
+def _logo_tile(c: _Canvas, x: float, y: float, scale: float):
+    s = 64 * scale
+    c.rrect(x, y, s, s, 15 * scale, INDIGO)
+    c.line([(x + 30 * scale, y + 16 * scale), (x + 46 * scale, y + 16 * scale)], 6 * scale, WHITE)
+    c.line([(x + 39 * scale, y + 16 * scale), (x + 39 * scale, y + 37 * scale)], 6 * scale, WHITE)
+    c.line(_bezier([(x + 39 * scale, y + 37 * scale), ((x + 39 * scale, y + 49 * scale), (x + 27 * scale, y + 49 * scale),
+                                                       (x + 27 * scale, y + 49 * scale)),
+                    ((x + 19 * scale, y + 49 * scale), (x + 16 * scale, y + 43 * scale), (x + 16 * scale, y + 43 * scale))]),
+           6 * scale, WHITE)
+    c.rrect(x + 42 * scale, y + 44 * scale, 11 * scale, 5 * scale, 2.5 * scale, AMBER)
+    return s
+
+
 def render_certificate(cert: dict, site: str) -> "Image.Image":
-    """cert: id, name, level (label), solved, days, issued (e.g. "17 October 2026")."""
+    """cert: id, name, level (label), solved, days, issued (e.g. "17 October 2026"), topics (list of short titles)."""
     W, H = CERT_W, CERT_H
-    c = _Canvas(W, H, plain=CREAM)
-    # brand band
-    band = Image.new("RGB", (2, 2))
-    mid = tuple((a + b) // 2 for a, b in zip(INDIGO, PURPLE))
-    band.putdata([INDIGO, mid, mid, PURPLE])
-    c.im.paste(band.resize((W * c.S, 190 * c.S), Image.BICUBIC), (0, 0))
-    _brand(c, 90, 62, 1.4)
-    _spaced(c, W - 330, 118, "CERTIFICATE OF COMPLETION", "Bold", 26, WHITE, 3)
-    c.d.rectangle([(0, 190 * c.S), (W * c.S, 198 * c.S)], fill=GOLD)
-    # frame
-    c.d.rounded_rectangle([(40 * c.S, 230 * c.S), ((W - 40) * c.S, (H - 40) * c.S)], radius=24 * c.S,
-                          outline=(222, 226, 240), width=3 * c.S)
-    c.text(W / 2, 330, "This certifies that", "Medium", 34, MUTED)
-    c.text(W / 2, 460, cert["name"], "Bold", 104, INK, max_w=W - 260)
-    c.d.rectangle([((W / 2 - 330) * c.S, 492 * c.S), ((W / 2 + 330) * c.S, 495 * c.S)], fill=GOLD)
-    c.text(W / 2, 566, "has successfully completed the", "Medium", 34, MUTED)
-    c.text(W / 2, 674, f"{cert['level']} level", "Bold", 84, INDIGO, max_w=W - 260)
-    c.text(W / 2, 742, "of the 30-day Java Practice plan", "Medium", 34, MUTED)
-    # stats
-    for i, (v, label) in enumerate([(str(cert["solved"]), "questions solved"), (str(cert["days"]), "days completed")]):
-        x = W / 2 + (-170 if i == 0 else 170)
-        c.text(x, 842, v, "Bold", 58, INK)
-        c.text(x, 884, label, "Medium", 26, MUTED)
-    # footer: date left, verification right
+    c = _Canvas(W, H, plain=PAPER)
     url = f"{site.rstrip('/')}/cert/{cert['id']}"
-    c.text(110, H - 180, "ISSUED", "Bold", 22, MUTED, anchor="ls")
-    c.text(110, H - 138, cert["issued"], "Bold", 38, INK, anchor="ls")
-    c.text(110, H - 96, "Certificate of completion of a self-paced practice plan.", "Medium", 20, MUTED, anchor="ls")
-    c.text(110, H - 68, "Not an accredited qualification.", "Medium", 20, MUTED, anchor="ls")
-    qs = 190
-    qx, qy = W - 110 - qs, H - 70 - qs
+    topics = list(cert.get("topics") or [])
+
+    _guilloche(c, 1050, 600, 470)
+    # frame: a broad soft border, a hairline inside it, and small squares in the corners
+    c.d.rectangle([(26 * c.S, 26 * c.S), ((W - 26) * c.S, (H - 26) * c.S)], outline=(196, 204, 226), width=12 * c.S)
+    c.d.rectangle([(58 * c.S, 58 * c.S), ((W - 58) * c.S, (H - 58) * c.S)], outline=RULE, width=2 * c.S)
+    for x, y in ((58, 58), (W - 58, 58), (58, H - 58), (W - 58, H - 58)):
+        c.d.rectangle([((x - 11) * c.S, (y - 11) * c.S), ((x + 11) * c.S, (y + 11) * c.S)], fill=PAPER, outline=(176, 186, 214), width=2 * c.S)
+
+    # side panel: seal, counts, what the level covers
+    SX0, SX1 = 59, 430
+    c.d.rectangle([(SX0 * c.S, 59 * c.S), (SX1 * c.S, (H - 59) * c.S)], fill=SIDE + (255,))
+    c.d.line([(SX1 * c.S, 59 * c.S), (SX1 * c.S, (H - 59) * c.S)], fill=RULE, width=2 * c.S)
+    _seal(c, (SX0 + SX1) / 2, 230, 128)
+    c.d.rectangle([(SX0 * c.S, 410 * c.S), (SX1 * c.S, 472 * c.S)], fill=NAVY)
+    _spaced(c, (SX0 + SX1) / 2, 450, f"{cert['days']} DAYS  ·  {cert['solved']} QUESTIONS", "Bold", 22, WHITE, 1.2)
+    if topics:
+        _spaced(c, SX0 + 34, 535, "WHAT THIS COVERS", "Bold", 18, MUTED, 2.4, anchor="left")
+        y = 580
+        for t in topics[:7]:
+            for line in _wrap(c, t, "Bold", 21, SX1 - SX0 - 68, 2):
+                c.text(SX0 + 34, y, line, "Bold", 21, NAVY, anchor="ls")
+                y += 28
+            y += 15
+
+    # main column
+    X0, MW = 490, 960
+    s = _logo_tile(c, X0, 92, 1.25)
+    c.text(X0 + s + 22, 92 + s * 0.66, "Java Practice", "Bold", 46, INK, anchor="ls")
+    c.text(X0, 292, cert["issued"], "Medium", 25, MUTED, anchor="ls")
+    c.text(X0, 392, cert["name"], "SerifSemi", 96, INK, anchor="ls", max_w=MW)
+    c.d.rectangle([(X0 * c.S, 414 * c.S), ((X0 + 560) * c.S, 417 * c.S)], fill=GOLD)
+    c.text(X0, 468, "has successfully completed the online, self-paced practice plan", "SerifItalic", 36, MUTED, anchor="ls", max_w=MW)
+    c.text(X0, 556, f"Java Practice: {cert['level']} Level", "Bold", 60, INK, anchor="ls", max_w=MW)
+    body = (f"Learners who earn this certificate have completed all {cert['solved']} questions of the {cert['level']} level "
+            f"across {cert['days']} days of hands-on, self-paced practice. They wrote, ran and debugged Java programs in "
+            "the browser, with every solution checked against automated tests, and finished the plan with a mock assessment.")
+    y = 622
+    for line in _wrap(c, body, "Serif", 29, MW, 6):
+        c.text(X0, y, line, "Serif", 29, BODY, anchor="ls")
+        y += 40
+
+    # signature-style block (the platform's own mark) and verification
+    c.text(X0 + 4, 932, "Java Practice", "Script", 56, (44, 52, 124), anchor="ls")
+    c.d.rectangle([(X0 * c.S, 946 * c.S), ((X0 + 290) * c.S, 948 * c.S)], fill=(140, 148, 172))
+    c.text(X0, 976, "Java Practice", "Bold", 19, INK, anchor="ls")
+    c.text(X0, 1000, "Online Java practice platform", "Medium", 17, MUTED, anchor="ls")
+    qs = 140
+    qx, qy = W - 110 - qs, 868
     _qr(c, url, qx, qy, qs)
-    c.d.rounded_rectangle([qx * c.S, qy * c.S, (qx + qs) * c.S, (qy + qs) * c.S], radius=14 * c.S,
-                          outline=(220, 224, 240), width=2 * c.S)
-    c.text(qx - 30, H - 180, "VERIFY", "Bold", 22, MUTED, anchor="rs")
-    c.text(qx - 30, H - 138, cert_display_id(cert["id"]), "Bold", 38, INK, anchor="rs")
-    c.text(qx - 30, H - 96, _host(site) + "/cert/" + cert["id"], "Medium", 20, MUTED, anchor="rs", max_w=520)
+    c.d.rounded_rectangle([qx * c.S, qy * c.S, (qx + qs) * c.S, (qy + qs) * c.S], radius=12 * c.S, outline=(206, 212, 232), width=2 * c.S)
+    rx = qx - 26
+    c.text(rx, 906, "Verify this certificate at:", "Medium", 17, MUTED, anchor="rs")
+    link = f"{_host(site)}/cert/{cert['id']}"
+    c.text(rx, 938, link, "Bold", c.fit(link, "Bold", 20, rx - (X0 + 330), min_size=11), INDIGO, anchor="rs")
+    c.text(rx, 972, f"Certificate ID  {cert_display_id(cert['id'])}", "Medium", 19, INK, anchor="rs")
+    fine = ("This certificate confirms completion of a self-paced online practice plan on Java Practice. The name above was entered "
+            "by the learner. It is not an accredited qualification and does not confer academic credit, a degree or a professional certification.")
+    y = 1030
+    for line in _wrap(c, fine, "Medium", 14, W - 110 - X0, 3):
+        c.text(X0, y, line, "Medium", 14, (116, 124, 142), anchor="ls")
+        y += 19
     return c.image()
 
 
@@ -401,6 +542,8 @@ def certificate_og(cert: dict, site: str) -> bytes:
 
 
 @functools.lru_cache(maxsize=32)
-def certificate_cached(kind: str, cid: str, name: str, level: str, solved: int, days: int, issued: str, site: str) -> bytes:
-    cert = {"id": cid, "name": name, "level": level, "solved": solved, "days": days, "issued": issued}
+def certificate_cached(kind: str, cid: str, name: str, level: str, solved: int, days: int, issued: str, topics: str, site: str) -> bytes:
+    """topics: the sidebar list, joined with "|" so the call can be cached."""
+    cert = {"id": cid, "name": name, "level": level, "solved": solved, "days": days, "issued": issued,
+            "topics": [t for t in topics.split("|") if t]}
     return {"png": certificate_png, "pdf": certificate_pdf, "og": certificate_og}[kind](cert, site)

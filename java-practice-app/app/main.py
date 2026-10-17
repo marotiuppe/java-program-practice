@@ -800,7 +800,7 @@ async def _cert_file(request: Request, raw_id: str, kind: str, media: str, filen
         return Response("Not found", status_code=404)
     c = _cert_dict(row)
     data = await asyncio.to_thread(sharecard.certificate_cached, kind, c["id"], c["name"], c["level"], c["solved"],
-                                   c["days"], c["issued"], base_url(request))
+                                   c["days"], c["issued"], c["topics"], base_url(request))
     headers = {"Cache-Control": "public, max-age=3600"}
     if filename:
         headers["Content-Disposition"] = f'attachment; filename="{filename}"'
@@ -1462,9 +1462,11 @@ def _cert_dict(row) -> dict:
     zone = stats._load_zone(os.environ.get("APP_TIMEZONE", "Asia/Kolkata")) or None
     when = datetime.fromtimestamp(row["issued_at"], zone)
     lvl = content.CONTENT.get(row["level"])
+    titles = [d["title"].split(":")[0].strip() for _, d in sorted(lvl["days"].items())] if lvl else []
+    picks = [titles[round(i * (len(titles) - 1) / 6)] for i in range(7)] if len(titles) >= 7 else titles
     return {"id": row["id"], "name": row["name"], "level": lvl["label"] if lvl else row["level"].title(),
             "solved": int(row["solved"]), "days": int(row["days"]), "issued": f"{when.day} {when.strftime('%B %Y')}",
-            "issued_year": when.year, "issued_month": when.month}
+            "issued_year": when.year, "issued_month": when.month, "topics": "|".join(dict.fromkeys(picks))}
 
 
 def _linkedin_url(cert: dict, page_url: str) -> str:
