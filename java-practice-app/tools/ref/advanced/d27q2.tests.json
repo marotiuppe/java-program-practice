@@ -1,0 +1,22 @@
+[
+ {
+  "input": "4\nPUB t hi\nSUB a t\nUNSUB a t\nPUB t hi",
+  "output": "no subscribers\nno subscribers"
+ },
+ {
+  "input": "9\nSUBONCE a t\nSUB a t\nSUBONCE b t\nSUB b t\nPUB t one two  three\nPUB t x\nUNSUB b t\nSUB b t\nPUB t y",
+  "output": "a got one two  three\nb got one two  three\nno subscribers\nb got y"
+ },
+ {
+  "input": "8\nSUB a x\nSUB b x\nSUBONCE c y\nPUB y m\nPUB y m\nPUB x 1\nUNSUB a x\nPUB x 2",
+  "output": "c got m\nno subscribers\na got 1\nb got 1\nb got 2"
+ },
+ {
+  "input": "7\nSUBONCE a t\nSUBONCE b t\nSUBONCE c t\nPUB t 1\nPUB t 2\nSUB a t\nPUB t 3",
+  "output": "a got 1\nb got 1\nc got 1\nno subscribers\na got 3"
+ },
+ {
+  "input": "6\nSUB a t\nSUB b t\nUNSUB a t\nSUB a t\nPUB t q\nPUB u q",
+  "output": "b got q\na got q\nno subscribers"
+ }
+]

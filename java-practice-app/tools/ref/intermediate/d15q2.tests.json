@@ -1,0 +1,18 @@
+[
+ {
+  "input": "4\n\naaaaaaaaaa\nabab\naabbbcccc",
+  "output": "\na10\nabab\na2b3c4"
+ },
+ {
+  "input": "3\nzzzzzzzzz\naa\nabbbbbbbbbbbbbbbbbbbbc",
+  "output": "z9\naa\na1b20c1"
+ },
+ {
+  "input": "1\nz",
+  "output": "z"
+ },
+ {
+  "input": "3\nAAaa\nxxyy\nbbbbbbbbbbbb",
+  "output": "AAaa\nxxyy\nb12"
+ }
+]

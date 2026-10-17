@@ -1,0 +1,26 @@
+[
+ {
+  "input": "E",
+  "output": "Vowel"
+ },
+ {
+  "input": "y",
+  "output": "Consonant"
+ },
+ {
+  "input": "0",
+  "output": "Digit"
+ },
+ {
+  "input": "@",
+  "output": "Special character"
+ },
+ {
+  "input": "O",
+  "output": "Vowel"
+ },
+ {
+  "input": "9",
+  "output": "Digit"
+ }
+]

@@ -1,26 +1,26 @@
 [
  {
   "input": "0 7",
-  "output": "GCD: 7\r\nLCM: 0\r"
+  "output": "GCD: 7\nLCM: 0"
  },
  {
   "input": "10000 10000",
-  "output": "GCD: 10000\r\nLCM: 10000\r"
+  "output": "GCD: 10000\nLCM: 10000"
  },
  {
   "input": "9999 10000",
-  "output": "GCD: 1\r\nLCM: 99990000\r"
+  "output": "GCD: 1\nLCM: 99990000"
  },
  {
   "input": "1 1",
-  "output": "GCD: 1\r\nLCM: 1\r"
+  "output": "GCD: 1\nLCM: 1"
  },
  {
   "input": "48 18",
-  "output": "GCD: 6\r\nLCM: 144\r"
+  "output": "GCD: 6\nLCM: 144"
  },
  {
   "input": "5 0",
-  "output": "GCD: 5\r\nLCM: 0\r"
+  "output": "GCD: 5\nLCM: 0"
  }
 ]

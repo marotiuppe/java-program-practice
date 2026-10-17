@@ -1,0 +1,22 @@
+[
+ {
+  "input": "S\n6\nPARK 0 a BIKE\nPARK 0 b BIKE\nPARK 0 c CAR\nLEAVE 0 a\nPARK 1 b BIKE\nLEAVE 1000000000 b",
+  "output": "Parked a at 0\nFULL\nFULL\na paid 10\nParked b at 0\nb paid 166666670"
+ },
+ {
+  "input": "LMS\n8\nPARK 0 a BIKE\nPARK 1 b BIKE\nPARK 2 c BIKE\nPARK 3 d BIKE\nLEAVE 60 b\nPARK 61 e CAR\nLEAVE 121 a\nLEAVE 181 e",
+  "output": "Parked a at 2\nParked b at 1\nParked c at 0\nFULL\nb paid 20\nParked e at 1\na paid 30\ne paid 40"
+ },
+ {
+  "input": "SSMMLL\n9\nPARK 0 c1 CAR\nPARK 0 c2 CAR\nPARK 0 c3 CAR\nPARK 0 b1 BUS\nPARK 5 b2 BUS\nPARK 5 b3 BUS\nLEAVE 65 b1\nPARK 66 b3 BUS\nLEAVE 126 b3",
+  "output": "Parked c1 at 2\nParked c2 at 3\nParked c3 at 4\nParked b1 at 5\nFULL\nFULL\nb1 paid 60\nParked b3 at 5\nb3 paid 30"
+ },
+ {
+  "input": "MMLS\n7\nPARK 10 x BIKE\nPARK 10 y BIKE\nLEAVE 69 x\nLEAVE 130 y\nPARK 130 z BUS\nLEAVE 190 z\nLEAVE 191 z",
+  "output": "Parked x at 3\nParked y at 0\nx paid 10\ny paid 40\nParked z at 2\nz paid 30\nUNKNOWN"
+ },
+ {
+  "input": "LLSS\n6\nPARK 0 a BUS\nPARK 0 b CAR\nPARK 0 c CAR\nPARK 0 d CAR\nLEAVE 1000000000 b\nLEAVE 1000000000 a",
+  "output": "Parked a at 0\nParked b at 1\nFULL\nFULL\nb paid 500000010\na paid 500000010"
+ }
+]

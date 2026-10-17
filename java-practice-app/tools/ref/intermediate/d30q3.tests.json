@@ -1,0 +1,22 @@
+[
+ {
+  "input": "18\n08:00 a DEPOSIT 100\n08:05 b DEPOSIT 007\n08:10 a TRANSFER c 40\n09:00 c WITHDRAW 50\n09:00 c TRANSFER c 5\n09:01 d TRANSFER a 1\n9:00 a DEPOSIT 5\n09:30 a  DEPOSIT 5\n09:30 a DEPOSIT 0\n09:30 a deposit 5\n\n10:00 c WITHDRAW 40\n10:30 e TRANSFER a 9223372036854775807\n10:31 big DEPOSIT 9000000000000000000\n10:32 big TRANSFER a 4000000000000000000\n10:33 a DEPOSIT 1 2\n10:34 a-b DEPOSIT 5\n10:35 a_b1 DEPOSIT 5",
+  "output": "FAILED 4 INSUFFICIENT\nFAILED 5 SELF\nFAILED 6 INSUFFICIENT\nFAILED 13 INSUFFICIENT\nMalformed: 8\nBalances:\nbig 5000000000000000000\na 4000000000000000060\na_b1 5\nc 0\nd 0\ne 0\nBusiest hour: 10 (4)"
+ },
+ {
+  "input": "4\n05:00 a DEPOSIT 1\n04:00 b DEPOSIT 1\n05:30 c DEPOSIT 1\n04:59 d DEPOSIT 1",
+  "output": "Malformed: 0\nBalances:\na 1\nb 1\nc 1\nd 1\nBusiest hour: 04 (2)"
+ },
+ {
+  "input": "2\nfoo\n10:00 a DEPOSIT 01",
+  "output": "Malformed: 2\nBalances:\nBusiest hour: none"
+ },
+ {
+  "input": "3\n10:00 a DEPOSIT 5\n10:01 a TRANSFER zed 5\n10:02 zed TRANSFER a 6",
+  "output": "FAILED 3 INSUFFICIENT\nMalformed: 0\nBalances:\nzed 5\na 0\nBusiest hour: 10 (2)"
+ },
+ {
+  "input": "3\n25:99 z DEPOSIT 5\n10:00 DEPOSIT DEPOSIT 5\n10:00 TRANSFER TRANSFER 1",
+  "output": "Malformed: 1\nBalances:\nDEPOSIT 5\nz 5\nBusiest hour: 10 (1)"
+ }
+]

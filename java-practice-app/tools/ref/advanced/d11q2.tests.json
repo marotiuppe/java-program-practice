@@ -1,0 +1,30 @@
+[
+ {
+  "input": "1\na",
+  "output": "a"
+ },
+ {
+  "input": "1\nz",
+  "output": "z"
+ },
+ {
+  "input": "4\nb br bre brea",
+  "output": "brea"
+ },
+ {
+  "input": "6\nt ta tab tag tags tagz",
+  "output": "tags"
+ },
+ {
+  "input": "5\nabc ab bcd ba b",
+  "output": "ba"
+ },
+ {
+  "input": "5\nm mo moc moch mocha",
+  "output": "mocha"
+ },
+ {
+  "input": "3\nx xy ab",
+  "output": "xy"
+ }
+]

@@ -1,0 +1,22 @@
+[
+ {
+  "input": "6 5\ncar 10\ncard 10\ncare 10\ncart 10\ncat 3\ndog 1\ncar\nca\ncat\nd\nx",
+  "output": "car card care\ncar card care\ncat\ndog\nNONE"
+ },
+ {
+  "input": "4 3\nzeta 1000000000\nzebra 1000000000\nzed 999999999\nzen 1000000000\nze\nzebra\nzz",
+  "output": "zebra zen zeta\nzebra\nNONE"
+ },
+ {
+  "input": "1 3\na 1\na\nb\naa",
+  "output": "a\nNONE\nNONE"
+ },
+ {
+  "input": "15 9\naab 1\naaca 4\naca 1\nacca 2\nb 5\nba 2\nbab 3\nbabc 2\nbb 3\nbbac 2\nbbb 1\nbbcb 5\nbbcc 4\nbcb 1\ncba 4\na\nab\nb\nc\nabc\nca\nbb\ncab\naaa",
+  "output": "aaca acca aab\nNONE\nb bbcb bbcc\ncba\nNONE\nNONE\nbbcb bbcc bb\nNONE\nNONE"
+ },
+ {
+  "input": "5 4\nb 7\nba 7\nbab 7\nbaa 7\nbb 8\nb\nba\nbab\nbbb",
+  "output": "bb b ba\nba baa bab\nbab\nNONE"
+ }
+]

@@ -1,0 +1,34 @@
+[
+ {
+  "input": "1\n1\n1",
+  "output": "Min coins: 1\nWays: 1"
+ },
+ {
+  "input": "5\n1\n5",
+  "output": "Min coins: 1\nWays: 1"
+ },
+ {
+  "input": "7\n2\n2 4",
+  "output": "Min coins: -1\nWays: 0"
+ },
+ {
+  "input": "6\n3\n1 3 4",
+  "output": "Min coins: 2\nWays: 4"
+ },
+ {
+  "input": "1000\n5\n1 5 10 25 50",
+  "output": "Min coins: 20\nWays: 801451"
+ },
+ {
+  "input": "10\n2\n11 12",
+  "output": "Min coins: -1\nWays: 0"
+ },
+ {
+  "input": "999\n3\n1000 1 500",
+  "output": "Min coins: 500\nWays: 2"
+ },
+ {
+  "input": "1000\n5\n1000 7 3 11 13",
+  "output": "Min coins: 1\nWays: 58375"
+ }
+]

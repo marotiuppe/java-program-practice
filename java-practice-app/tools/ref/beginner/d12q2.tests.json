@@ -1,38 +1,38 @@
 [
  {
   "input": "0",
-  "output": "Not prime\r"
+  "output": "Not prime"
  },
  {
   "input": "2",
-  "output": "Prime\r"
+  "output": "Prime"
  },
  {
   "input": "-7",
-  "output": "Not prime\r"
+  "output": "Not prime"
  },
  {
   "input": "97",
-  "output": "Prime\r"
+  "output": "Prime"
  },
  {
   "input": "3",
-  "output": "Prime\r"
+  "output": "Prime"
  },
  {
   "input": "4",
-  "output": "Not prime\r"
+  "output": "Not prime"
  },
  {
   "input": "1000000",
-  "output": "Not prime\r"
+  "output": "Not prime"
  },
  {
   "input": "999983",
-  "output": "Prime\r"
+  "output": "Prime"
  },
  {
   "input": "49",
-  "output": "Not prime\r"
+  "output": "Not prime"
  }
 ]

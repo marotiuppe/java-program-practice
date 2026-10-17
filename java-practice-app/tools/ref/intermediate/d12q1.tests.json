@@ -1,0 +1,14 @@
+[
+ {
+  "input": "5\nTREAT\nWAITING\nARRIVE A 1\nWAITING\nTREAT",
+  "output": "No patients\nWaiting: 0\nWaiting: 1\nTreating A"
+ },
+ {
+  "input": "8\nARRIVE Sam 3\nARRIVE Sam 3\nARRIVE Tim 4\nARRIVE Ann 3\nTREAT\nTREAT\nTREAT\nTREAT",
+  "output": "Treating Tim\nTreating Sam\nTreating Sam\nTreating Ann"
+ },
+ {
+  "input": "7\nARRIVE a 1\nARRIVE b 2\nARRIVE c 1\nTREAT\nARRIVE d 2\nTREAT\nTREAT",
+  "output": "Treating b\nTreating d\nTreating a"
+ }
+]

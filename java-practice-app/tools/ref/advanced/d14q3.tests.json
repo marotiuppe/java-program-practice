@@ -1,0 +1,26 @@
+[
+ {
+  "input": "3 3\nSAME 1 2\nSAME 3 3\nFRIEND 2 2",
+  "output": "NO\nYES\n3 1"
+ },
+ {
+  "input": "4 5\nFRIEND 1 2\nFRIEND 2 1\nFRIEND 1 1\nSAME 1 2\nSAME 3 4",
+  "output": "3 2\n3 2\n3 2\nYES\nNO"
+ },
+ {
+  "input": "6 8\nFRIEND 1 2\nFRIEND 3 4\nFRIEND 5 6\nFRIEND 2 4\nSAME 1 3\nFRIEND 6 1\nSAME 5 4\nFRIEND 3 5",
+  "output": "5 2\n4 2\n3 2\n2 4\nYES\n1 6\nYES\n1 6"
+ },
+ {
+  "input": "5 4\nFRIEND 5 4\nFRIEND 4 3\nFRIEND 3 2\nFRIEND 2 1",
+  "output": "4 2\n3 3\n2 4\n1 5"
+ },
+ {
+  "input": "2 3\nSAME 1 2\nFRIEND 1 2\nSAME 2 1",
+  "output": "NO\n1 2\nYES"
+ },
+ {
+  "input": "12 25\nFRIEND 2 11\nSAME 11 10\nSAME 7 6\nSAME 11 3\nFRIEND 8 9\nSAME 10 4\nSAME 1 8\nFRIEND 7 6\nSAME 10 11\nFRIEND 4 2\nFRIEND 9 2\nFRIEND 11 1\nSAME 12 1\nFRIEND 12 1\nFRIEND 5 11\nSAME 8 9\nFRIEND 1 10\nFRIEND 4 5\nFRIEND 7 11\nSAME 6 2\nFRIEND 2 7\nFRIEND 5 4\nSAME 3 11\nSAME 9 6\nSAME 4 4",
+  "output": "11 2\nNO\nNO\nNO\n10 2\nNO\nNO\n9 2\nNO\n8 3\n7 5\n6 6\nNO\n5 7\n4 8\nYES\n3 9\n3 9\n2 11\nYES\n2 11\n2 11\nNO\nYES\nYES"
+ }
+]

@@ -1,0 +1,26 @@
+[
+ {
+  "input": "2 2 4",
+  "output": "Invalid"
+ },
+ {
+  "input": "5 5 5",
+  "output": "Valid"
+ },
+ {
+  "input": "-3 4 5",
+  "output": "Invalid"
+ },
+ {
+  "input": "2 3 4",
+  "output": "Valid"
+ },
+ {
+  "input": "10 1 1",
+  "output": "Invalid"
+ },
+ {
+  "input": "0 0 0",
+  "output": "Invalid"
+ }
+]

@@ -1,0 +1,26 @@
+[
+ {
+  "input": "2 1900",
+  "output": "28"
+ },
+ {
+  "input": "2 2000",
+  "output": "29"
+ },
+ {
+  "input": "12 2023",
+  "output": "31"
+ },
+ {
+  "input": "0 2023",
+  "output": "Invalid month"
+ },
+ {
+  "input": "11 2023",
+  "output": "30"
+ },
+ {
+  "input": "2 2023",
+  "output": "28"
+ }
+]

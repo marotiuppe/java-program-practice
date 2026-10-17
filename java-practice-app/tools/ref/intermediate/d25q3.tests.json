@@ -1,0 +1,22 @@
+[
+ {
+  "input": "5\nNOSPACE\nMAXREPEAT 1\nHASUPPER\nHASDIGIT\nMINLEN 5\n4\naA1xyz\n  \naabB1\nA1 b2",
+  "output": "OK\nFAIL: NOSPACE,MAXREPEAT 1,HASUPPER,HASDIGIT,MINLEN 5\nFAIL: MAXREPEAT 1\nFAIL: NOSPACE"
+ },
+ {
+  "input": "1\nMAXREPEAT 3\n4\naaa\naaaa\nabbbbc\nxaaayaaa",
+  "output": "OK\nFAIL: MAXREPEAT 3\nFAIL: MAXREPEAT 3\nOK"
+ },
+ {
+  "input": "2\nMINLEN 3\nMINLEN 6\n3\nabc\nabcdef\nab",
+  "output": "FAIL: MINLEN 6\nOK\nFAIL: MINLEN 3,MINLEN 6"
+ },
+ {
+  "input": "1\nMAXREPEAT 100\n2\naaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\naaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaab",
+  "output": "OK\nOK"
+ },
+ {
+  "input": "2\nNOSPACE\nHASUPPER\n2\n Abc1\nabc",
+  "output": "FAIL: NOSPACE\nFAIL: HASUPPER"
+ }
+]

@@ -1,0 +1,34 @@
+[
+ {
+  "input": "1000 REGULAR NONE\n",
+  "output": "BULK10 100\nCOUPON 0\nGOLD5 0\nDiscount: 100\nPayable: 900"
+ },
+ {
+  "input": "999 REGULAR NONE\n",
+  "output": "BULK10 0\nCOUPON 0\nGOLD5 0\nDiscount: 0\nPayable: 999"
+ },
+ {
+  "input": "100 GOLD SAVE100\n",
+  "output": "BULK10 0\nCOUPON 100\nGOLD5 5\nDiscount: 30\nPayable: 70"
+ },
+ {
+  "input": "10000 GOLD SAVE100\n",
+  "output": "BULK10 1000\nCOUPON 100\nGOLD5 500\nDiscount: 1600\nPayable: 8400"
+ },
+ {
+  "input": "1 REGULAR SAVE100\n",
+  "output": "BULK10 0\nCOUPON 100\nGOLD5 0\nDiscount: 0\nPayable: 1"
+ },
+ {
+  "input": "1000000 GOLD SAVE100\n",
+  "output": "BULK10 100000\nCOUPON 100\nGOLD5 50000\nDiscount: 150100\nPayable: 849900"
+ },
+ {
+  "input": "50 REGULAR SAVE200\n",
+  "output": "BULK10 0\nCOUPON 0\nGOLD5 0\nDiscount: 0\nPayable: 50"
+ },
+ {
+  "input": "40 GOLD NONE\n",
+  "output": "BULK10 0\nCOUPON 0\nGOLD5 2\nDiscount: 2\nPayable: 38"
+ }
+]

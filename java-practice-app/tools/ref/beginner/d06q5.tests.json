@@ -1,0 +1,18 @@
+[
+ {
+  "input": "1",
+  "output": "Monday"
+ },
+ {
+  "input": "4",
+  "output": "Thursday"
+ },
+ {
+  "input": "5",
+  "output": "Invalid day"
+ },
+ {
+  "input": "0",
+  "output": "Invalid day"
+ }
+]

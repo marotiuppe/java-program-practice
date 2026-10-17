@@ -1,0 +1,34 @@
+[
+ {
+  "input": "1\nabc",
+  "output": "abc"
+ },
+ {
+  "input": "3\nab ab ab",
+  "output": "ab"
+ },
+ {
+  "input": "3\ncb ca ab",
+  "output": "bca"
+ },
+ {
+  "input": "4\nab ac bc cd",
+  "output": "abcd"
+ },
+ {
+  "input": "3\nba ab ba",
+  "output": "INVALID"
+ },
+ {
+  "input": "3\nzy xy xz",
+  "output": "yzx"
+ },
+ {
+  "input": "5\nq qa qb ra rb",
+  "output": "abqr"
+ },
+ {
+  "input": "2\nab a",
+  "output": "INVALID"
+ }
+]

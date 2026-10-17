@@ -1,0 +1,30 @@
+[
+ {
+  "input": "INT 1 42",
+  "output": "Max: 42\nMin: 42\nCount of first: 1\nReversed: [42]"
+ },
+ {
+  "input": "INT 4 7 7 7 7",
+  "output": "Max: 7\nMin: 7\nCount of first: 4\nReversed: [7, 7, 7, 7]"
+ },
+ {
+  "input": "INT 5 -3 0 -10 -3 8",
+  "output": "Max: 8\nMin: -10\nCount of first: 2\nReversed: [8, -3, -10, 0, -3]"
+ },
+ {
+  "input": "STR 4 b a b B",
+  "output": "Max: b\nMin: B\nCount of first: 2\nReversed: [B, b, a, b]"
+ },
+ {
+  "input": "DBL 3 2.5 1.0 2.5",
+  "output": "Max: 2.5\nMin: 1.0\nCount of first: 2\nReversed: [2.5, 1.0, 2.5]"
+ },
+ {
+  "input": "DBL 1 -0.5",
+  "output": "Max: -0.5\nMin: -0.5\nCount of first: 1\nReversed: [-0.5]"
+ },
+ {
+  "input": "DBL 4 3.0 -1.25 10.0 3.0",
+  "output": "Max: 10.0\nMin: -1.25\nCount of first: 2\nReversed: [3.0, 10.0, -1.25, 3.0]"
+ }
+]

@@ -1,0 +1,22 @@
+[
+ {
+  "input": "5\nsize=S\nsize=L crust=stuffed top=a,b,c,d\nsize=M top=a,b,c,d,a,b qty=10\nsize=M top=a,b,c,d,e\nsize=S top=x,y crust=thick qty=3",
+  "output": "OK 800\nOK 2000\nOK 16000\nERROR too many toppings\nOK 3300"
+ },
+ {
+  "input": "5\nqty=0 size=M\nsize=M qty=0\nqty=10 size=S\ncrust=stuffed size=S qty=99\nsize=XL crust=stuffed top=a,b,c,d,e,f",
+  "output": "ERROR invalid quantity\nERROR invalid quantity\nOK 8000\nERROR stuffed not available in S\nERROR invalid size"
+ },
+ {
+  "input": "4\nsize=L top=a,a,a,a,a,a qty=1\ntop=a,b,c,d,e\nsize=M crust=stuffed top=x qty=5\nsize=S crust=thin qty=10",
+  "output": "OK 1350\nERROR size required\nOK 6750\nOK 8000"
+ },
+ {
+  "input": "2\nsize=M qty=11 top=a,b,c,d,e\nsize=S crust=stuffed qty=11",
+  "output": "ERROR too many toppings\nERROR stuffed not available in S"
+ },
+ {
+  "input": "3\nsize=L crust=stuffed top=a,b,c,d\nsize=L top=a,b,c,d,e crust=stuffed\nsize=M top=a",
+  "output": "OK 2000\nERROR too many toppings\nOK 1150"
+ }
+]

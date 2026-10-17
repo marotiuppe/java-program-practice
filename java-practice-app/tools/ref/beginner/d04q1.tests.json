@@ -1,0 +1,26 @@
+[
+ {
+  "input": "499\nfalse",
+  "output": "Delivery: 40"
+ },
+ {
+  "input": "500\ntrue",
+  "output": "Delivery: Free"
+ },
+ {
+  "input": "499\ntrue",
+  "output": "Delivery: 40"
+ },
+ {
+  "input": "999\nfalse",
+  "output": "Delivery: 40"
+ },
+ {
+  "input": "1000\nfalse",
+  "output": "Delivery: Free"
+ },
+ {
+  "input": "0\ntrue",
+  "output": "Delivery: 40"
+ }
+]

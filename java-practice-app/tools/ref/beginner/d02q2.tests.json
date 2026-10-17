@@ -1,0 +1,22 @@
+[
+ {
+  "input": "0",
+  "output": "Fahrenheit: 32.00\nKelvin: 273.15"
+ },
+ {
+  "input": "-273.15",
+  "output": "Fahrenheit: -459.67\nKelvin: 0.00"
+ },
+ {
+  "input": "36.6",
+  "output": "Fahrenheit: 97.88\nKelvin: 309.75"
+ },
+ {
+  "input": "37",
+  "output": "Fahrenheit: 98.60\nKelvin: 310.15"
+ },
+ {
+  "input": "-17.8",
+  "output": "Fahrenheit: -0.04\nKelvin: 255.35"
+ }
+]

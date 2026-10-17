@@ -1,38 +1,38 @@
 [
  {
   "input": "abcd1",
-  "output": "Valid\r"
+  "output": "Valid"
  },
  {
   "input": "abcde",
-  "output": "Invalid\r"
+  "output": "Invalid"
  },
  {
   "input": "abcdefghij12",
-  "output": "Valid\r"
+  "output": "Valid"
  },
  {
   "input": "abcdefghijkl1",
-  "output": "Invalid\r"
+  "output": "Invalid"
  },
  {
   "input": "abcdefghijklm1",
-  "output": "Invalid\r"
+  "output": "Invalid"
  },
  {
   "input": "12345",
-  "output": "Invalid\r"
+  "output": "Invalid"
  },
  {
   "input": "a1b2c",
-  "output": "Valid\r"
+  "output": "Valid"
  },
  {
   "input": "user1",
-  "output": "Valid\r"
+  "output": "Valid"
  },
  {
   "input": "abcde1",
-  "output": "Valid\r"
+  "output": "Valid"
  }
 ]

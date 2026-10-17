@@ -1,0 +1,14 @@
+[
+ {
+  "input": "4\nlevel java noon a",
+  "output": "Palindromes: 3\nLEVEL\nNOON\nA"
+ },
+ {
+  "input": "3\nMadam abca ab",
+  "output": "Palindromes: 1\nMADAM"
+ },
+ {
+  "input": "2\nab cd",
+  "output": "Palindromes: 0"
+ }
+]

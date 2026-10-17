@@ -1,0 +1,22 @@
+[
+ {
+  "input": "a",
+  "output": "a"
+ },
+ {
+  "input": "aab",
+  "output": "b"
+ },
+ {
+  "input": "abcabcd",
+  "output": "d"
+ },
+ {
+  "input": "aabbccd",
+  "output": "d"
+ },
+ {
+  "input": "abab",
+  "output": "None"
+ }
+]

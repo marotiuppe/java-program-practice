@@ -1,0 +1,14 @@
+[
+ {
+  "input": "1\nsolo",
+  "output": "Total visits: 1\nUnique visitors: 1\nReturning visits: 0"
+ },
+ {
+  "input": "4\nx x x x",
+  "output": "Total visits: 4\nUnique visitors: 1\nReturning visits: 3"
+ },
+ {
+  "input": "5\nAmit amit Amit AMIT amit",
+  "output": "Total visits: 5\nUnique visitors: 3\nReturning visits: 2"
+ }
+]

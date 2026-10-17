@@ -1,0 +1,22 @@
+[
+ {
+  "input": "3\nF10 100 60 1000\nF2 100 60 1000\nF1 100 60 1000\nid:asc",
+  "output": "F1 F10 F2"
+ },
+ {
+  "input": "3\nF10 100 60 1000\nF2 100 60 1000\nF1 100 60 1000\nid:desc",
+  "output": "F2 F10 F1"
+ },
+ {
+  "input": "4\nA 300 60 1200\nB 300 60 1100\nC 200 90 1300\nD 300 60 900\nprice:desc",
+  "output": "A B D C"
+ },
+ {
+  "input": "4\nA 300 60 1200\nB 300 60 1100\nC 200 90 1300\nD 300 60 900\nduration:asc dep:desc",
+  "output": "A B D C"
+ },
+ {
+  "input": "1\nX 1 1 0\nprice:asc duration:asc dep:asc id:asc",
+  "output": "X"
+ }
+]

@@ -1,0 +1,10 @@
+[
+ {
+  "input": "15\n1\n26\n27\n52\n53\n702\n703\n18278\n18279\n2147483646\nZ\nAZ\nZZ\nAAA\nXFD",
+  "output": "A\nZ\nAA\nAZ\nBA\nZZ\nAAA\nZZZ\nAAAA\nFXSHRXV\n26\n52\n702\n703\n16384"
+ },
+ {
+  "input": "4\nFXSHRXW\nFXSHRXV\nZZZZZ\nBA",
+  "output": "2147483647\n2147483646\n12356630\n53"
+ }
+]

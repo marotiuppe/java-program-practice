@@ -1,0 +1,26 @@
+[
+ {
+  "input": "1 1",
+  "output": "Tea x1 = 10"
+ },
+ {
+  "input": "3 4",
+  "output": "Juice x4 = 100"
+ },
+ {
+  "input": "0 1",
+  "output": "Invalid choice"
+ },
+ {
+  "input": "5 2",
+  "output": "Invalid choice"
+ },
+ {
+  "input": "4 100",
+  "output": "Water x100 = 500"
+ },
+ {
+  "input": "-1 3",
+  "output": "Invalid choice"
+ }
+]

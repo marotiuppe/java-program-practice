@@ -1,0 +1,14 @@
+[
+ {
+  "input": "4\nzebra apple zebra mango",
+  "output": "apple: 1\nmango: 1\nzebra: 2"
+ },
+ {
+  "input": "3\nb a ab",
+  "output": "a: 1\nab: 1\nb: 1"
+ },
+ {
+  "input": "6\nq q q q q q",
+  "output": "q: 6"
+ }
+]

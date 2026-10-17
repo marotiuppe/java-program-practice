@@ -1,0 +1,6 @@
+[
+ {
+  "input": "",
+  "output": "pad -> false\nbad -> true\n.ad -> true\nb.. -> true\nba -> false\nb.d. -> false\n... -> true"
+ }
+]

@@ -1,0 +1,18 @@
+[
+ {
+  "input": "2\nA 39\nB 40",
+  "output": "A: 39 - Fail\nB: 40 - Pass\nAverage: 39.50"
+ },
+ {
+  "input": "3\nZ 0\nY 100\nX 50",
+  "output": "Z: 0 - Fail\nY: 100 - Pass\nX: 50 - Pass\nAverage: 50.00"
+ },
+ {
+  "input": "1\nSolo 0",
+  "output": "Solo: 0 - Fail\nAverage: 0.00"
+ },
+ {
+  "input": "4\na 1\nb 2\nc 3\nd 4",
+  "output": "a: 1 - Fail\nb: 2 - Fail\nc: 3 - Fail\nd: 4 - Fail\nAverage: 2.50"
+ }
+]

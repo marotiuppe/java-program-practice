@@ -1,0 +1,18 @@
+[
+ {
+  "input": "9\nSHOW\nADD A\nADD A\nREMOVE -1\nREMOVE 2\nREMOVE 1\nPLAYNEXT B\nSHOW\nPLAY\n",
+  "output": "Queue: empty\nInvalid index\nInvalid index\nRemoved A\nQueue: B, A\nPlaying B"
+ },
+ {
+  "input": "6\nADD X\nPLAY\nPLAY\nPLAYNEXT Y\nPLAYNEXT Z\nSHOW\n",
+  "output": "Playing X\nNothing to play\nQueue: Z, Y"
+ },
+ {
+  "input": "5\nADD s1\nADD s2\nADD s3\nREMOVE 2\nSHOW\n",
+  "output": "Removed s3\nQueue: s1, s2"
+ },
+ {
+  "input": "4\nREMOVE 0\nSHOW\nPLAY\nSHOW\n",
+  "output": "Invalid index\nQueue: empty\nNothing to play\nQueue: empty"
+ }
+]

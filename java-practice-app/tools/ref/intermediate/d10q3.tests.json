@@ -1,0 +1,22 @@
+[
+ {
+  "input": "1\nabc\n",
+  "output": "abc"
+ },
+ {
+  "input": "4\na a a b\n",
+  "output": "a a a\nb"
+ },
+ {
+  "input": "5\nlisten silent enlist google gogole\n",
+  "output": "listen silent enlist\ngoogle gogole"
+ },
+ {
+  "input": "6\nab ba ab c cc c\n",
+  "output": "ab ba ab\nc c\ncc"
+ },
+ {
+  "input": "3\nzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzy zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzy\n",
+  "output": "zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz\nzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzy zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzy"
+ }
+]

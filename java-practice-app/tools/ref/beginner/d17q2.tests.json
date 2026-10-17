@@ -1,30 +1,30 @@
 [
  {
   "input": "a A",
-  "output": "Anagrams\r"
+  "output": "Anagrams"
  },
  {
   "input": "ab abc",
-  "output": "Not anagrams\r"
+  "output": "Not anagrams"
  },
  {
   "input": "Race Care",
-  "output": "Anagrams\r"
+  "output": "Anagrams"
  },
  {
   "input": "aab abb",
-  "output": "Not anagrams\r"
+  "output": "Not anagrams"
  },
  {
   "input": "Astronomer MoonStarer",
-  "output": "Anagrams\r"
+  "output": "Anagrams"
  },
  {
   "input": "Hello hello",
-  "output": "Anagrams\r"
+  "output": "Anagrams"
  },
  {
   "input": "Anna nana",
-  "output": "Anagrams\r"
+  "output": "Anagrams"
  }
 ]

@@ -1,22 +1,22 @@
 [
  {
   "input": "a",
-  "output": "Characters: 1\r\nWords: 1\r\nVowels: 1\r"
+  "output": "Characters: 1\nWords: 1\nVowels: 1"
  },
  {
   "input": "AEIOU",
-  "output": "Characters: 5\r\nWords: 1\r\nVowels: 5\r"
+  "output": "Characters: 5\nWords: 1\nVowels: 5"
  },
  {
   "input": "xyz",
-  "output": "Characters: 3\r\nWords: 1\r\nVowels: 0\r"
+  "output": "Characters: 3\nWords: 1\nVowels: 0"
  },
  {
   "input": "Why do we fall Sir",
-  "output": "Characters: 18\r\nWords: 5\r\nVowels: 4\r"
+  "output": "Characters: 18\nWords: 5\nVowels: 4"
  },
  {
   "input": "This Is A Test",
-  "output": "Characters: 14\r\nWords: 4\r\nVowels: 4\r"
+  "output": "Characters: 14\nWords: 4\nVowels: 4"
  }
 ]

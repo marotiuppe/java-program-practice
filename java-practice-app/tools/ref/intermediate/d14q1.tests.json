@@ -1,0 +1,22 @@
+[
+ {
+  "input": "1\n1 solo pen 3 7",
+  "output": "solo 21\nBest seller: pen (3)"
+ },
+ {
+  "input": "4\n1 amy tea 2 50\n2 amy cup 1 30\n3 amy tea 1 50\n4 amy pen 5 1",
+  "output": "amy 185\nBest seller: pen (5)"
+ },
+ {
+  "input": "4\n1 bob a 1 10\n2 cat b 1 10\n3 ann c 1 10\n4 dan a 1 5",
+  "output": "ann 10\nbob 10\ncat 10\ndan 5\nBest seller: a (2)"
+ },
+ {
+  "input": "3\n1 x big 2000 1000000\n2 y big 2000 1000000\n3 x small 1 1",
+  "output": "x 2000000001\ny 2000000000\nBest seller: big (4000)"
+ },
+ {
+  "input": "5\n1 z b 2 3\n2 z a 2 3\n3 y c 1 6\n4 y d 1 6\n5 w e 0 100",
+  "output": "y 12\nz 12\nw 0\nBest seller: a (2)"
+ }
+]

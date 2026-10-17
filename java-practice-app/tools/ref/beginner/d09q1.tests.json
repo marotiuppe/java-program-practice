@@ -1,0 +1,22 @@
+[
+ {
+  "input": "4321",
+  "output": "Access granted"
+ },
+ {
+  "input": "1\n2\n4321",
+  "output": "Wrong PIN. Attempts left: 2\nWrong PIN. Attempts left: 1\nAccess granted"
+ },
+ {
+  "input": "1\n2\n3\n4321",
+  "output": "Wrong PIN. Attempts left: 2\nWrong PIN. Attempts left: 1\nWrong PIN. Attempts left: 0\nCard blocked"
+ },
+ {
+  "input": "4321\n1\n2",
+  "output": "Access granted"
+ },
+ {
+  "input": "0\n4321",
+  "output": "Wrong PIN. Attempts left: 2\nAccess granted"
+ }
+]

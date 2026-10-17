@@ -1,0 +1,26 @@
+[
+ {
+  "input": "INT\n1\n5\n3\n4 5 6",
+  "output": "-1 0 -2"
+ },
+ {
+  "input": "INT\n6\n-5 -5 0 0 0 7\n6\n-5 0 7 -6 1 8",
+  "output": "0 2 5 -1 -6 -7"
+ },
+ {
+  "input": "INT\n3\n-2147483648 0 2147483647\n4\n-2147483648 2147483647 2147483646 -2147483647",
+  "output": "0 2 -3 -2"
+ },
+ {
+  "input": "STR\n5\napple apple apple b c\n5\napple a b c d",
+  "output": "0 -1 3 4 -6"
+ },
+ {
+  "input": "STR\n4\nab abc abd b\n4\na ab abe bb",
+  "output": "-1 0 -4 -5"
+ },
+ {
+  "input": "INT\n4\n1 1 1 1\n3\n1 0 2",
+  "output": "0 -1 -5"
+ }
+]

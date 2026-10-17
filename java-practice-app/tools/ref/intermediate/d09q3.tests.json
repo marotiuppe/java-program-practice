@@ -1,0 +1,22 @@
+[
+ {
+  "input": "1\nz 1.1.1.1\n",
+  "output": "z 1 OK"
+ },
+ {
+  "input": "7\nu a\nu b\nu c\nu c\nv x\nv x\nw a\n",
+  "output": "u 3 SUSPICIOUS\nv 1 OK\nw 1 OK"
+ },
+ {
+  "input": "4\nb 1\na 1\nb 2\na 2\n",
+  "output": "b 2 OK\na 2 OK"
+ },
+ {
+  "input": "5\nu x\nu y\nu x\nu y\nu z\n",
+  "output": "u 3 SUSPICIOUS"
+ },
+ {
+  "input": "6\nq 1\nq 2\nq 3\nq 4\nq 5\nq 6\n",
+  "output": "q 6 SUSPICIOUS"
+ }
+]

@@ -1,0 +1,14 @@
+[
+ {
+  "input": "16\n0 0 0 0\n0 0 0 1\n0 0 1 0\n0 0 1 1\n0 1 0 0\n0 1 0 1\n0 1 1 0\n0 1 1 1\n1 0 0 0\n1 0 0 1\n1 0 1 0\n1 0 1 1\n1 1 0 0\n1 1 0 1\n1 1 1 0\n1 1 1 1",
+  "output": "open A\nopen B\nbody\nclose B\nclose A\nfinally\n---\nopen A\nopen B\nbody\nclose B\nclose A\ncaught: close B failed\nfinally\n---\nopen A\nopen B\nbody\nclose B\nclose A\ncaught: close A failed\nfinally\n---\nopen A\nopen B\nbody\nclose B\nclose A\ncaught: close B failed\nsuppressed: close A failed\nfinally\n---\nopen A\nclose A\ncaught: open B failed\nfinally\n---\nopen A\nclose A\ncaught: open B failed\nfinally\n---\nopen A\nclose A\ncaught: open B failed\nsuppressed: close A failed\nfinally\n---\nopen A\nclose A\ncaught: open B failed\nsuppressed: close A failed\nfinally\n---\nopen A\nopen B\nbody\nclose B\nclose A\ncaught: body failed\nfinally\n---\nopen A\nopen B\nbody\nclose B\nclose A\ncaught: body failed\nsuppressed: close B failed\nfinally\n---\nopen A\nopen B\nbody\nclose B\nclose A\ncaught: body failed\nsuppressed: close A failed\nfinally\n---\nopen A\nopen B\nbody\nclose B\nclose A\ncaught: body failed\nsuppressed: close B failed\nsuppressed: close A failed\nfinally\n---\nopen A\nclose A\ncaught: open B failed\nfinally\n---\nopen A\nclose A\ncaught: open B failed\nfinally\n---\nopen A\nclose A\ncaught: open B failed\nsuppressed: close A failed\nfinally\n---\nopen A\nclose A\ncaught: open B failed\nsuppressed: close A failed\nfinally\n---"
+ },
+ {
+  "input": "1\n1 1 1 1",
+  "output": "open A\nclose A\ncaught: open B failed\nsuppressed: close A failed\nfinally\n---"
+ },
+ {
+  "input": "2\n1 0 0 1\n0 0 0 1",
+  "output": "open A\nopen B\nbody\nclose B\nclose A\ncaught: body failed\nsuppressed: close B failed\nfinally\n---\nopen A\nopen B\nbody\nclose B\nclose A\ncaught: close B failed\nfinally\n---"
+ }
+]

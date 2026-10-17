@@ -1,0 +1,22 @@
+[
+ {
+  "input": "1211 1",
+  "output": "Digit 1 appears 3 time(s)"
+ },
+ {
+  "input": "0 0",
+  "output": "Digit 0 appears 1 time(s)"
+ },
+ {
+  "input": "1000 0",
+  "output": "Digit 0 appears 3 time(s)"
+ },
+ {
+  "input": "505 5",
+  "output": "Digit 5 appears 2 time(s)"
+ },
+ {
+  "input": "0 5",
+  "output": "Digit 5 appears 0 time(s)"
+ }
+]

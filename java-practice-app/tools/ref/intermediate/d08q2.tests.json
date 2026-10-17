@@ -1,0 +1,22 @@
+[
+ {
+  "input": "1\n0\n5\n",
+  "output": "[]\nRemoved: 1"
+ },
+ {
+  "input": "5\n-3 -4 5 10 0\n2\n",
+  "output": "[-6, 10]\nRemoved: 3"
+ },
+ {
+  "input": "4\n11 12 13 14\n1\n",
+  "output": "[]\nRemoved: 4"
+ },
+ {
+  "input": "5\n10 11 5 6 20\n7\n",
+  "output": "[20, 22, -1, 10, 12, 40, -1]\nRemoved: 0"
+ },
+ {
+  "input": "3\n-11 -20 11\n100\n",
+  "output": "[-22, -40, 22, -1]\nRemoved: 0"
+ }
+]

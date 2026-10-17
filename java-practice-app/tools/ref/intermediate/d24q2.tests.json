@@ -1,0 +1,22 @@
+[
+ {
+  "input": "1\nS 1.5",
+  "output": "Square[side=1.5] area=2.25\nTotal area: 2.25\nDuplicates: 0"
+ },
+ {
+  "input": "4\nR 2 3\nR 3 2\nR 2 3\nR 2 3",
+  "output": "Rectangle[w=2.0, h=3.0] area=6.00\nRectangle[w=3.0, h=2.0] area=6.00\nRectangle[w=2.0, h=3.0] area=6.00\nRectangle[w=2.0, h=3.0] area=6.00\nTotal area: 24.00\nDuplicates: 2"
+ },
+ {
+  "input": "5\nC 2\nC 2.0\nS 2\nS 2\nC 0.5",
+  "output": "Circle[r=2.0] area=12.57\nCircle[r=2.0] area=12.57\nSquare[side=2.0] area=4.00\nSquare[side=2.0] area=4.00\nCircle[r=0.5] area=0.79\nTotal area: 33.92\nDuplicates: 2"
+ },
+ {
+  "input": "2\nR 0.1 0.1\nC 100",
+  "output": "Rectangle[w=0.1, h=0.1] area=0.01\nCircle[r=100.0] area=31415.93\nTotal area: 31415.94\nDuplicates: 0"
+ },
+ {
+  "input": "1\nR 1000 1000",
+  "output": "Rectangle[w=1000.0, h=1000.0] area=1000000.00\nTotal area: 1000000.00\nDuplicates: 0"
+ }
+]

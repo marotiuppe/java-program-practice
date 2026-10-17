@@ -1,26 +1,26 @@
 [
  {
   "input": "10",
-  "output": "Steps: 1\r\nPalindrome: 11\r"
+  "output": "Steps: 1\nPalindrome: 11"
  },
  {
   "input": "19",
-  "output": "Steps: 2\r\nPalindrome: 121\r"
+  "output": "Steps: 2\nPalindrome: 121"
  },
  {
   "input": "78",
-  "output": "Steps: 4\r\nPalindrome: 4884\r"
+  "output": "Steps: 4\nPalindrome: 4884"
  },
  {
   "input": "1",
-  "output": "Steps: 0\r\nPalindrome: 1\r"
+  "output": "Steps: 0\nPalindrome: 1"
  },
  {
   "input": "80",
-  "output": "Steps: 1\r\nPalindrome: 88\r"
+  "output": "Steps: 1\nPalindrome: 88"
  },
  {
   "input": "69",
-  "output": "Steps: 4\r\nPalindrome: 4884\r"
+  "output": "Steps: 4\nPalindrome: 4884"
  }
 ]

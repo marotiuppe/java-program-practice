@@ -1,0 +1,18 @@
+[
+ {
+  "input": "1\nA FAILED 0",
+  "output": "A: FAILED at 0\nDelivered: 0 Failed: 1 Pending: 0"
+ },
+ {
+  "input": "4\nA DELIVERED 5\nA FAILED 5\nB OUT_FOR_DELIVERY 3\nB DELIVERED 3",
+  "output": "A: FAILED at 5\nB: DELIVERED at 3\nDelivered: 1 Failed: 1 Pending: 0"
+ },
+ {
+  "input": "5\nx IN_TRANSIT 1000000\nx PICKED 0\ny DELIVERED 7\ny OUT_FOR_DELIVERY 7\nz PICKED 3",
+  "output": "x: IN_TRANSIT at 1000000\ny: OUT_FOR_DELIVERY at 7\nz: PICKED at 3\nDelivered: 0 Failed: 0 Pending: 3"
+ },
+ {
+  "input": "3\nb PICKED 1\na PICKED 2\nb DELIVERED 1",
+  "output": "b: DELIVERED at 1\na: PICKED at 2\nDelivered: 1 Failed: 0 Pending: 1"
+ }
+]

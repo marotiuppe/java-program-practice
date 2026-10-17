@@ -1,18 +1,18 @@
 [
  {
   "input": "A B 1",
-  "output": "ab1@school.edu\r"
+  "output": "ab1@school.edu"
  },
  {
   "input": "JOHN doe 99",
-  "output": "jdoe99@school.edu\r"
+  "output": "jdoe99@school.edu"
  },
  {
   "input": "x Y 1000",
-  "output": "xy1000@school.edu\r"
+  "output": "xy1000@school.edu"
  },
  {
   "input": "mArY SMITH 0",
-  "output": "msmith0@school.edu\r"
+  "output": "msmith0@school.edu"
  }
 ]

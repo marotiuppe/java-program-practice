@@ -1,0 +1,34 @@
+[
+ {
+  "input": "",
+  "output": "0"
+ },
+ {
+  "input": "a",
+  "output": "1"
+ },
+ {
+  "input": "\nxyz",
+  "output": "3"
+ },
+ {
+  "input": "kitten\nsitting",
+  "output": "3"
+ },
+ {
+  "input": "abcdef\nazced",
+  "output": "3"
+ },
+ {
+  "input": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\nbbbbbbbbbbbbbbbbbbbbbbbbb",
+  "output": "30"
+ },
+ {
+  "input": "algorithm\naltruistic",
+  "output": "6"
+ },
+ {
+  "input": "saturday\nsunday",
+  "output": "3"
+ }
+]

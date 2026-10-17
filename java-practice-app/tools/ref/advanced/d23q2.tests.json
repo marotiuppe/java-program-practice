@@ -1,0 +1,26 @@
+[
+ {
+  "input": "1\nabc",
+  "output": "abc"
+ },
+ {
+  "input": "5\nlisten silent enlist google gogole",
+  "output": "enlist listen silent\ngogole google"
+ },
+ {
+  "input": "8\nz z a a a b b c",
+  "output": "a a a\nb b\nz z\nc"
+ },
+ {
+  "input": "7\nab ba ab ba aab aba baa",
+  "output": "ab ab ba ba\naab aba baa"
+ },
+ {
+  "input": "6\nabc bca cab cba bac acb",
+  "output": "abc acb bac bca cab cba"
+ },
+ {
+  "input": "10\na b c a b c a b a d",
+  "output": "a a a a\nb b b\nc c\nd"
+ }
+]

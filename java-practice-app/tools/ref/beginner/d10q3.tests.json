@@ -1,0 +1,26 @@
+[
+ {
+  "input": "7",
+  "output": "Armstrong"
+ },
+ {
+  "input": "370",
+  "output": "Armstrong"
+ },
+ {
+  "input": "1634",
+  "output": "Armstrong"
+ },
+ {
+  "input": "54748",
+  "output": "Armstrong"
+ },
+ {
+  "input": "100000",
+  "output": "Not Armstrong"
+ },
+ {
+  "input": "10",
+  "output": "Not Armstrong"
+ }
+]

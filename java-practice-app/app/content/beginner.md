@@ -1107,7 +1107,7 @@ Output: 3628800
 
 **Problem statement:** Read `n` and print the sum of all numbers from 1 to `n` (inclusive) that are divisible by 3 or by 5. A number divisible by both must be counted once.
 
-**Input and output requirements:** Input: one `int`. Output: the sum.
+**Input and output requirements:** Input: one `int`. Output: the sum. For the largest `n` the sum is too big for an `int`, so use `long`.
 
 **Sample cases:**
 ```

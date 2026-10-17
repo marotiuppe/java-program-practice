@@ -1,0 +1,46 @@
+import java.util.*;
+
+public class Main {
+    static class Node {
+        int v;
+        Node next;
+
+        Node(int v) {
+            this.v = v;
+        }
+    }
+
+    public static void main(String[] args) throws Exception {
+        StringTokenizer st = new StringTokenizer(new String(System.in.readAllBytes()));
+        int n = Integer.parseInt(st.nextToken());
+        Node dummy = new Node(0);
+        Node t = dummy;
+        for (int i = 0; i < n; i++) {
+            t.next = new Node(Integer.parseInt(st.nextToken()));
+            t = t.next;
+        }
+        int k = Integer.parseInt(st.nextToken());
+        Node fast = dummy;
+        for (int i = 0; i < k; i++) {
+            fast = fast.next;
+        }
+        Node slow = dummy;
+        while (fast.next != null) {
+            fast = fast.next;
+            slow = slow.next;
+        }
+        slow.next = slow.next.next;
+        if (dummy.next == null) {
+            System.out.println("EMPTY");
+            return;
+        }
+        StringBuilder sb = new StringBuilder();
+        for (Node p = dummy.next; p != null; p = p.next) {
+            if (sb.length() > 0) {
+                sb.append(' ');
+            }
+            sb.append(p.v);
+        }
+        System.out.println(sb);
+    }
+}

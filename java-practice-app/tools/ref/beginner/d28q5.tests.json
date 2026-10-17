@@ -1,0 +1,18 @@
+[
+ {
+  "input": "2\npen 100 3\nbag 2500 2",
+  "output": "Total: 5300.00\nDiscount: 795.00\nFinal: 4505.00"
+ },
+ {
+  "input": "2\na 1000 1\nb 1000 1",
+  "output": "Total: 2000.00\nDiscount: 200.00\nFinal: 1800.00"
+ },
+ {
+  "input": "1\nx 1999 1",
+  "output": "Total: 1999.00\nDiscount: 0.00\nFinal: 1999.00"
+ },
+ {
+  "input": "1\nx 4999 1",
+  "output": "Total: 4999.00\nDiscount: 499.90\nFinal: 4499.10"
+ }
+]

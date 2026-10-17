@@ -1,0 +1,26 @@
+[
+ {
+  "input": "0 L false",
+  "output": "Invalid weight"
+ },
+ {
+  "input": "30 I true",
+  "output": "Cost: 900.00"
+ },
+ {
+  "input": "30.5 L false",
+  "output": "Invalid weight"
+ },
+ {
+  "input": "0.5 N false",
+  "output": "Cost: 4.00"
+ },
+ {
+  "input": "7.5 L true",
+  "output": "Cost: 56.25"
+ },
+ {
+  "input": "35 X false",
+  "output": "Invalid weight"
+ }
+]

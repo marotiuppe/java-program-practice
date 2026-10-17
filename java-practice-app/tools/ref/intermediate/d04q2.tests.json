@@ -1,0 +1,26 @@
+[
+ {
+  "input": "1\nT 1 2 3\n",
+  "output": "Triangle invalid\nNo valid shapes"
+ },
+ {
+  "input": "2\nC 1\nC 1\n",
+  "output": "Circle area=3.14\nCircle area=3.14\nTotal area=6.28\nLargest: Circle"
+ },
+ {
+  "input": "3\nT 3 4 5\nR 2 3\nC 0.5\n",
+  "output": "Triangle area=6.00\nRectangle area=6.00\nCircle area=0.79\nTotal area=12.79\nLargest: Triangle"
+ },
+ {
+  "input": "3\nR 3 2\nT 4 3 5\nR 0.1 0.1\n",
+  "output": "Rectangle area=6.00\nTriangle area=6.00\nRectangle area=0.01\nTotal area=12.01\nLargest: Rectangle"
+ },
+ {
+  "input": "4\nT 2 2 4\nT 10 6 5\nT 5 5 8\nT 1 1 1\n",
+  "output": "Triangle invalid\nTriangle area=11.40\nTriangle area=12.00\nTriangle area=0.43\nTotal area=23.83\nLargest: Triangle"
+ },
+ {
+  "input": "2\nC 1000\nR 100000 100000\n",
+  "output": "Circle area=3141592.65\nRectangle area=10000000000.00\nTotal area=10003141592.65\nLargest: Rectangle"
+ }
+]

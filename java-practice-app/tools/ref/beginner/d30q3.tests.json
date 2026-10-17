@@ -1,0 +1,14 @@
+[
+ {
+  "input": "2\nADD q 3\nREPORT",
+  "output": "Added: q x3\nq: 3"
+ },
+ {
+  "input": "6\nADD b 1\nADD a 2\nADD b 3\nBORROW a\nRETURN z\nREPORT",
+  "output": "Added: b x1\nAdded: a x2\nAdded: b x3\nBorrowed: a\nUnknown: z\na: 1\nb: 4"
+ },
+ {
+  "input": "6\nADD x 1\nBORROW x\nBORROW x\nRETURN x\nBORROW x\nREPORT",
+  "output": "Added: x x1\nBorrowed: x\nUnavailable: x\nReturned: x\nBorrowed: x\nx: 0"
+ }
+]

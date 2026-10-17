@@ -1,0 +1,50 @@
+[
+ {
+  "input": "aa\naa",
+  "output": "aa"
+ },
+ {
+  "input": "ab\nb",
+  "output": "b"
+ },
+ {
+  "input": "aAbB\nAb",
+  "output": "Ab"
+ },
+ {
+  "input": "abc\nabcd",
+  "output": "NONE"
+ },
+ {
+  "input": "AAABBC\nABC",
+  "output": "ABBC"
+ },
+ {
+  "input": "bba\nab",
+  "output": "ba"
+ },
+ {
+  "input": "aabdec\nabc",
+  "output": "abdec"
+ },
+ {
+  "input": "ab\na",
+  "output": "a"
+ },
+ {
+  "input": "xaybzxbyaz\nabz",
+  "output": "aybz"
+ },
+ {
+  "input": "aaflslflsldkalskaaa\naaa",
+  "output": "aaa"
+ },
+ {
+  "input": "abcdefg\ngfe",
+  "output": "efg"
+ },
+ {
+  "input": "ZZZaZ\nZZ",
+  "output": "ZZ"
+ }
+]

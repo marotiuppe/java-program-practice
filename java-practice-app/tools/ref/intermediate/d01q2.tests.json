@@ -1,0 +1,26 @@
+[
+ {
+  "input": "1\n5\n0 7\n",
+  "output": "Original total: 5\nUpdated total: 7\nTamper check: 5"
+ },
+ {
+  "input": "3\n-1000 1000 0\n2 -1000\n",
+  "output": "Original total: 0\nUpdated total: -1000\nTamper check: 0"
+ },
+ {
+  "input": "3\n1 2 3\n3 5\n",
+  "output": "Invalid index"
+ },
+ {
+  "input": "3\n1 2 3\n-1 5\n",
+  "output": "Invalid index"
+ },
+ {
+  "input": "4\n10 20 30 40\n0 1000\n",
+  "output": "Original total: 100\nUpdated total: 1090\nTamper check: 100"
+ },
+ {
+  "input": "2\n7 8\n1 8\n",
+  "output": "Original total: 15\nUpdated total: 15\nTamper check: 15"
+ }
+]

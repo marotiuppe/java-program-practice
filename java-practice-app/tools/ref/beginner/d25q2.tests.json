@@ -1,0 +1,14 @@
+[
+ {
+  "input": "1\nthe quick brown fox",
+  "output": "Lines: 1\nWords: 4\nCharacters: 19"
+ },
+ {
+  "input": "3\na b\nc\nd e f g",
+  "output": "Lines: 3\nWords: 7\nCharacters: 11"
+ },
+ {
+  "input": "2\nx\nyy zz",
+  "output": "Lines: 2\nWords: 3\nCharacters: 6"
+ }
+]

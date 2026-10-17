@@ -1,0 +1,18 @@
+[
+ {
+  "input": "25",
+  "output": "Age: 25\nFinished"
+ },
+ {
+  "input": "abc",
+  "output": "Not a number\nFinished"
+ },
+ {
+  "input": "-4",
+  "output": "Error: Age cannot be negative\nFinished"
+ },
+ {
+  "input": "0",
+  "output": "Age: 0\nFinished"
+ }
+]

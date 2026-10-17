@@ -1,0 +1,26 @@
+[
+ {
+  "input": "-7 2",
+  "output": "Result: -3\nDone"
+ },
+ {
+  "input": "0 5",
+  "output": "Result: 0\nDone"
+ },
+ {
+  "input": "5 abc",
+  "output": "Invalid input\nDone"
+ },
+ {
+  "input": "0 0",
+  "output": "Cannot divide by zero\nDone"
+ },
+ {
+  "input": "2147483647 1",
+  "output": "Result: 2147483647\nDone"
+ },
+ {
+  "input": "3.5 2",
+  "output": "Invalid input\nDone"
+ }
+]

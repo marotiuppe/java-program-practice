@@ -1,0 +1,22 @@
+[
+ {
+  "input": "3\n(\n]\n)(",
+  "output": "Unbalanced at 1\nUnbalanced at 1\nUnbalanced at 1"
+ },
+ {
+  "input": "4\n[({})]\n(()\n{{}\n}",
+  "output": "Balanced\nUnbalanced at 1\nUnbalanced at 1\nUnbalanced at 1"
+ },
+ {
+  "input": "3\n\n\n[]{}()",
+  "output": "Balanced\nBalanced\nBalanced"
+ },
+ {
+  "input": "2\n((()))]\n([{}])(",
+  "output": "Unbalanced at 7\nUnbalanced at 7"
+ },
+ {
+  "input": "1\n((((((((",
+  "output": "Unbalanced at 8"
+ }
+]

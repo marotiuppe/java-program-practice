@@ -1,0 +1,18 @@
+[
+ {
+  "input": "5\nEMAIL a x\nSMS b 123456789012345678901\nPUSH c\nSMS d 12345678901234567890\nPUSH e MiXed Case 12\n",
+  "output": "EMAIL to a: x\nSMS to b: 12345678901234567...\nSKIPPED c\nSMS to d: 12345678901234567890\nPUSH [e] MIXED CASE 12"
+ },
+ {
+  "input": "2\nEMAIL z\nPUSH y\n",
+  "output": "SKIPPED z\nSKIPPED y"
+ },
+ {
+  "input": "3\nSMS u Hi  there\nEMAIL v a  b\nPUSH w ok\n",
+  "output": "SMS to u: Hi  there\nEMAIL to v: a  b\nPUSH [w] OK"
+ },
+ {
+  "input": "2\nSMS q abcdefghijklmnopqrstuvwxyz\nSMS r sms\n",
+  "output": "SMS to q: abcdefghijklmnopq...\nSMS to r: sms"
+ }
+]

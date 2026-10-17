@@ -1,0 +1,26 @@
+[
+ {
+  "input": "1 1\n7",
+  "output": "Start: 0\nSum: 7\nAverage: 7.00"
+ },
+ {
+  "input": "5 5\n1 2 3 4 5",
+  "output": "Start: 0\nSum: 15\nAverage: 3.00"
+ },
+ {
+  "input": "6 1\n3 9 9 2 9 0",
+  "output": "Start: 1\nSum: 9\nAverage: 9.00"
+ },
+ {
+  "input": "5 2\n0 0 0 0 0",
+  "output": "Start: 0\nSum: 0\nAverage: 0.00"
+ },
+ {
+  "input": "6 3\n1000000 1000000 1000000 0 1000000 1000000",
+  "output": "Start: 0\nSum: 3000000\nAverage: 1000000.00"
+ },
+ {
+  "input": "7 3\n1 5 5 1 5 5 1",
+  "output": "Start: 0\nSum: 11\nAverage: 3.67"
+ }
+]

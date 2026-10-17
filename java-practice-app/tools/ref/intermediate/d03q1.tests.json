@@ -1,0 +1,18 @@
+[
+ {
+  "input": "1\nI A 0 0\n",
+  "output": "A (Intern): 0\nTotal payroll: 0"
+ },
+ {
+  "input": "4\nM A 100 0\nD B 100 40\nD C 100 41\nD D 100 0\n",
+  "output": "A (Manager): 100\nB (Developer): 8100\nC (Developer): 8100\nD (Developer): 100\nTotal payroll: 16400"
+ },
+ {
+  "input": "2\nI A 2000000000 0\nI B 2000000000 0\n",
+  "output": "A (Intern): 2000000000\nB (Intern): 2000000000\nTotal payroll: 4000000000"
+ },
+ {
+  "input": "3\nM X 1000 3\nD Y 1000 1\nI Z 5 0\n",
+  "output": "X (Manager): 4000\nY (Developer): 1200\nZ (Intern): 5\nTotal payroll: 5205"
+ }
+]

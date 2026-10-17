@@ -1,0 +1,22 @@
+[
+ {
+  "input": "30 50 40",
+  "output": "Tiles: 0\nLeftover length: 30 cm\nLeftover width: 10 cm"
+ },
+ {
+  "input": "10 10 10",
+  "output": "Tiles: 1\nLeftover length: 0 cm\nLeftover width: 0 cm"
+ },
+ {
+  "input": "1000 1 1",
+  "output": "Tiles: 1000\nLeftover length: 0 cm\nLeftover width: 0 cm"
+ },
+ {
+  "input": "7 5 3",
+  "output": "Tiles: 2\nLeftover length: 1 cm\nLeftover width: 2 cm"
+ },
+ {
+  "input": "5 5 6",
+  "output": "Tiles: 0\nLeftover length: 5 cm\nLeftover width: 5 cm"
+ }
+]

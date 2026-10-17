@@ -1,0 +1,18 @@
+[
+ {
+  "input": "3\n4",
+  "output": "Enter first number: Enter second number: Sum = 7\nAverage = 3.5"
+ },
+ {
+  "input": "10\n20",
+  "output": "Enter first number: Enter second number: Sum = 30\nAverage = 15.0"
+ },
+ {
+  "input": "-5\n2",
+  "output": "Enter first number: Enter second number: Sum = -3\nAverage = -1.5"
+ },
+ {
+  "input": "7\n0",
+  "output": "Enter first number: Enter second number: Sum = 7\nAverage = 3.5"
+ }
+]

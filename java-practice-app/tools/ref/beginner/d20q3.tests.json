@@ -1,22 +1,22 @@
 [
  {
   "input": "4\n1 2 3 4\n5 6 7 8\n9 10 11 12\n13 14 15 16",
-  "output": "Main: 34\r\nAnti: 34\r"
+  "output": "Main: 34\nAnti: 34"
  },
  {
   "input": "2\n-1 -2\n-3 -4",
-  "output": "Main: -5\r\nAnti: -5\r"
+  "output": "Main: -5\nAnti: -5"
  },
  {
   "input": "3\n-1 0 5\n2 -3 0\n4 0 -9",
-  "output": "Main: -13\r\nAnti: 6\r"
+  "output": "Main: -13\nAnti: 6"
  },
  {
   "input": "3\n0 0 0\n0 10 0\n0 0 0",
-  "output": "Main: 10\r\nAnti: 10\r"
+  "output": "Main: 10\nAnti: 10"
  },
  {
   "input": "1\n-5",
-  "output": "Main: -5\r\nAnti: -5\r"
+  "output": "Main: -5\nAnti: -5"
  }
 ]

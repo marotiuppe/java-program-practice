@@ -1,0 +1,18 @@
+[
+ {
+  "input": "4 6 8 0",
+  "output": "Sum: 18\nAverage: 6.00"
+ },
+ {
+  "input": "0",
+  "output": "No numbers entered"
+ },
+ {
+  "input": "-3 4 0",
+  "output": "Sum: 1\nAverage: 0.50"
+ },
+ {
+  "input": "1 2 2 0",
+  "output": "Sum: 5\nAverage: 1.67"
+ }
+]

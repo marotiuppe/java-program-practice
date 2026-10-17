@@ -1,0 +1,14 @@
+[
+ {
+  "input": "3\n-5 0 9\n5\n0\n2\n3\n-3\n1",
+  "output": "-5\n9\nIndex out of range\nIndex out of range\n0"
+ },
+ {
+  "input": "2\n7 8\n2\n2\n1",
+  "output": "Index out of range\n8"
+ },
+ {
+  "input": "1\n100\n3\n1\n-1\n0",
+  "output": "Index out of range\nIndex out of range\n100"
+ }
+]

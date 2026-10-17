@@ -1,0 +1,26 @@
+[
+ {
+  "input": "1\n2024-01-01 00:00:00 WARN [db] ",
+  "output": "INFO=0 WARN=1 ERROR=0 MALFORMED=0\nTop error module: none"
+ },
+ {
+  "input": "3\n2024-01-01 00:00:00 WARN [db]\n2024-01-01 00:00:00 WARN [db] x\n2024-1-01 00:00:00 WARN [db] x",
+  "output": "INFO=0 WARN=1 ERROR=0 MALFORMED=2\nTop error module: none"
+ },
+ {
+  "input": "4\n2024-05-05 05:05:05 ERROR [b] x\n2024-05-05 05:05:05 ERROR [a] y\n2024-05-05 05:05:05 ERROR [a] z\n2024-05-05 05:05:05 ERROR [b] w",
+  "output": "INFO=0 WARN=0 ERROR=4 MALFORMED=0\nTop error module: a (2)"
+ },
+ {
+  "input": "3\n2024-05-05 05:05:05 WARN [net_2] low disk 90%\n2024-05-05 05:05:05 Warn [net] x\n2024-05-05 05:05:05 INFO [a-b] x",
+  "output": "INFO=0 WARN=1 ERROR=0 MALFORMED=2\nTop error module: none"
+ },
+ {
+  "input": "2\n\n 2024-05-05 05:05:05 INFO [x] y",
+  "output": "INFO=0 WARN=0 ERROR=0 MALFORMED=2\nTop error module: none"
+ },
+ {
+  "input": "2\n2024-05-05 05:05:05 DEBUG [x] y\n2024-05-05 05:05:05 INFO [x] ok [x] ERROR [y]",
+  "output": "INFO=1 WARN=0 ERROR=0 MALFORMED=1\nTop error module: none"
+ }
+]

@@ -1,0 +1,26 @@
+[
+ {
+  "input": "5000 4500",
+  "output": "Withdrawn. New balance: 500"
+ },
+ {
+  "input": "5000 0",
+  "output": "Invalid amount"
+ },
+ {
+  "input": "5000 -100",
+  "output": "Invalid amount"
+ },
+ {
+  "input": "600 100",
+  "output": "Withdrawn. New balance: 500"
+ },
+ {
+  "input": "400 100",
+  "output": "Insufficient balance"
+ },
+ {
+  "input": "1000 150",
+  "output": "Invalid amount"
+ }
+]

@@ -1,0 +1,22 @@
+[
+ {
+  "input": "1\n0",
+  "output": "Total with GST: 0.00\nEach pays: 0.00"
+ },
+ {
+  "input": "4\n1000",
+  "output": "Total with GST: 1050.00\nEach pays: 262.50"
+ },
+ {
+  "input": "7\n100",
+  "output": "Total with GST: 105.00\nEach pays: 15.00"
+ },
+ {
+  "input": "5\n450",
+  "output": "Total with GST: 472.50\nEach pays: 94.50"
+ },
+ {
+  "input": "3\n99.99",
+  "output": "Total with GST: 104.99\nEach pays: 35.00"
+ }
+]

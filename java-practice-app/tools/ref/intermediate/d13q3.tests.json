@@ -1,0 +1,22 @@
+[
+ {
+  "input": "INT\n8\nPUSH 2\nPUSH 2\nPUSH 3\nPOP\nMIN\nPOP\nMIN\nTOP",
+  "output": "3\n2\n2\n2\n2"
+ },
+ {
+  "input": "INT\n5\nPOP\nTOP\nMIN\nPUSH -4\nMIN",
+  "output": "EMPTY\nEMPTY\nEMPTY\n-4"
+ },
+ {
+  "input": "STR\n9\nPUSH b\nPUSH a\nPUSH a\nPOP\nMIN\nPOP\nMIN\nPOP\nMIN",
+  "output": "a\na\na\nb\nb\nEMPTY"
+ },
+ {
+  "input": "INT\n9\nPUSH 5\nPUSH 1\nPUSH 3\nPUSH 1\nPOP\nMIN\nPOP\nPOP\nMIN",
+  "output": "1\n1\n3\n1\n5"
+ },
+ {
+  "input": "STR\n6\nPUSH Z\nPUSH a\nMIN\nPOP\nMIN\nTOP",
+  "output": "Z\na\nZ\nZ"
+ }
+]

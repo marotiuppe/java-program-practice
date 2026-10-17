@@ -1,0 +1,26 @@
+[
+ {
+  "input": "0",
+  "output": "Bill: 0"
+ },
+ {
+  "input": "100",
+  "output": "Bill: 500"
+ },
+ {
+  "input": "101",
+  "output": "Bill: 507"
+ },
+ {
+  "input": "200",
+  "output": "Bill: 1200"
+ },
+ {
+  "input": "201",
+  "output": "Bill: 1210"
+ },
+ {
+  "input": "1000",
+  "output": "Bill: 9200"
+ }
+]

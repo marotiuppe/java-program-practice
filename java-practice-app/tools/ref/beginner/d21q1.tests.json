@@ -1,0 +1,18 @@
+[
+ {
+  "input": "100\n4\nW 100\nW 0\nD 0\nW 1",
+  "output": "Withdrawn 100. Balance: 0\nInvalid amount. Balance: 0\nInvalid amount. Balance: 0\nInsufficient funds. Balance: 0"
+ },
+ {
+  "input": "50\n3\nW 51\nW 50\nD 1",
+  "output": "Insufficient funds. Balance: 50\nWithdrawn 50. Balance: 0\nDeposited 1. Balance: 1"
+ },
+ {
+  "input": "0\n1\nW -3",
+  "output": "Invalid amount. Balance: 0"
+ },
+ {
+  "input": "2000000\n2\nD 500000\nW 2500000",
+  "output": "Deposited 500000. Balance: 2500000\nWithdrawn 2500000. Balance: 0"
+ }
+]

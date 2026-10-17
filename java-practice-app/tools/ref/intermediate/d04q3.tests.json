@@ -1,0 +1,22 @@
+[
+ {
+  "input": "\n2\nUPPER\nTRIM\n",
+  "output": "UPPER: []\nTRIM: []"
+ },
+ {
+  "input": "  a  B   c  \n6\nTRIM\nDEDUPE_SPACES\nCAPITALIZE\nREVERSE\nUPPER\nLOWER\n",
+  "output": "TRIM: [a  B   c]\nDEDUPE_SPACES: [a B c]\nCAPITALIZE: [A B C]\nREVERSE: [C B A]\nUPPER: [C B A]\nLOWER: [c b a]"
+ },
+ {
+  "input": "  mIxEd   cAsE wOrDs \n2\nCAPITALIZE\nCAPITALIZE\n",
+  "output": "CAPITALIZE: [  Mixed   Case Words ]\nCAPITALIZE: [  Mixed   Case Words ]"
+ },
+ {
+  "input": "   \n2\nDEDUPE_SPACES\nTRIM\n",
+  "output": "DEDUPE_SPACES: [ ]\nTRIM: []"
+ },
+ {
+  "input": "hello  world fun-time x\n3\nCAPITALIZE\nDEDUPE_SPACES\nREVERSE\n",
+  "output": "CAPITALIZE: [Hello  World Fun-time X]\nDEDUPE_SPACES: [Hello World Fun-time X]\nREVERSE: [X emit-nuF dlroW olleH]"
+ }
+]

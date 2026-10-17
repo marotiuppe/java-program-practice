@@ -1,0 +1,18 @@
+[
+ {
+  "input": "6\nPRODUCT LIST\nCUSTOMER LIST\nCUSTOMER DELETE 1\nCUSTOMER FIND 1\nPRODUCT FIND 1\nPRODUCT DELETE 3",
+  "output": "(none)\n(none)\nNOT FOUND\nNOT FOUND\nNOT FOUND\nNOT FOUND"
+ },
+ {
+  "input": "9\nCUSTOMER SAVE 1 Asha\nPRODUCT SAVE 1 Pen 10\nCUSTOMER SAVE 1 X\nPRODUCT SAVE 1 Y 5\nCUSTOMER FIND 1\nPRODUCT FIND 1\nCUSTOMER DELETE 1\nCUSTOMER LIST\nPRODUCT LIST",
+  "output": "OK\nOK\nDUPLICATE\nDUPLICATE\nCustomer{id=1, name=Asha}\nProduct{id=1, name=Pen, price=10}\nDELETED\n(none)\nProduct{id=1, name=Pen, price=10}"
+ },
+ {
+  "input": "7\nPRODUCT SAVE 30 Ink 0\nPRODUCT SAVE 4 Pad 99\nPRODUCT SAVE 100 Box 7\nPRODUCT LIST\nPRODUCT DELETE 4\nPRODUCT DELETE 4\nPRODUCT LIST",
+  "output": "OK\nOK\nOK\nProduct{id=4, name=Pad, price=99}\nProduct{id=30, name=Ink, price=0}\nProduct{id=100, name=Box, price=7}\nDELETED\nNOT FOUND\nProduct{id=30, name=Ink, price=0}\nProduct{id=100, name=Box, price=7}"
+ },
+ {
+  "input": "5\nCUSTOMER SAVE 10 A\nCUSTOMER SAVE 9 B\nCUSTOMER SAVE 11 C\nCUSTOMER LIST\nCUSTOMER FIND 9",
+  "output": "OK\nOK\nOK\nCustomer{id=9, name=B}\nCustomer{id=10, name=A}\nCustomer{id=11, name=C}\nCustomer{id=9, name=B}"
+ }
+]

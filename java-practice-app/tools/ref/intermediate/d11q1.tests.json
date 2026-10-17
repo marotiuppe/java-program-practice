@@ -1,0 +1,18 @@
+[
+ {
+  "input": "1\nSolo 0",
+  "output": "1 Solo 0"
+ },
+ {
+  "input": "4\nA 100\nB 100\nC 100\nD 100",
+  "output": "1 A 100\n1 B 100\n1 C 100\n1 D 100"
+ },
+ {
+  "input": "6\nZoe 0\nAmy 1000\nBob 1000\nCal 500\nDan 0\nEve 1000",
+  "output": "1 Amy 1000\n1 Bob 1000\n1 Eve 1000\n4 Cal 500\n5 Dan 0\n5 Zoe 0"
+ },
+ {
+  "input": "3\nb 7\nB 7\na 7",
+  "output": "1 B 7\n1 a 7\n1 b 7"
+ }
+]

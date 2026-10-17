@@ -1,0 +1,18 @@
+[
+ {
+  "input": "N\n4\n7 8 365 25",
+  "output": "Book 1 fine: 14.00\nBook 2 fine: 19.00\nBook 3 fine: 100.00\nBook 4 fine: 100.00\nTotal fine: 233.00"
+ },
+ {
+  "input": "Y\n3\n0 7 8",
+  "output": "Book 1 fine: 0.00\nBook 2 fine: 7.00\nBook 3 fine: 9.50\nTotal fine: 16.50"
+ },
+ {
+  "input": "Y\n2\n365 25",
+  "output": "Book 1 fine: 50.00\nBook 2 fine: 50.00\nTotal fine: 100.00"
+ },
+ {
+  "input": "N\n1\n26",
+  "output": "Book 1 fine: 100.00\nTotal fine: 100.00"
+ }
+]

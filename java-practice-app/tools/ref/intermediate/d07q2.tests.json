@@ -1,0 +1,18 @@
+[
+ {
+  "input": "7\n-7 / 2\n7 / -2\n-7 % -3\n7 % -3\n0 / 5\n0 % 0\n5 % 0\n",
+  "output": "-3\n-3\n-1\n1\n0\nDivision by zero\nDivision by zero"
+ },
+ {
+  "input": "5\n0 * 5\n2147483647 - 2147483647\n46340 * 46340\n-2147483648 + 0\n3 ** 4\n",
+  "output": "0\n0\n2147395600\n-2147483648\nUnknown operator"
+ },
+ {
+  "input": "3\n5 x 0\n5 / 0\n5 % 0\n",
+  "output": "Unknown operator\nDivision by zero\nDivision by zero"
+ },
+ {
+  "input": "2\n1 + -1\n-1 - -1\n",
+  "output": "0\n0"
+ }
+]

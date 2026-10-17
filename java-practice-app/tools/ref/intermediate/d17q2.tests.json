@@ -1,0 +1,18 @@
+[
+ {
+  "input": "1\na",
+  "output": "1 a"
+ },
+ {
+  "input": "3\nabba\naab\ntmmzuxt",
+  "output": "2 ab\n2 ab\n5 mzuxt"
+ },
+ {
+  "input": "2\nau\nabcabcde",
+  "output": "2 au\n5 abcde"
+ },
+ {
+  "input": "2\nab-cd-ef\ndvdf!!",
+  "output": "5 ab-cd\n4 vdf!"
+ }
+]

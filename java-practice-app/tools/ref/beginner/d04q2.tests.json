@@ -1,0 +1,26 @@
+[
+ {
+  "input": "4",
+  "output": "Leap Year"
+ },
+ {
+  "input": "100",
+  "output": "Not a Leap Year"
+ },
+ {
+  "input": "400",
+  "output": "Leap Year"
+ },
+ {
+  "input": "2023",
+  "output": "Not a Leap Year"
+ },
+ {
+  "input": "9996",
+  "output": "Leap Year"
+ },
+ {
+  "input": "1",
+  "output": "Not a Leap Year"
+ }
+]

@@ -1,0 +1,22 @@
+[
+ {
+  "input": "7\nPUT Integer -5\nPUT Integer 2147483647\nGET Integer\nREMOVE Integer\nGET Integer\nREMOVE Integer\nPUT Integer 0",
+  "output": "OK\nREPLACED -5\n2147483647\n2147483647\nMISSING\nMISSING\nOK"
+ },
+ {
+  "input": "6\nPUT Double 3\nPUT Double -0.5\nGET Double\nREMOVE Double\nREMOVE Double\nGET Double",
+  "output": "OK\nREPLACED 3.0\n-0.5\n-0.5\nMISSING\nMISSING"
+ },
+ {
+  "input": "6\nPUT String a b  c\nPUT String x\nGET String\nREMOVE String\nGET String\nPUT String back again",
+  "output": "OK\nREPLACED a b  c\nx\nx\nMISSING\nOK"
+ },
+ {
+  "input": "8\nGET Integer\nGET Double\nGET String\nPUT Integer 1\nPUT Double 1\nPUT String 1\nGET Double\nGET String",
+  "output": "MISSING\nMISSING\nMISSING\nOK\nOK\nOK\n1.0\n1"
+ },
+ {
+  "input": "4\nPUT Double 1e3\nGET Double\nPUT Double 007.50\nGET Double",
+  "output": "OK\n1000.0\nREPLACED 1000.0\n7.5"
+ }
+]

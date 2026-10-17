@@ -1,0 +1,26 @@
+[
+ {
+  "input": "0",
+  "output": "Invalid"
+ },
+ {
+  "input": "-2",
+  "output": "Invalid"
+ },
+ {
+  "input": "1",
+  "output": "Fee: 20"
+ },
+ {
+  "input": "3",
+  "output": "Fee: 50"
+ },
+ {
+  "input": "6",
+  "output": "Fee: 100"
+ },
+ {
+  "input": "7",
+  "output": "Fee: 150"
+ }
+]

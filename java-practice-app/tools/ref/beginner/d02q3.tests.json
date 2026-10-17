@@ -1,0 +1,22 @@
+[
+ {
+  "input": "0\n0",
+  "output": "Fare: 40.00"
+ },
+ {
+  "input": "1\n1",
+  "output": "Fare: 54.00"
+ },
+ {
+  "input": "0.5\n0",
+  "output": "Fare: 46.00"
+ },
+ {
+  "input": "100\n120",
+  "output": "Fare: 1480.00"
+ },
+ {
+  "input": "2.75\n8",
+  "output": "Fare: 89.00"
+ }
+]

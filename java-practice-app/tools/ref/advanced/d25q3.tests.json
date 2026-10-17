@@ -1,0 +1,22 @@
+[
+ {
+  "input": "1\nsolo",
+  "output": "solo 1"
+ },
+ {
+  "input": "5\n\n\nb a\n\nb",
+  "output": "b 2\na 1"
+ },
+ {
+  "input": "9\nz y x\nz y\nz\nx\nx\ny y\nw\nw w w\nv",
+  "output": "w 4\ny 4\nx 3\nz 3\nv 1"
+ },
+ {
+  "input": "103\n\nd a d\n\nb c\nb a a c c c e\ne a c c a d\n\na b a\nb a d e c\nd a e b e\nb a e\nb c b b a\na d b c d d b\nd d d c e\na c a\nc c c a a e\na b e d c c\n\n\nc b e d d c e\nd e\nc e\nc a e b a e\nd e\ne\nb a\nc b d c b b\nc b e\n\n\nb c a d e c c\nd d\nd\n\ne d e e\nd c b c\ne e a c b\n\ne d e c e\nd e e e\nd a\ne c b d d\ne e\n\na b e\nd e a c\ne b c c\nb d d c b a d\na d b\nd a a d d d d\n\nb e e b e\na\nd c\nd c\nb e d c c a\nd\nb e d c\nb b e c a a b\ne\na c\nc b c d d c d\nc d a d e\nb a d a b c\na c a e\nb c c\nc d a a\nb e b d c e\nc c b e b e\nb a a b c c b\nb c a b\nd\ne\ne c d c b b\nd b c b a\na e a a\nc a c a e\ne\nb a d\nd e a b\nd a e e d\na b b d d e a\na\nc d a\na d b\nc a a d b c a\n\nb\ne b a b e e\na b\nc a b\na b b c e\n\nd e\na d e c b e b\na b e c\nc c b d d d b\ne\n\nc\nc e e c\nc b a c e e\ne c",
+  "output": "c 77\ne 72\nb 71\na 68\nd 68"
+ },
+ {
+  "input": "4\nsame same\nsame\nsame same same\n\n",
+  "output": "same 6"
+ }
+]

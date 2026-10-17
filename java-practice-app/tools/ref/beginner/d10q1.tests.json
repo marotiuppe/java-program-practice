@@ -1,0 +1,22 @@
+[
+ {
+  "input": "999999",
+  "output": "Lucky"
+ },
+ {
+  "input": "100000",
+  "output": "Not lucky"
+ },
+ {
+  "input": "321123",
+  "output": "Lucky"
+ },
+ {
+  "input": "555554",
+  "output": "Not lucky"
+ },
+ {
+  "input": "246642",
+  "output": "Lucky"
+ }
+]

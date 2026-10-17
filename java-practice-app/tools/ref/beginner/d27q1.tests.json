@@ -1,0 +1,22 @@
+[
+ {
+  "input": "1\n5",
+  "output": "No duplicates"
+ },
+ {
+  "input": "4\n1000000000 7 1000000000 7",
+  "output": "Duplicate: 1000000000"
+ },
+ {
+  "input": "5\n3 3 3 3 3",
+  "output": "Duplicate: 3"
+ },
+ {
+  "input": "5\n9 8 7 8 9",
+  "output": "Duplicate: 8"
+ },
+ {
+  "input": "6\n1 2 3 4 5 1",
+  "output": "Duplicate: 1"
+ }
+]

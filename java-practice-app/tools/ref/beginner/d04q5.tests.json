@@ -1,0 +1,18 @@
+[
+ {
+  "input": "0",
+  "output": "Even\nZero"
+ },
+ {
+  "input": "99",
+  "output": "Odd\nIn range 1-99"
+ },
+ {
+  "input": "100",
+  "output": "Even"
+ },
+ {
+  "input": "-3",
+  "output": "Odd"
+ }
+]

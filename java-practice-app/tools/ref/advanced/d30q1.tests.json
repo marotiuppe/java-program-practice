@@ -1,0 +1,26 @@
+[
+ {
+  "input": "1\nREPORT",
+  "output": ""
+ },
+ {
+  "input": "6\nSTOCK a 1000000000\nSTOCK a 1000000000\nSTOCK a 1000000000\nORDER o a 3000000000 1\nORDER p a 1 1\nREPORT",
+  "output": "FILLED o\nBACKORDER p\na stock=0 pending=1"
+ },
+ {
+  "input": "9\nORDER a x 5 1\nORDER b x 3 1\nORDER c x 2 7\nORDER d y 1 1\nSTOCK x 4\nSTOCK x 4\nSTOCK y 5\nREPORT\nCANCEL a",
+  "output": "BACKORDER a\nBACKORDER b\nBACKORDER c\nBACKORDER d\nFILLED c\nFILLED a\nFILLED d\nx stock=1 pending=1\ny stock=4 pending=0\nNOTFOUND a"
+ },
+ {
+  "input": "10\nORDER a k 10 5\nORDER b k 2 5\nORDER c k 2 9\nCANCEL a\nCANCEL a\nSTOCK k 3\nORDER d k 1 1\nSTOCK k 1\nCANCEL b\nREPORT",
+  "output": "BACKORDER a\nBACKORDER b\nBACKORDER c\nCANCELLED a\nNOTFOUND a\nFILLED c\nFILLED d\nCANCELLED b\nk stock=1 pending=0"
+ },
+ {
+  "input": "8\nORDER a z 1000000000 1000000000\nORDER b z 1 1000000000\nORDER c z 1 1\nSTOCK z 1\nSTOCK z 999999999\nCANCEL c\nCANCEL zz\nREPORT",
+  "output": "BACKORDER a\nBACKORDER b\nBACKORDER c\nFILLED b\nFILLED c\nNOTFOUND c\nNOTFOUND zz\nz stock=999999998 pending=1"
+ },
+ {
+  "input": "7\nSTOCK b 5\nORDER x b 5 1\nORDER y b 1 1\nCANCEL x\nSTOCK a 1\nSTOCK b 1\nREPORT",
+  "output": "FILLED x\nBACKORDER y\nNOTFOUND x\nFILLED y\na stock=1 pending=0\nb stock=0 pending=0"
+ }
+]

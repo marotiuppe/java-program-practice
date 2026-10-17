@@ -1,0 +1,22 @@
+[
+ {
+  "input": "5\nGET 0\nGET 4\nGET 5\nDIV 0 3\nDIV 9 0",
+  "output": "10\n50\nBad index\n3\nBad index"
+ },
+ {
+  "input": "4\nDIV 2 0\nDIV x 0\nDIV 1 y\nDIV 99999999999 0",
+  "output": "Divide by zero\nBad number\nBad number\nBad number"
+ },
+ {
+  "input": "4\nSET 4 -7\nGET 4\nDIV 4 2\nSET 5 1",
+  "output": "OK\n-7\n-3\nBad index"
+ },
+ {
+  "input": "5\nSET 0 abc\nGET 0\nSET 9 abc\nSET abc 9\nSET 0 99999999999",
+  "output": "Bad number\n10\nBad number\nBad number\nBad number"
+ },
+ {
+  "input": "5\nFOO\nget 1\nBAR 1\nDIV -1 5\nDIV 0 -3",
+  "output": "Unknown command\nUnknown command\nUnknown command\nBad index\n-3"
+ }
+]

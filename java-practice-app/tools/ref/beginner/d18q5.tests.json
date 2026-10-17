@@ -1,10 +1,10 @@
 [
  {
   "input": "4\n7 3 9 5",
-  "output": "Max: 9, Min: 3\r"
+  "output": "Max: 9, Min: 3"
  },
  {
   "input": "3\n-5 -2 -9",
-  "output": "Max: -2, Min: -9\r"
+  "output": "Max: -2, Min: -9"
  }
 ]

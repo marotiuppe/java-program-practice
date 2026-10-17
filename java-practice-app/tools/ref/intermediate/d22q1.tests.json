@@ -1,0 +1,18 @@
+[
+ {
+  "input": "0\n3\n100\n0\n-100",
+  "output": "ERROR InsufficientFundsException: Short by 100\nERROR InvalidAmountException: Amount must be a positive multiple of 100\nERROR InvalidAmountException: Amount must be a positive multiple of 100"
+ },
+ {
+  "input": "1000000\n6\n1000\n2000\n100\n0\n150\n1000000",
+  "output": "OK 999000\nOK 997000\nERROR DailyLimitExceededException: Remaining limit 0\nERROR InvalidAmountException: Amount must be a positive multiple of 100\nERROR InvalidAmountException: Amount must be a positive multiple of 100\nERROR InsufficientFundsException: Short by 3000"
+ },
+ {
+  "input": "500\n3\n2147483600\n400\n100",
+  "output": "ERROR InsufficientFundsException: Short by 2147483100\nOK 100\nOK 0"
+ },
+ {
+  "input": "3500\n4\n3000\n100\n400\n300",
+  "output": "OK 500\nERROR DailyLimitExceededException: Remaining limit 0\nERROR DailyLimitExceededException: Remaining limit 0\nERROR DailyLimitExceededException: Remaining limit 0"
+ }
+]

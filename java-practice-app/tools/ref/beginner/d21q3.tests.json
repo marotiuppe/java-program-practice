@@ -1,0 +1,18 @@
+[
+ {
+  "input": "1\nE Zed 1000",
+  "output": "Zed: 1000.00\nTotal payroll: 1000.00"
+ },
+ {
+  "input": "2\nM Boss 20000 50\nM Sub 10000 25",
+  "output": "Boss: 30000.00\nSub: 12500.00\nTotal payroll: 42500.00"
+ },
+ {
+  "input": "3\nM A 1000 100\nE B 0\nE C 12345",
+  "output": "A: 2000.00\nB: 0.00\nC: 12345.00\nTotal payroll: 14345.00"
+ },
+ {
+  "input": "2\nM X 40000 0\nM Y 100 10",
+  "output": "X: 40000.00\nY: 110.00\nTotal payroll: 40110.00"
+ }
+]

@@ -1,0 +1,30 @@
+[
+ {
+  "input": "1",
+  "output": "Solutions: 1\nFirst: 1"
+ },
+ {
+  "input": "2",
+  "output": "Solutions: 0\nFirst: none"
+ },
+ {
+  "input": "3",
+  "output": "Solutions: 0\nFirst: none"
+ },
+ {
+  "input": "5",
+  "output": "Solutions: 10\nFirst: 1 3 5 2 4"
+ },
+ {
+  "input": "6",
+  "output": "Solutions: 4\nFirst: 2 4 6 1 3 5"
+ },
+ {
+  "input": "8",
+  "output": "Solutions: 92\nFirst: 1 5 8 6 3 7 2 4"
+ },
+ {
+  "input": "9",
+  "output": "Solutions: 352\nFirst: 1 3 6 8 2 4 9 7 5"
+ }
+]

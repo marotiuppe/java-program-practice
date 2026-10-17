@@ -1,0 +1,34 @@
+[
+ {
+  "input": "a\na",
+  "output": "1\na"
+ },
+ {
+  "input": "a\nb",
+  "output": "0"
+ },
+ {
+  "input": "aXb\nXab",
+  "output": "2\nXb"
+ },
+ {
+  "input": "bcab\nabcb",
+  "output": "3\nbcb"
+ },
+ {
+  "input": "zzzz\nzz",
+  "output": "2\nzz"
+ },
+ {
+  "input": "abcabcabc\ncbacbacba",
+  "output": "5\nababa"
+ },
+ {
+  "input": "xyzxyz\nzyxzyx",
+  "output": "3\nxyx"
+ },
+ {
+  "input": "aaBAAaBAaBBAbabBBBAabaaaBaabab\nBAaabAAABaAabbBAbbBBBBBbBaBAaA",
+  "output": "18\naaAABAaBAbbBBBbBaa"
+ }
+]

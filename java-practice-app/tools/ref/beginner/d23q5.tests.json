@@ -1,0 +1,14 @@
+[
+ {
+  "input": "5\na b a c a",
+  "output": "Most frequent: a"
+ },
+ {
+  "input": "1\nsolo",
+  "output": "Most frequent: solo"
+ },
+ {
+  "input": "6\nx y y z z z",
+  "output": "Most frequent: z"
+ }
+]

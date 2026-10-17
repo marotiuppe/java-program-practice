@@ -1,0 +1,22 @@
+[
+ {
+  "input": "1000000000 1000000000\n4\n0 u\n1000000000 u\n1000000000 u\n1000000000 u",
+  "output": "ALLOW\nALLOW\nALLOW\nALLOW"
+ },
+ {
+  "input": "2 1\n8\n0 a\n0 a\n0 a\n1 a\n1 a\n3 a\n3 a\n3 a",
+  "output": "ALLOW\nALLOW\nDENY\nALLOW\nDENY\nALLOW\nALLOW\nDENY"
+ },
+ {
+  "input": "5 1\n7\n0 a\n0 b\n0 a\n0 b\n1 b\n2 a\n1000000000 b",
+  "output": "ALLOW\nALLOW\nALLOW\nALLOW\nALLOW\nALLOW\nALLOW"
+ },
+ {
+  "input": "1 1000000000\n4\n0 a\n0 a\n1 a\n1 a",
+  "output": "ALLOW\nDENY\nALLOW\nDENY"
+ },
+ {
+  "input": "3 2\n10\n0 u\n0 u\n0 u\n0 u\n1 u\n1 u\n1 u\n1 u\n2 u\n100 u",
+  "output": "ALLOW\nALLOW\nALLOW\nDENY\nALLOW\nALLOW\nDENY\nDENY\nALLOW\nALLOW"
+ }
+]

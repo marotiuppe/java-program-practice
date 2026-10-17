@@ -1,0 +1,14 @@
+[
+ {
+  "input": "8\nADD a\nADD b\nADD a\nREMOVE a\nSHOW\nREMOVE a\nREMOVE a\nSHOW",
+  "output": "Added: a\nAdded: b\nAdded: a\nRemoved: a\nCart: [b, a]\nRemoved: a\nNot in cart: a\nCart: [b]"
+ },
+ {
+  "input": "3\nREMOVE x\nSHOW\nSHOW",
+  "output": "Not in cart: x\nCart is empty\nCart is empty"
+ },
+ {
+  "input": "4\nADD x\nREMOVE x\nSHOW\nREMOVE x",
+  "output": "Added: x\nRemoved: x\nCart is empty\nNot in cart: x"
+ }
+]

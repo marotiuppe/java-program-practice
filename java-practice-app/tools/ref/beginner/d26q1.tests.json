@@ -1,0 +1,14 @@
+[
+ {
+  "input": "1",
+  "output": "T-minus 1\nLiftoff!"
+ },
+ {
+  "input": "2",
+  "output": "T-minus 2\nT-minus 1\nLiftoff!"
+ },
+ {
+  "input": "10",
+  "output": "T-minus 10\nT-minus 9\nT-minus 8\nT-minus 7\nT-minus 6\nT-minus 5\nT-minus 4\nT-minus 3\nT-minus 2\nT-minus 1\nLiftoff!"
+ }
+]

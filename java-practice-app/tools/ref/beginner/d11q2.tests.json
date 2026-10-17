@@ -1,38 +1,38 @@
 [
  {
   "input": "0",
-  "output": "Palindrome\r"
+  "output": "Palindrome"
  },
  {
   "input": "10",
-  "output": "Not a palindrome\r"
+  "output": "Not a palindrome"
  },
  {
   "input": "1",
-  "output": "Palindrome\r"
+  "output": "Palindrome"
  },
  {
   "input": "-1",
-  "output": "Not a palindrome\r"
+  "output": "Not a palindrome"
  },
  {
   "input": "12321",
-  "output": "Palindrome\r"
+  "output": "Palindrome"
  },
  {
   "input": "1234321",
-  "output": "Palindrome\r"
+  "output": "Palindrome"
  },
  {
   "input": "999999999",
-  "output": "Palindrome\r"
+  "output": "Palindrome"
  },
  {
   "input": "100000",
-  "output": "Not a palindrome\r"
+  "output": "Not a palindrome"
  },
  {
   "input": "-5",
-  "output": "Not a palindrome\r"
+  "output": "Not a palindrome"
  }
 ]

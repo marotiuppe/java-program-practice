@@ -1,0 +1,22 @@
+[
+ {
+  "input": "3\nr a 10000 1000000\nr a 10000 1000000\nr b 10000 1000000",
+  "output": "r: revenue=30000000000 top=a avgUnits=10000.00"
+ },
+ {
+  "input": "4\nz p 1 1\na q 3 2\na p 2 3\nz o 1 1",
+  "output": "a: revenue=12 top=p avgUnits=2.50\nz: revenue=2 top=o avgUnits=1.00"
+ },
+ {
+  "input": "5\nn x 1 10\nn y 5 2\nn y 5 2\nn z 1 19\nn z 2 1",
+  "output": "n: revenue=51 top=z avgUnits=2.80"
+ },
+ {
+  "input": "1\nsolo item 10000 1000000",
+  "output": "solo: revenue=10000000000 top=item avgUnits=10000.00"
+ },
+ {
+  "input": "6\nb u 1 1\na u 2 2\nb v 1 1\na v 1 4\nb u 1 1\na w 1 1",
+  "output": "a: revenue=9 top=u avgUnits=1.33\nb: revenue=3 top=u avgUnits=1.00"
+ }
+]

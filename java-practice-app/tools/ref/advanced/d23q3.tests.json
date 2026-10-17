@@ -1,0 +1,22 @@
+[
+ {
+  "input": "1\nx a 5",
+  "output": "x: N/A"
+ },
+ {
+  "input": "4\nx a 1000000000\nx b 1000000000\nx c 1\nx d 1",
+  "output": "x: c,d (1)"
+ },
+ {
+  "input": "5\nd z 3\nd y 3\nd x 2\nd w 2\nd v 1",
+  "output": "d: w,x (2)"
+ },
+ {
+  "input": "6\nb p 10\na q 10\na r 5\nb s 20\nc t 7\nc u 7",
+  "output": "a: r (5)\nb: p (10)\nc: N/A"
+ },
+ {
+  "input": "3\nq a 1\nq b 2\nq c 3",
+  "output": "q: b (2)"
+ }
+]

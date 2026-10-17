@@ -1,0 +1,30 @@
+[
+ {
+  "input": "aa ab\n1\nab",
+  "output": "2"
+ },
+ {
+  "input": "lost cost\n5\nmost fost cost lost cast",
+  "output": "2"
+ },
+ {
+  "input": "red tax\n7\nted tex red tax tad den rex",
+  "output": "4"
+ },
+ {
+  "input": "hot dog\n3\nhot dog dot",
+  "output": "3"
+ },
+ {
+  "input": "abc xyz\n4\nabd xbd xyd xyz",
+  "output": "5"
+ },
+ {
+  "input": "abc xyz\n3\nabd xbd xyz",
+  "output": "0"
+ },
+ {
+  "input": "hit cog\n4\nhot dot dog cog",
+  "output": "5"
+ }
+]

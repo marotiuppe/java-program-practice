@@ -1,0 +1,6 @@
+[
+ {
+  "input": "",
+  "output": "Unique: 4\nDuplicates: 2\napple\nbanana\ncherry\ndate\n[a, b, n]"
+ }
+]

@@ -5331,7 +5331,7 @@ public class Main {
 ```
 
 ### Question 5: Debug the Code
-**What the program should do:** For a list of words, print (1) a map from each lower-cased word to the number of times it occurs (a `TreeMap`, so it prints in alphabetical order), (2) the number of distinct lower-cased words, and (3) the average word length with exactly 2 decimal places. For the words `Apple, apple, Pear, fig, pear, Fig, apple` the expected output is `{apple=3, fig=2, pear=2}`, `3`, and `4.00`.
+**What the program should do:** For a list of words, print (1) a map from each lower-cased word to the number of times it occurs (a `TreeMap`, so it prints in alphabetical order), (2) the number of distinct lower-cased words, and (3) the average word length with exactly 2 decimal places. For the words `Apple, apple, Pear, fig, pear, Fig, apple` the expected output is `{apple=3, fig=2, pear=2}`, `3`, and `4.14`.
 
 The program crashes and also computes one value incorrectly. Find every bug, explain each, and write the corrected program.
 
@@ -6925,7 +6925,7 @@ public class Main {
 ```
 
 ### Question 5: Debug the Code
-**What the program should do:** `MedianFinder` supports `add(int x)` and `median()` for a stream of `int` values using two heaps: a max-heap `low` for the smaller half and a min-heap `high` for the larger half, kept so that `low.size()` equals `high.size()` or exceeds it by one. `median()` returns a `double`: the top of `low` for an odd count, the exact average of the two tops for an even count. Values may be anywhere in the `int` range. Expected output for `main`: `1.0`, `1.5`, `2.0`, then `2147483647.0` after adding `Integer.MAX_VALUE` to a fresh finder twice.
+**What the program should do:** `MedianFinder` supports `add(int x)` and `median()` for a stream of `int` values using two heaps: a max-heap `low` for the smaller half and a min-heap `high` for the larger half, kept so that `low.size()` equals `high.size()` or exceeds it by one. `median()` returns a `double`: the top of `low` for an odd count, the exact average of the two tops for an even count. Values may be anywhere in the `int` range. Expected output for `main`: `1.0`, `1.5`, `2.0`, then `2.147483647E9` after adding `Integer.MAX_VALUE` to a fresh finder twice.
 
 The program throws an exception, truncates averages, and can overflow. Find every bug, explain each, and rewrite the class.
 

@@ -1,0 +1,22 @@
+[
+ {
+  "input": "1\nsolo",
+  "output": "solo"
+ },
+ {
+  "input": "2\nabc abc",
+  "output": "abc"
+ },
+ {
+  "input": "3\nab a abc",
+  "output": "a"
+ },
+ {
+  "input": "2\nabc xbc",
+  "output": "No common prefix"
+ },
+ {
+  "input": "4\nsame same samer sam",
+  "output": "sam"
+ }
+]

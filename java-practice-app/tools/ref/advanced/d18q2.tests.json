@@ -1,0 +1,34 @@
+[
+ {
+  "input": "a",
+  "output": "a"
+ },
+ {
+  "input": "ab",
+  "output": "a b"
+ },
+ {
+  "input": "aaaa",
+  "output": "a a a a\na a aa\na aa a\na aaa\naa a a\naa aa\naaa a\naaaa"
+ },
+ {
+  "input": "abba",
+  "output": "a b b a\na bb a\nabba"
+ },
+ {
+  "input": "racecar",
+  "output": "r a c e c a r\nr a cec a r\nr aceca r\nracecar"
+ },
+ {
+  "input": "aabbaa",
+  "output": "a a b b a a\na a b b aa\na a bb a a\na a bb aa\na abba a\naa b b a a\naa b b aa\naa bb a a\naa bb aa\naabbaa"
+ },
+ {
+  "input": "aaaaaaaaa",
+  "output": "a a a a a a a a a\na a a a a a a aa\na a a a a a aa a\na a a a a a aaa\na a a a a aa a a\na a a a a aa aa\na a a a a aaa a\na a a a a aaaa\na a a a aa a a a\na a a a aa a aa\na a a a aa aa a\na a a a aa aaa\na a a a aaa a a\na a a a aaa aa\na a a a aaaa a\na a a a aaaaa\na a a aa a a a a\na a a aa a a aa\na a a aa a aa a\na a a aa a aaa\na a a aa aa a a\na a a aa aa aa\na a a aa aaa a\na a a aa aaaa\na a a aaa a a a\na a a aaa a aa\na a a aaa aa a\na a a aaa aaa\na a a aaaa a a\na a a aaaa aa\na a a aaaaa a\na a a aaaaaa\na a aa a a a a a\na a aa a a a aa\na a aa a a aa a\na a aa a a aaa\na a aa a aa a a\na a aa a aa aa\na a aa a aaa a\na a aa a aaaa\na a aa aa a a a\na a aa aa a aa\na a aa aa aa a\na a aa aa aaa\na a aa aaa a a\na a aa aaa aa\na a aa aaaa a\na a aa aaaaa\na a aaa a a a a\na a aaa a a aa\na a aaa a aa a\na a aaa a aaa\na a aaa aa a a\na a aaa aa aa\na a aaa aaa a\na a aaa aaaa\na a aaaa a a a\na a aaaa a aa\na a aaaa aa a\na a aaaa aaa\na a aaaaa a a\na a aaaaa aa\na a aaaaaa a\na a aaaaaaa\na aa a a a a a a\na aa a a a a aa\na aa a a a aa a\na aa a a a aaa\na aa a a aa a a\na aa a a aa aa\na aa a a aaa a\na aa a a aaaa\na aa a aa a a a\na aa a aa a aa\na aa a aa aa a\na aa a aa aaa\na aa a aaa a a\na aa a aaa aa\na aa a aaaa a\na aa a aaaaa\na aa aa a a a a\na aa aa a a aa\na aa aa a aa a\na aa aa a aaa\na aa aa aa a a\na aa aa aa aa\na aa aa aaa a\na aa aa aaaa\na aa aaa a a a\na aa aaa a aa\na aa aaa aa a\na aa aaa aaa\na aa aaaa a a\na aa aaaa aa\na aa aaaaa a\na aa aaaaaa\na aaa a a a a a\na aaa a a a aa\na aaa a a aa a\na aaa a a aaa\na aaa a aa a a\na aaa a aa aa\na aaa a aaa a\na aaa a aaaa\na aaa aa a a a\na aaa aa a aa\na aaa aa aa a\na aaa aa aaa\na aaa aaa a a\na aaa aaa aa\na aaa aaaa a\na aaa aaaaa\na aaaa a a a a\na aaaa a a aa\na aaaa a aa a\na aaaa a aaa\na aaaa aa a a\na aaaa aa aa\na aaaa aaa a\na aaaa aaaa\na aaaaa a a a\na aaaaa a aa\na aaaaa aa a\na aaaaa aaa\na aaaaaa a a\na aaaaaa aa\na aaaaaaa a\na aaaaaaaa\naa a a a a a a a\naa a a a a a aa\naa a a a a aa a\naa a a a a aaa\naa a a a aa a a\naa a a a aa aa\naa a a a aaa a\naa a a a aaaa\naa a a aa a a a\naa a a aa a aa\naa a a aa aa a\naa a a aa aaa\naa a a aaa a a\naa a a aaa aa\naa a a aaaa a\naa a a aaaaa\naa a aa a a a a\naa a aa a a aa\naa a aa a aa a\naa a aa a aaa\naa a aa aa a a\naa a aa aa aa\naa a aa aaa a\naa a aa aaaa\naa a aaa a a a\naa a aaa a aa\naa a aaa aa a\naa a aaa aaa\naa a aaaa a a\naa a aaaa aa\naa a aaaaa a\naa a aaaaaa\naa aa a a a a a\naa aa a a a aa\naa aa a a aa a\naa aa a a aaa\naa aa a aa a a\naa aa a aa aa\naa aa a aaa a\naa aa a aaaa\naa aa aa a a a\naa aa aa a aa\naa aa aa aa a\naa aa aa aaa\naa aa aaa a a\naa aa aaa aa\naa aa aaaa a\naa aa aaaaa\naa aaa a a a a\naa aaa a a aa\naa aaa a aa a\naa aaa a aaa\naa aaa aa a a\naa aaa aa aa\naa aaa aaa a\naa aaa aaaa\naa aaaa a a a\naa aaaa a aa\naa aaaa aa a\naa aaaa aaa\naa aaaaa a a\naa aaaaa aa\naa aaaaaa a\naa aaaaaaa\naaa a a a a a a\naaa a a a a aa\naaa a a a aa a\naaa a a a aaa\naaa a a aa a a\naaa a a aa aa\naaa a a aaa a\naaa a a aaaa\naaa a aa a a a\naaa a aa a aa\naaa a aa aa a\naaa a aa aaa\naaa a aaa a a\naaa a aaa aa\naaa a aaaa a\naaa a aaaaa\naaa aa a a a a\naaa aa a a aa\naaa aa a aa a\naaa aa a aaa\naaa aa aa a a\naaa aa aa aa\naaa aa aaa a\naaa aa aaaa\naaa aaa a a a\naaa aaa a aa\naaa aaa aa a\naaa aaa aaa\naaa aaaa a a\naaa aaaa aa\naaa aaaaa a\naaa aaaaaa\naaaa a a a a a\naaaa a a a aa\naaaa a a aa a\naaaa a a aaa\naaaa a aa a a\naaaa a aa aa\naaaa a aaa a\naaaa a aaaa\naaaa aa a a a\naaaa aa a aa\naaaa aa aa a\naaaa aa aaa\naaaa aaa a a\naaaa aaa aa\naaaa aaaa a\naaaa aaaaa\naaaaa a a a a\naaaaa a a aa\naaaaa a aa a\naaaaa a aaa\naaaaa aa a a\naaaaa aa aa\naaaaa aaa a\naaaaa aaaa\naaaaaa a a a\naaaaaa a aa\naaaaaa aa a\naaaaaa aaa\naaaaaaa a a\naaaaaaa aa\naaaaaaaa a\naaaaaaaaa"
+ },
+ {
+  "input": "abcdef",
+  "output": "a b c d e f"
+ }
+]

@@ -1,0 +1,18 @@
+[
+ {
+  "input": "1\nRELEASE x",
+  "output": "MISSING"
+ },
+ {
+  "input": "10\nINTERN a\nINTERN b\nINTERN c\nINTERN d\nRELEASE c\nRELEASE a\nINTERN e\nINTERN f\nINTERN g\nRELEASE b",
+  "output": "id=0 refs=1\nid=1 refs=1\nid=2 refs=1\nid=3 refs=1\nfreed id=2\nfreed id=0\nid=0 refs=1\nid=2 refs=1\nid=4 refs=1\nfreed id=1"
+ },
+ {
+  "input": "8\nINTERN x\nINTERN x\nINTERN x\nRELEASE x\nRELEASE x\nRELEASE x\nRELEASE x\nINTERN x",
+  "output": "id=0 refs=1\nid=0 refs=2\nid=0 refs=3\nrefs=2\nrefs=1\nfreed id=0\nMISSING\nid=0 refs=1"
+ },
+ {
+  "input": "7\nINTERN a\nINTERN b\nRELEASE b\nRELEASE a\nINTERN c\nINTERN d\nINTERN e",
+  "output": "id=0 refs=1\nid=1 refs=1\nfreed id=1\nfreed id=0\nid=0 refs=1\nid=1 refs=1\nid=2 refs=1"
+ }
+]

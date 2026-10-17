@@ -1,0 +1,26 @@
+[
+ {
+  "input": "X 2 Y",
+  "output": "Invalid room type"
+ },
+ {
+  "input": "S 2 Y",
+  "output": "Room charge: 4000.00\nDiscount: 0.00\nBreakfast: 600.00\nGST: 552.00\nTotal: 5152.00"
+ },
+ {
+  "input": "D 6 N",
+  "output": "Room charge: 21000.00\nDiscount: 2100.00\nBreakfast: 0.00\nGST: 2268.00\nTotal: 21168.00"
+ },
+ {
+  "input": "L 7 Y",
+  "output": "Room charge: 35000.00\nDiscount: 7000.00\nBreakfast: 2100.00\nGST: 3612.00\nTotal: 33712.00"
+ },
+ {
+  "input": "S 30 Y",
+  "output": "Room charge: 60000.00\nDiscount: 12000.00\nBreakfast: 9000.00\nGST: 6840.00\nTotal: 63840.00"
+ },
+ {
+  "input": "D 3 N",
+  "output": "Room charge: 10500.00\nDiscount: 1050.00\nBreakfast: 0.00\nGST: 1134.00\nTotal: 10584.00"
+ }
+]

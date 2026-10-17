@@ -1,0 +1,6 @@
+[
+ {
+  "input": "",
+  "output": "open\nAge ok: 30\nclose\nInvalid: Invalid age: 200"
+ }
+]

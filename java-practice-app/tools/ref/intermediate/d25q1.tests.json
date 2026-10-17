@@ -1,0 +1,22 @@
+[
+ {
+  "input": "1\nSolo X 5",
+  "output": "X: count=1 avg=5.00 top=Solo\nAbove average: none"
+ },
+ {
+  "input": "4\nA D1 10\nB D1 10\nC D2 20\nD D2 20",
+  "output": "D1: count=2 avg=10.00 top=A\nD2: count=2 avg=20.00 top=C\nAbove average: C, D"
+ },
+ {
+  "input": "6\nz B 1\ny A 2147483647\nx A 2147483647\nw B 2\nv C 1\nu C 3",
+  "output": "A: count=2 avg=2147483647.00 top=y\nB: count=2 avg=1.50 top=w\nC: count=2 avg=2.00 top=u\nAbove average: x, y"
+ },
+ {
+  "input": "3\nb X 100\na X 100\nc Y 99",
+  "output": "X: count=2 avg=100.00 top=b\nY: count=1 avg=99.00 top=c\nAbove average: a, b"
+ },
+ {
+  "input": "3\na K 1\nb K 1\nc K 2",
+  "output": "K: count=3 avg=1.33 top=c\nAbove average: c"
+ }
+]

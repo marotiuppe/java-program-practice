@@ -1,9 +1,773 @@
 {
-  "2:2": [
-    {"input": "0", "output": "Fahrenheit: 32.00\nKelvin: 273.15"},
-    {"input": "36.6", "output": "Fahrenheit: 97.88\nKelvin: 309.75"}
-  ],
   "1:5": [
     {"input": "", "output": "Name: Riya\nAge: 20\nPassed: true"}
+  ],
+  "2:1": [
+    {"input": "1\n0", "output": "Total with GST: 0.00\nEach pays: 0.00"},
+    {"input": "4\n1000", "output": "Total with GST: 1050.00\nEach pays: 262.50"},
+    {"input": "7\n100", "output": "Total with GST: 105.00\nEach pays: 15.00"},
+    {"input": "5\n450", "output": "Total with GST: 472.50\nEach pays: 94.50"},
+    {"input": "3\n99.99", "output": "Total with GST: 104.99\nEach pays: 35.00"}
+  ],
+  "2:2": [
+    {"input": "0", "output": "Fahrenheit: 32.00\nKelvin: 273.15"},
+    {"input": "-273.15", "output": "Fahrenheit: -459.67\nKelvin: 0.00"},
+    {"input": "36.6", "output": "Fahrenheit: 97.88\nKelvin: 309.75"},
+    {"input": "37", "output": "Fahrenheit: 98.60\nKelvin: 310.15"},
+    {"input": "-17.8", "output": "Fahrenheit: -0.04\nKelvin: 255.35"}
+  ],
+  "2:3": [
+    {"input": "0\n0", "output": "Fare: 40.00"},
+    {"input": "1\n1", "output": "Fare: 54.00"},
+    {"input": "0.5\n0", "output": "Fare: 46.00"},
+    {"input": "100\n120", "output": "Fare: 1480.00"},
+    {"input": "2.75\n8", "output": "Fare: 89.00"}
+  ],
+  "2:5": [
+    {"input": "3\n4", "output": "Enter first number: Enter second number: Sum = 7\nAverage = 3.5"},
+    {"input": "10\n20", "output": "Enter first number: Enter second number: Sum = 30\nAverage = 15.0"},
+    {"input": "-5\n2", "output": "Enter first number: Enter second number: Sum = -3\nAverage = -1.5"},
+    {"input": "7\n0", "output": "Enter first number: Enter second number: Sum = 7\nAverage = 3.5"}
+  ],
+  "3:1": [
+    {"input": "0", "output": "500 notes: 0\n100 notes: 0"},
+    {"input": "100", "output": "500 notes: 0\n100 notes: 1"},
+    {"input": "500", "output": "500 notes: 1\n100 notes: 0"},
+    {"input": "99900", "output": "500 notes: 199\n100 notes: 4"},
+    {"input": "100000", "output": "500 notes: 200\n100 notes: 0"},
+    {"input": "900", "output": "500 notes: 1\n100 notes: 4"}
+  ],
+  "3:2": [
+    {"input": "0", "output": "0h 0m 0s"},
+    {"input": "86399", "output": "23h 59m 59s"},
+    {"input": "3600", "output": "1h 0m 0s"},
+    {"input": "1000000", "output": "277h 46m 40s"},
+    {"input": "60", "output": "0h 1m 0s"}
+  ],
+  "3:3": [
+    {"input": "30 50 40", "output": "Tiles: 0\nLeftover length: 30 cm\nLeftover width: 10 cm"},
+    {"input": "10 10 10", "output": "Tiles: 1\nLeftover length: 0 cm\nLeftover width: 0 cm"},
+    {"input": "1000 1 1", "output": "Tiles: 1000\nLeftover length: 0 cm\nLeftover width: 0 cm"},
+    {"input": "7 5 3", "output": "Tiles: 2\nLeftover length: 1 cm\nLeftover width: 2 cm"},
+    {"input": "5 5 6", "output": "Tiles: 0\nLeftover length: 5 cm\nLeftover width: 5 cm"}
+  ],
+  "3:5": [
+    {"input": "", "output": "Dollars: 11.976047904191617\nRevenue: 5000000000\nTax: 0.18"}
+  ],
+  "4:1": [
+    {"input": "499\nfalse", "output": "Delivery: 40"},
+    {"input": "500\ntrue", "output": "Delivery: Free"},
+    {"input": "499\ntrue", "output": "Delivery: 40"},
+    {"input": "999\nfalse", "output": "Delivery: 40"},
+    {"input": "1000\nfalse", "output": "Delivery: Free"},
+    {"input": "0\ntrue", "output": "Delivery: 40"}
+  ],
+  "4:2": [
+    {"input": "4", "output": "Leap Year"},
+    {"input": "100", "output": "Not a Leap Year"},
+    {"input": "400", "output": "Leap Year"},
+    {"input": "2023", "output": "Not a Leap Year"},
+    {"input": "9996", "output": "Leap Year"},
+    {"input": "1", "output": "Not a Leap Year"}
+  ],
+  "4:3": [
+    {"input": "2 2 4", "output": "Invalid"},
+    {"input": "5 5 5", "output": "Valid"},
+    {"input": "-3 4 5", "output": "Invalid"},
+    {"input": "2 3 4", "output": "Valid"},
+    {"input": "10 1 1", "output": "Invalid"},
+    {"input": "0 0 0", "output": "Invalid"}
+  ],
+  "4:5": [
+    {"input": "0", "output": "Even\nZero"},
+    {"input": "99", "output": "Odd\nIn range 1-99"},
+    {"input": "100", "output": "Even"},
+    {"input": "-3", "output": "Odd"}
+  ],
+  "5:1": [
+    {"input": "0", "output": "Bill: 0"},
+    {"input": "100", "output": "Bill: 500"},
+    {"input": "101", "output": "Bill: 507"},
+    {"input": "200", "output": "Bill: 1200"},
+    {"input": "201", "output": "Bill: 1210"},
+    {"input": "1000", "output": "Bill: 9200"}
+  ],
+  "5:2": [
+    {"input": "-3 -9 -1", "output": "-1"},
+    {"input": "1 2 3", "output": "3"},
+    {"input": "3 2 1", "output": "3"},
+    {"input": "2 9 9", "output": "9"},
+    {"input": "-5 0 -5", "output": "0"},
+    {"input": "2147483647 -2147483648 0", "output": "2147483647"}
+  ],
+  "5:3": [
+    {"input": "90 85", "output": "Grade: A\nScholarship: Yes"},
+    {"input": "89 100", "output": "Grade: B\nScholarship: No"},
+    {"input": "59 90", "output": "Grade: D\nScholarship: No"},
+    {"input": "40 0", "output": "Grade: D\nScholarship: No"},
+    {"input": "39 100", "output": "Grade: F\nScholarship: No"},
+    {"input": "100 84", "output": "Grade: A\nScholarship: No"},
+    {"input": "-1 50", "output": "Invalid marks"}
+  ],
+  "5:5": [
+    {"input": "0", "output": "Invalid"},
+    {"input": "-2", "output": "Invalid"},
+    {"input": "1", "output": "Fee: 20"},
+    {"input": "3", "output": "Fee: 50"},
+    {"input": "6", "output": "Fee: 100"},
+    {"input": "7", "output": "Fee: 150"}
+  ],
+  "6:1": [
+    {"input": "1 1", "output": "Tea x1 = 10"},
+    {"input": "3 4", "output": "Juice x4 = 100"},
+    {"input": "0 1", "output": "Invalid choice"},
+    {"input": "5 2", "output": "Invalid choice"},
+    {"input": "4 100", "output": "Water x100 = 500"},
+    {"input": "-1 3", "output": "Invalid choice"}
+  ],
+  "6:2": [
+    {"input": "6 * 4", "output": "24.00"},
+    {"input": "5 % 2", "output": "Invalid operator"},
+    {"input": "-3.5 - 2.5", "output": "-6.00"},
+    {"input": "0 / 5", "output": "0.00"},
+    {"input": "0 / 0", "output": "Cannot divide by zero"},
+    {"input": "1 / 3", "output": "0.33"},
+    {"input": "2.5 + -1", "output": "1.50"}
+  ],
+  "6:3": [
+    {"input": "2 1900", "output": "28"},
+    {"input": "2 2000", "output": "29"},
+    {"input": "12 2023", "output": "31"},
+    {"input": "0 2023", "output": "Invalid month"},
+    {"input": "11 2023", "output": "30"},
+    {"input": "2 2023", "output": "28"}
+  ],
+  "6:5": [
+    {"input": "1", "output": "Monday"},
+    {"input": "4", "output": "Thursday"},
+    {"input": "5", "output": "Invalid day"},
+    {"input": "0", "output": "Invalid day"}
+  ],
+  "7:1": [
+    {"input": "5000 4500", "output": "Withdrawn. New balance: 500"},
+    {"input": "5000 0", "output": "Invalid amount"},
+    {"input": "5000 -100", "output": "Invalid amount"},
+    {"input": "600 100", "output": "Withdrawn. New balance: 500"},
+    {"input": "400 100", "output": "Insufficient balance"},
+    {"input": "1000 150", "output": "Invalid amount"}
+  ],
+  "7:2": [
+    {"input": "E", "output": "Vowel"},
+    {"input": "y", "output": "Consonant"},
+    {"input": "0", "output": "Digit"},
+    {"input": "@", "output": "Special character"},
+    {"input": "O", "output": "Vowel"},
+    {"input": "9", "output": "Digit"}
+  ],
+  "7:3": [
+    {"input": "0 L false", "output": "Invalid weight"},
+    {"input": "30 I true", "output": "Cost: 900.00"},
+    {"input": "30.5 L false", "output": "Invalid weight"},
+    {"input": "0.5 N false", "output": "Cost: 4.00"},
+    {"input": "7.5 L true", "output": "Cost: 56.25"},
+    {"input": "35 X false", "output": "Invalid weight"}
+  ],
+  "7:5": [
+    {"input": "3000 G", "output": "Final bill: 2250.00"},
+    {"input": "1000 S", "output": "Final bill: 900.00"},
+    {"input": "2500 X", "output": "Final bill: 2375.00"},
+    {"input": "2000 G", "output": "Final bill: 1600.00"}
+  ],
+  "8:1": [
+    {"input": "1 1", "output": "Month 1: 1\nTotal saved: 1"},
+    {"input": "7 2", "output": "Month 1: 7\nMonth 2: 14\nTotal saved: 14"},
+    {"input": "100000 60", "output": "Month 1: 100000\nMonth 2: 200000\nMonth 3: 300000\nMonth 4: 400000\nMonth 5: 500000\nMonth 6: 600000\nMonth 7: 700000\nMonth 8: 800000\nMonth 9: 900000\nMonth 10: 1000000\nMonth 11: 1100000\nMonth 12: 1200000\nMonth 13: 1300000\nMonth 14: 1400000\nMonth 15: 1500000\nMonth 16: 1600000\nMonth 17: 1700000\nMonth 18: 1800000\nMonth 19: 1900000\nMonth 20: 2000000\nMonth 21: 2100000\nMonth 22: 2200000\nMonth 23: 2300000\nMonth 24: 2400000\nMonth 25: 2500000\nMonth 26: 2600000\nMonth 27: 2700000\nMonth 28: 2800000\nMonth 29: 2900000\nMonth 30: 3000000\nMonth 31: 3100000\nMonth 32: 3200000\nMonth 33: 3300000\nMonth 34: 3400000\nMonth 35: 3500000\nMonth 36: 3600000\nMonth 37: 3700000\nMonth 38: 3800000\nMonth 39: 3900000\nMonth 40: 4000000\nMonth 41: 4100000\nMonth 42: 4200000\nMonth 43: 4300000\nMonth 44: 4400000\nMonth 45: 4500000\nMonth 46: 4600000\nMonth 47: 4700000\nMonth 48: 4800000\nMonth 49: 4900000\nMonth 50: 5000000\nMonth 51: 5100000\nMonth 52: 5200000\nMonth 53: 5300000\nMonth 54: 5400000\nMonth 55: 5500000\nMonth 56: 5600000\nMonth 57: 5700000\nMonth 58: 5800000\nMonth 59: 5900000\nMonth 60: 6000000\nTotal saved: 6000000"},
+    {"input": "999 5", "output": "Month 1: 999\nMonth 2: 1998\nMonth 3: 2997\nMonth 4: 3996\nMonth 5: 4995\nTotal saved: 4995"}
+  ],
+  "8:2": [
+    {"input": "1", "output": "1"},
+    {"input": "2", "output": "2"},
+    {"input": "3", "output": "6"},
+    {"input": "11", "output": "39916800"},
+    {"input": "12", "output": "479001600"}
+  ],
+  "8:3": [
+    {"input": "1", "output": "0"},
+    {"input": "3", "output": "3"},
+    {"input": "5", "output": "8"},
+    {"input": "15", "output": "60"},
+    {"input": "50000", "output": "583341668"},
+    {"input": "100000", "output": "2333416668"}
+  ],
+  "8:5": [
+    {"input": "", "output": "Sum: 30\nCount: 5"}
+  ],
+  "9:1": [
+    {"input": "4321", "output": "Access granted"},
+    {"input": "1\n2\n4321", "output": "Wrong PIN. Attempts left: 2\nWrong PIN. Attempts left: 1\nAccess granted"},
+    {"input": "1\n2\n3\n4321", "output": "Wrong PIN. Attempts left: 2\nWrong PIN. Attempts left: 1\nWrong PIN. Attempts left: 0\nCard blocked"},
+    {"input": "4321\n1\n2", "output": "Access granted"},
+    {"input": "0\n4321", "output": "Wrong PIN. Attempts left: 2\nAccess granted"}
+  ],
+  "9:2": [
+    {"input": "7", "output": "1"},
+    {"input": "10", "output": "2"},
+    {"input": "999999999", "output": "9"},
+    {"input": "1000000000", "output": "10"},
+    {"input": "-1000000000", "output": "10"},
+    {"input": "-5", "output": "1"}
+  ],
+  "9:3": [
+    {"input": "2", "output": "1"},
+    {"input": "3", "output": "7"},
+    {"input": "27", "output": "111"},
+    {"input": "9999", "output": "91"},
+    {"input": "10000", "output": "29"}
+  ],
+  "9:5": [
+    {"input": "4 6 8 0", "output": "Sum: 18\nAverage: 6.00"},
+    {"input": "0", "output": "No numbers entered"},
+    {"input": "-3 4 0", "output": "Sum: 1\nAverage: 0.50"},
+    {"input": "1 2 2 0", "output": "Sum: 5\nAverage: 1.67"}
+  ],
+  "10:1": [
+    {"input": "999999", "output": "Lucky"},
+    {"input": "100000", "output": "Not lucky"},
+    {"input": "321123", "output": "Lucky"},
+    {"input": "555554", "output": "Not lucky"},
+    {"input": "246642", "output": "Lucky"}
+  ],
+  "10:2": [
+    {"input": "7", "output": "7"},
+    {"input": "100", "output": "1"},
+    {"input": "999999999", "output": "81"},
+    {"input": "-999999999", "output": "81"},
+    {"input": "1000000000", "output": "1"},
+    {"input": "-1000000000", "output": "1"}
+  ],
+  "10:3": [
+    {"input": "7", "output": "Armstrong"},
+    {"input": "370", "output": "Armstrong"},
+    {"input": "1634", "output": "Armstrong"},
+    {"input": "54748", "output": "Armstrong"},
+    {"input": "100000", "output": "Not Armstrong"},
+    {"input": "10", "output": "Not Armstrong"}
+  ],
+  "10:5": [
+    {"input": "1211 1", "output": "Digit 1 appears 3 time(s)"},
+    {"input": "0 0", "output": "Digit 0 appears 1 time(s)"},
+    {"input": "1000 0", "output": "Digit 0 appears 3 time(s)"},
+    {"input": "505 5", "output": "Digit 5 appears 2 time(s)"},
+    {"input": "0 5", "output": "Digit 5 appears 0 time(s)"}
+  ],
+  "11:1": [
+    {"input": "1", "output": "Reversed: 1\nRejected: palindrome code"},
+    {"input": "10", "output": "Reversed: 1\nAccepted"},
+    {"input": "7", "output": "Reversed: 7\nRejected: palindrome code"},
+    {"input": "999999998", "output": "Reversed: 899999999\nAccepted"},
+    {"input": "1001", "output": "Reversed: 1001\nRejected: palindrome code"},
+    {"input": "12321", "output": "Reversed: 12321\nRejected: palindrome code"},
+    {"input": "100", "output": "Reversed: 1\nAccepted"}
+  ],
+  "11:2": [
+    {"input": "0", "output": "Palindrome"},
+    {"input": "10", "output": "Not a palindrome"},
+    {"input": "1", "output": "Palindrome"},
+    {"input": "-1", "output": "Not a palindrome"},
+    {"input": "12321", "output": "Palindrome"},
+    {"input": "1234321", "output": "Palindrome"},
+    {"input": "999999999", "output": "Palindrome"},
+    {"input": "100000", "output": "Not a palindrome"},
+    {"input": "-5", "output": "Not a palindrome"}
+  ],
+  "11:3": [
+    {"input": "10", "output": "Steps: 1\nPalindrome: 11"},
+    {"input": "19", "output": "Steps: 2\nPalindrome: 121"},
+    {"input": "78", "output": "Steps: 4\nPalindrome: 4884"},
+    {"input": "1", "output": "Steps: 0\nPalindrome: 1"},
+    {"input": "80", "output": "Steps: 1\nPalindrome: 88"},
+    {"input": "69", "output": "Steps: 4\nPalindrome: 4884"}
+  ],
+  "11:5": [
+    {"input": "121", "output": "Palindrome"},
+    {"input": "123", "output": "Not a palindrome"}
+  ],
+  "12:1": [
+    {"input": "2", "output": "Box sizes: 1 2\nOptions: 2"},
+    {"input": "36", "output": "Box sizes: 1 2 3 4 6 9 12 18 36\nOptions: 9"},
+    {"input": "97", "output": "Box sizes: 1 97\nOptions: 2"},
+    {"input": "100000", "output": "Box sizes: 1 2 4 5 8 10 16 20 25 32 40 50 80 100 125 160 200 250 400 500 625 800 1000 1250 2000 2500 3125 4000 5000 6250 10000 12500 20000 25000 50000 100000\nOptions: 36"},
+    {"input": "1000", "output": "Box sizes: 1 2 4 5 8 10 20 25 40 50 100 125 200 250 500 1000\nOptions: 16"}
+  ],
+  "12:2": [
+    {"input": "0", "output": "Not prime"},
+    {"input": "2", "output": "Prime"},
+    {"input": "-7", "output": "Not prime"},
+    {"input": "97", "output": "Prime"},
+    {"input": "3", "output": "Prime"},
+    {"input": "4", "output": "Not prime"},
+    {"input": "1000000", "output": "Not prime"},
+    {"input": "999983", "output": "Prime"},
+    {"input": "49", "output": "Not prime"}
+  ],
+  "12:3": [
+    {"input": "1 1", "output": "No primes"},
+    {"input": "2 2", "output": "2\nCount: 1"},
+    {"input": "1 2", "output": "2\nCount: 1"},
+    {"input": "14 16", "output": "No primes"},
+    {"input": "9990 10000", "output": "No primes"},
+    {"input": "90 97", "output": "97\nCount: 1"}
+  ],
+  "12:5": [
+    {"input": "7", "output": "7 is prime"},
+    {"input": "1", "output": "1 is not prime"}
+  ],
+  "13:1": [
+    {"input": "1 1", "output": "A1"},
+    {"input": "26 1", "output": "A1\nB1\nC1\nD1\nE1\nF1\nG1\nH1\nI1\nJ1\nK1\nL1\nM1\nN1\nO1\nP1\nQ1\nR1\nS1\nT1\nU1\nV1\nW1\nX1\nY1\nZ1"},
+    {"input": "2 30", "output": "A1 A2 A3 A4 A5 A6 A7 A8 A9 A10 A11 A12 A13 A14 A15 A16 A17 A18 A19 A20 A21 A22 A23 A24 A25 A26 A27 A28 A29 A30\nB1 B2 B3 B4 B5 B6 B7 B8 B9 B10 B11 B12 B13 B14 B15 B16 B17 B18 B19 B20 B21 B22 B23 B24 B25 B26 B27 B28 B29 B30"},
+    {"input": "5 3", "output": "A1 A2 A3\nB1 B2 B3\nC1 C2 C3\nD1 D2 D3\nE1 E2 E3"}
+  ],
+  "13:2": [
+    {"input": "2", "output": " *\n***"},
+    {"input": "5", "output": "    *\n   ***\n  *****\n *******\n*********"},
+    {"input": "20", "output": "                   *\n                  ***\n                 *****\n                *******\n               *********\n              ***********\n             *************\n            ***************\n           *****************\n          *******************\n         *********************\n        ***********************\n       *************************\n      ***************************\n     *****************************\n    *******************************\n   *********************************\n  ***********************************\n *************************************\n***************************************"}
+  ],
+  "13:3": [
+    {"input": "1", "output": "   1"},
+    {"input": "2", "output": "   1   2\n   2   4"},
+    {"input": "12", "output": "   1   2   3   4   5   6   7   8   9  10  11  12\n   2   4   6   8  10  12  14  16  18  20  22  24\n   3   6   9  12  15  18  21  24  27  30  33  36\n   4   8  12  16  20  24  28  32  36  40  44  48\n   5  10  15  20  25  30  35  40  45  50  55  60\n   6  12  18  24  30  36  42  48  54  60  66  72\n   7  14  21  28  35  42  49  56  63  70  77  84\n   8  16  24  32  40  48  56  64  72  80  88  96\n   9  18  27  36  45  54  63  72  81  90  99 108\n  10  20  30  40  50  60  70  80  90 100 110 120\n  11  22  33  44  55  66  77  88  99 110 121 132\n  12  24  36  48  60  72  84  96 108 120 132 144"}
+  ],
+  "13:5": [
+    {"input": "4", "output": "1 2 3 4\n1 2 3\n1 2\n1"},
+    {"input": "1", "output": "1"}
+  ],
+  "14:1": [
+    {"input": "0 1\n0 1", "output": "Final amount: 0.00"},
+    {"input": "999.5 1\n0.5 1", "output": "Final amount: 1062.00"},
+    {"input": "1000 1\n0 5", "output": "Final amount: 1062.00"},
+    {"input": "100 5\n250 2", "output": "Final amount: 1062.00"},
+    {"input": "10 1\n20 3", "output": "Final amount: 82.60"}
+  ],
+  "14:2": [
+    {"input": "0 7", "output": "GCD: 7\nLCM: 0"},
+    {"input": "10000 10000", "output": "GCD: 10000\nLCM: 10000"},
+    {"input": "9999 10000", "output": "GCD: 1\nLCM: 99990000"},
+    {"input": "1 1", "output": "GCD: 1\nLCM: 1"},
+    {"input": "48 18", "output": "GCD: 6\nLCM: 144"},
+    {"input": "5 0", "output": "GCD: 5\nLCM: 0"}
+  ],
+  "14:3": [
+    {"input": "2", "output": "Not emirp"},
+    {"input": "1", "output": "Not emirp"},
+    {"input": "17", "output": "Emirp"},
+    {"input": "31", "output": "Emirp"},
+    {"input": "101", "output": "Not emirp"},
+    {"input": "100000", "output": "Not emirp"},
+    {"input": "7", "output": "Not emirp"},
+    {"input": "13", "output": "Emirp"},
+    {"input": "73", "output": "Emirp"},
+    {"input": "97", "output": "Emirp"}
+  ],
+  "14:5": [
+    {"input": "", "output": "Max: 9\nEven: true\n7"}
+  ],
+  "15:1": [
+    {"input": "A B 1", "output": "ab1@school.edu"},
+    {"input": "JOHN doe 99", "output": "jdoe99@school.edu"},
+    {"input": "x Y 1000", "output": "xy1000@school.edu"},
+    {"input": "mArY SMITH 0", "output": "msmith0@school.edu"}
+  ],
+  "15:2": [
+    {"input": "a A", "output": "Equal ignoring case"},
+    {"input": "abc123 abc123", "output": "Equal"},
+    {"input": "Ab ab", "output": "Equal ignoring case"},
+    {"input": "x y", "output": "Different"},
+    {"input": "Test Tes", "output": "Different"},
+    {"input": "A1 a1", "output": "Equal ignoring case"}
+  ],
+  "15:3": [
+    {"input": "abcd1", "output": "Valid"},
+    {"input": "abcde", "output": "Invalid"},
+    {"input": "abcdefghij12", "output": "Valid"},
+    {"input": "abcdefghijkl1", "output": "Invalid"},
+    {"input": "abcdefghijklm1", "output": "Invalid"},
+    {"input": "12345", "output": "Invalid"},
+    {"input": "a1b2c", "output": "Valid"},
+    {"input": "user1", "output": "Valid"},
+    {"input": "abcde1", "output": "Valid"}
+  ],
+  "15:5": [
+    {"input": "admin", "output": "Welcome, administrator\nFirst: a, Last: n\nUpper: ADMIN"},
+    {"input": "Zed", "output": "First: Z, Last: d\nUpper: ZED"}
+  ],
+  "16:1": [
+    {"input": "a", "output": "Characters: 1\nWords: 1\nVowels: 1"},
+    {"input": "AEIOU", "output": "Characters: 5\nWords: 1\nVowels: 5"},
+    {"input": "xyz", "output": "Characters: 3\nWords: 1\nVowels: 0"},
+    {"input": "Why do we fall Sir", "output": "Characters: 18\nWords: 5\nVowels: 4"},
+    {"input": "This Is A Test", "output": "Characters: 14\nWords: 4\nVowels: 4"}
+  ],
+  "16:2": [
+    {"input": "racecar", "output": "racecar"},
+    {"input": "A b C", "output": "C b A"},
+    {"input": "x y z 1", "output": "1 z y x"},
+    {"input": "12345", "output": "54321"},
+    {"input": "Hello, World!", "output": "!dlroW ,olleH"}
+  ],
+  "16:3": [
+    {"input": "zzzz", "output": "z=4"},
+    {"input": "abcdefghijklmnopqrstuvwxyz", "output": "a=1 b=1 c=1 d=1 e=1 f=1 g=1 h=1 i=1 j=1 k=1 l=1 m=1 n=1 o=1 p=1 q=1 r=1 s=1 t=1 u=1 v=1 w=1 x=1 y=1 z=1"},
+    {"input": "mississippi", "output": "i=4 m=1 p=2 s=4"},
+    {"input": "a", "output": "a=1"},
+    {"input": "aaaaabbbbbc", "output": "a=5 b=5 c=1"}
+  ],
+  "16:5": [
+    {"input": "Education", "output": "Vowels: 5"},
+    {"input": "xyz", "output": "Vowels: 0"}
+  ],
+  "17:1": [
+    {"input": "a", "output": "Palindrome phrase"},
+    {"input": "Ab", "output": "Not a palindrome phrase"},
+    {"input": "A Santa at NASA", "output": "Palindrome phrase"},
+    {"input": "Was it a car or a cat I saw", "output": "Palindrome phrase"},
+    {"input": "abc", "output": "Not a palindrome phrase"},
+    {"input": "aa b b aa", "output": "Palindrome phrase"}
+  ],
+  "17:2": [
+    {"input": "a A", "output": "Anagrams"},
+    {"input": "ab abc", "output": "Not anagrams"},
+    {"input": "Race Care", "output": "Anagrams"},
+    {"input": "aab abb", "output": "Not anagrams"},
+    {"input": "Astronomer MoonStarer", "output": "Anagrams"},
+    {"input": "Hello hello", "output": "Anagrams"},
+    {"input": "Anna nana", "output": "Anagrams"}
+  ],
+  "17:3": [
+    {"input": "abc abc abc", "output": "Anagram pairs: 3"},
+    {"input": "abc ab abcd", "output": "Anagram pairs: 0"},
+    {"input": "Tea EAT ate", "output": "Anagram pairs: 3"},
+    {"input": "a b a", "output": "Anagram pairs: 1"},
+    {"input": "aab aba baa", "output": "Anagram pairs: 3"},
+    {"input": "abc cab xyz", "output": "Anagram pairs: 1"}
+  ],
+  "17:5": [
+    {"input": "Listen Silent", "output": "Anagrams"},
+    {"input": "abc abcd", "output": "Not anagrams"}
+  ],
+  "18:1": [
+    {"input": "0 0 0 0 0 0 0", "output": "Total: 0\nAverage: 0.00\nBest day: 1 (0)"},
+    {"input": "0 0 0 0 0 0 5", "output": "Total: 5\nAverage: 0.71\nBest day: 7 (5)"},
+    {"input": "100000 100000 100000 100000 100000 100000 100000", "output": "Total: 700000\nAverage: 100000.00\nBest day: 1 (100000)"},
+    {"input": "1 2 3 4 5 6 7", "output": "Total: 28\nAverage: 4.00\nBest day: 7 (7)"},
+    {"input": "7 6 5 4 3 2 1", "output": "Total: 28\nAverage: 4.00\nBest day: 1 (7)"},
+    {"input": "5 9 9 0 9 1 2", "output": "Total: 35\nAverage: 5.00\nBest day: 2 (9)"}
+  ],
+  "18:2": [
+    {"input": "1\n5", "output": "No second largest"},
+    {"input": "2\n3 8", "output": "3"},
+    {"input": "2\n8 3", "output": "3"},
+    {"input": "3\n-5 -2 -9", "output": "-5"},
+    {"input": "5\n9 9 8 8 7", "output": "8"},
+    {"input": "4\n1 2 3 4", "output": "3"},
+    {"input": "6\n-1 -1 -1 -1 -1 -2", "output": "-2"},
+    {"input": "2\n4 4", "output": "No second largest"}
+  ],
+  "18:3": [
+    {"input": "1\n5\n7", "output": "5"},
+    {"input": "5\n1 2 3 4 5\n5", "output": "1 2 3 4 5"},
+    {"input": "5\n1 2 3 4 5\n1000", "output": "1 2 3 4 5"},
+    {"input": "4\n1 2 3 4\n3", "output": "2 3 4 1"},
+    {"input": "3\n-1 0 1\n1000", "output": "1 -1 0"},
+    {"input": "2\n7 8\n1", "output": "8 7"}
+  ],
+  "18:5": [
+    {"input": "4\n7 3 9 5", "output": "Max: 9, Min: 3"},
+    {"input": "3\n-5 -2 -9", "output": "Max: -2, Min: -9"}
+  ],
+  "19:1": [
+    {"input": "1\n50", "output": "Rank 1: 50"},
+    {"input": "3\n60 70 80", "output": "Rank 1: 80\nRank 2: 70\nRank 3: 60"},
+    {"input": "4\n50 90 90 90", "output": "Rank 1: 90\nRank 2: 90\nRank 3: 90"},
+    {"input": "5\n0 0 0 0 0", "output": "Rank 1: 0\nRank 2: 0\nRank 3: 0"},
+    {"input": "6\n10 20 30 40 50 60", "output": "Rank 1: 60\nRank 2: 50\nRank 3: 40"},
+    {"input": "3\n100 0 100", "output": "Rank 1: 100\nRank 2: 100\nRank 3: 0"}
+  ],
+  "19:2": [
+    {"input": "1\n5\n5", "output": "Found at: 0"},
+    {"input": "1\n5\n3", "output": "Not found"},
+    {"input": "5\n3 3 3 3 3\n3", "output": "Found at: 0 1 2 3 4"},
+    {"input": "5\n1 2 3 4 5\n1", "output": "Found at: 0"},
+    {"input": "5\n1 2 3 4 5\n5", "output": "Found at: 4"},
+    {"input": "4\n-1 0 -1 0\n-1", "output": "Found at: 0 2"}
+  ],
+  "19:3": [
+    {"input": "1\n5\n5", "output": "0"},
+    {"input": "1\n5\n6", "output": "-1"},
+    {"input": "6\n1 3 5 7 9 11\n11", "output": "5"},
+    {"input": "6\n1 3 5 7 9 11\n1", "output": "0"},
+    {"input": "6\n1 3 5 7 9 11\n6", "output": "-1"},
+    {"input": "5\n-10 -5 0 5 10\n-5", "output": "1"},
+    {"input": "8\n1 2 3 4 5 6 7 8\n4", "output": "3"}
+  ],
+  "19:5": [
+    {"input": "", "output": "2\n-1\ntrue\nfalse"}
+  ],
+  "20:1": [
+    {"input": "1 1\n0", "output": "Student 1 total: 0\nTopper: Student 1"},
+    {"input": "1 3\n10 20 30", "output": "Student 1 total: 60\nTopper: Student 1"},
+    {"input": "3 1\n5\n9\n9", "output": "Student 1 total: 5\nStudent 2 total: 9\nStudent 3 total: 9\nTopper: Student 2"},
+    {"input": "2 3\n100 100 100\n0 0 0", "output": "Student 1 total: 300\nStudent 2 total: 0\nTopper: Student 1"},
+    {"input": "3 2\n10 20\n40 5\n30 15", "output": "Student 1 total: 30\nStudent 2 total: 45\nStudent 3 total: 45\nTopper: Student 2"},
+    {"input": "2 2\n0 0\n0 1", "output": "Student 1 total: 0\nStudent 2 total: 1\nTopper: Student 2"}
+  ],
+  "20:2": [
+    {"input": "1 4\n1 2 3 4", "output": "1\n2\n3\n4"},
+    {"input": "4 1\n1\n2\n3\n4", "output": "1 2 3 4"},
+    {"input": "3 3\n1 2 3\n4 5 6\n7 8 9", "output": "1 4 7\n2 5 8\n3 6 9"},
+    {"input": "2 2\n0 100\n100 0", "output": "0 100\n100 0"},
+    {"input": "3 2\n1 2\n3 4\n5 6", "output": "1 3 5\n2 4 6"}
+  ],
+  "20:3": [
+    {"input": "4\n1 2 3 4\n5 6 7 8\n9 10 11 12\n13 14 15 16", "output": "Main: 34\nAnti: 34"},
+    {"input": "2\n-1 -2\n-3 -4", "output": "Main: -5\nAnti: -5"},
+    {"input": "3\n-1 0 5\n2 -3 0\n4 0 -9", "output": "Main: -13\nAnti: 6"},
+    {"input": "3\n0 0 0\n0 10 0\n0 0 0", "output": "Main: 10\nAnti: 10"},
+    {"input": "1\n-5", "output": "Main: -5\nAnti: -5"}
+  ],
+  "20:5": [
+    {"input": "2 2\n1 2 3 4\n5 6 7 8", "output": "6 8\n10 12"},
+    {"input": "1 3\n1 2 3\n4 5 6", "output": "5 7 9"}
+  ],
+  "21:1": [
+    {"input": "100\n4\nW 100\nW 0\nD 0\nW 1", "output": "Withdrawn 100. Balance: 0\nInvalid amount. Balance: 0\nInvalid amount. Balance: 0\nInsufficient funds. Balance: 0"},
+    {"input": "50\n3\nW 51\nW 50\nD 1", "output": "Insufficient funds. Balance: 50\nWithdrawn 50. Balance: 0\nDeposited 1. Balance: 1"},
+    {"input": "0\n1\nW -3", "output": "Invalid amount. Balance: 0"},
+    {"input": "2000000\n2\nD 500000\nW 2500000", "output": "Deposited 500000. Balance: 2500000\nWithdrawn 2500000. Balance: 0"}
+  ],
+  "21:2": [
+    {"input": "circle 2", "output": "Area: 12.57"},
+    {"input": "rectangle 2.5 4", "output": "Area: 10.00"},
+    {"input": "circle 0.5", "output": "Area: 0.79"},
+    {"input": "rectangle 100 100", "output": "Area: 10000.00"},
+    {"input": "rectangle 1 1", "output": "Area: 1.00"}
+  ],
+  "21:3": [
+    {"input": "1\nE Zed 1000", "output": "Zed: 1000.00\nTotal payroll: 1000.00"},
+    {"input": "2\nM Boss 20000 50\nM Sub 10000 25", "output": "Boss: 30000.00\nSub: 12500.00\nTotal payroll: 42500.00"},
+    {"input": "3\nM A 1000 100\nE B 0\nE C 12345", "output": "A: 2000.00\nB: 0.00\nC: 12345.00\nTotal payroll: 14345.00"},
+    {"input": "2\nM X 40000 0\nM Y 100 10", "output": "X: 40000.00\nY: 110.00\nTotal payroll: 40110.00"}
+  ],
+  "21:5": [
+    {"input": "", "output": "Isha: Fail\nRavi"}
+  ],
+  "22:1": [
+    {"input": "8\nADD a\nADD b\nADD a\nREMOVE a\nSHOW\nREMOVE a\nREMOVE a\nSHOW", "output": "Added: a\nAdded: b\nAdded: a\nRemoved: a\nCart: [b, a]\nRemoved: a\nNot in cart: a\nCart: [b]"},
+    {"input": "3\nREMOVE x\nSHOW\nSHOW", "output": "Not in cart: x\nCart is empty\nCart is empty"},
+    {"input": "4\nADD x\nREMOVE x\nSHOW\nREMOVE x", "output": "Added: x\nRemoved: x\nCart is empty\nNot in cart: x"}
+  ],
+  "22:2": [
+    {"input": "1\n-7", "output": "-7"},
+    {"input": "5\n3 -1 3 -1 0", "output": "3 -1 0"},
+    {"input": "7\n-2 -2 -3 5 -3 5 -2", "output": "-2 -3 5"},
+    {"input": "4\n1 2 3 4", "output": "1 2 3 4"}
+  ],
+  "22:3": [
+    {"input": "1\n5\n1\n3", "output": "3 5"},
+    {"input": "2\n1 2\n2\n3 4", "output": "1 2 3 4"},
+    {"input": "2\n-5 0\n3\n-6 -5 7", "output": "-6 -5 -5 0 7"},
+    {"input": "3\n2 2 2\n3\n2 2 2", "output": "2 2 2 2 2 2"}
+  ],
+  "22:5": [
+    {"input": "6\n2 4 5 6 7 8", "output": "Odd numbers: [5, 7]\nCount: 2"},
+    {"input": "5\n2 4 6 8 10", "output": "Odd numbers: []\nCount: 0"},
+    {"input": "4\n-3 -4 1 0", "output": "Odd numbers: [-3, 1]\nCount: 2"}
+  ],
+  "23:1": [
+    {"input": "1\nsolo", "output": "Total visits: 1\nUnique visitors: 1\nReturning visits: 0"},
+    {"input": "4\nx x x x", "output": "Total visits: 4\nUnique visitors: 1\nReturning visits: 3"},
+    {"input": "5\nAmit amit Amit AMIT amit", "output": "Total visits: 5\nUnique visitors: 3\nReturning visits: 2"}
+  ],
+  "23:2": [
+    {"input": "4\nzebra apple zebra mango", "output": "apple: 1\nmango: 1\nzebra: 2"},
+    {"input": "3\nb a ab", "output": "a: 1\nab: 1\nb: 1"},
+    {"input": "6\nq q q q q q", "output": "q: 6"}
+  ],
+  "23:3": [
+    {"input": "4\n-1 -2 -3 -4\n-6", "output": "1 3"},
+    {"input": "5\n1 5 5 9 0\n10", "output": "0 3"},
+    {"input": "3\n0 4 0\n0", "output": "0 2"},
+    {"input": "5\n8 1 2 3 4\n12", "output": "0 4"}
+  ],
+  "23:5": [
+    {"input": "5\na b a c a", "output": "Most frequent: a"},
+    {"input": "1\nsolo", "output": "Most frequent: solo"},
+    {"input": "6\nx y y z z z", "output": "Most frequent: z"}
+  ],
+  "24:1": [
+    {"input": "0", "output": "Allowed: 1 to 6"},
+    {"input": "1", "output": "Booked 1 tickets"},
+    {"input": "6", "output": "Booked 6 tickets"},
+    {"input": "7", "output": "Allowed: 1 to 6"},
+    {"input": "-2", "output": "Allowed: 1 to 6"},
+    {"input": "1e2", "output": "Invalid number"}
+  ],
+  "24:2": [
+    {"input": "-7 2", "output": "Result: -3\nDone"},
+    {"input": "0 5", "output": "Result: 0\nDone"},
+    {"input": "5 abc", "output": "Invalid input\nDone"},
+    {"input": "0 0", "output": "Cannot divide by zero\nDone"},
+    {"input": "2147483647 1", "output": "Result: 2147483647\nDone"},
+    {"input": "3.5 2", "output": "Invalid input\nDone"}
+  ],
+  "24:3": [
+    {"input": "3\n-5 0 9\n5\n0\n2\n3\n-3\n1", "output": "-5\n9\nIndex out of range\nIndex out of range\n0"},
+    {"input": "2\n7 8\n2\n2\n1", "output": "Index out of range\n8"},
+    {"input": "1\n100\n3\n1\n-1\n0", "output": "Index out of range\nIndex out of range\n100"}
+  ],
+  "24:5": [
+    {"input": "25", "output": "Age: 25\nFinished"},
+    {"input": "abc", "output": "Not a number\nFinished"},
+    {"input": "-4", "output": "Error: Age cannot be negative\nFinished"},
+    {"input": "0", "output": "Age: 0\nFinished"}
+  ],
+  "25:1": [
+    {"input": "2\nA 39\nB 40", "output": "A: 39 - Fail\nB: 40 - Pass\nAverage: 39.50"},
+    {"input": "3\nZ 0\nY 100\nX 50", "output": "Z: 0 - Fail\nY: 100 - Pass\nX: 50 - Pass\nAverage: 50.00"},
+    {"input": "1\nSolo 0", "output": "Solo: 0 - Fail\nAverage: 0.00"},
+    {"input": "4\na 1\nb 2\nc 3\nd 4", "output": "a: 1 - Fail\nb: 2 - Fail\nc: 3 - Fail\nd: 4 - Fail\nAverage: 2.50"}
+  ],
+  "25:2": [
+    {"input": "1\nthe quick brown fox", "output": "Lines: 1\nWords: 4\nCharacters: 19"},
+    {"input": "3\na b\nc\nd e f g", "output": "Lines: 3\nWords: 7\nCharacters: 11"},
+    {"input": "2\nx\nyy zz", "output": "Lines: 2\nWords: 3\nCharacters: 6"}
+  ],
+  "25:3": [
+    {"input": "3\nERRORS many\nINFO\nWARN", "output": "ERROR: 0\nWARN: 1\nINFO: 1"},
+    {"input": "4\nerror x\nWarn y\ninfo z\nINFO ERROR", "output": "ERROR: 0\nWARN: 0\nINFO: 1"},
+    {"input": "1\nWARN a b c", "output": "ERROR: 0\nWARN: 1\nINFO: 0"},
+    {"input": "3\nERROR\nERROR\nERROR e", "output": "ERROR: 3\nWARN: 0\nINFO: 0"}
+  ],
+  "25:5": [
+    {"input": "", "output": "Sum: 6"}
+  ],
+  "26:1": [
+    {"input": "1", "output": "T-minus 1\nLiftoff!"},
+    {"input": "2", "output": "T-minus 2\nT-minus 1\nLiftoff!"},
+    {"input": "10", "output": "T-minus 10\nT-minus 9\nT-minus 8\nT-minus 7\nT-minus 6\nT-minus 5\nT-minus 4\nT-minus 3\nT-minus 2\nT-minus 1\nLiftoff!"}
+  ],
+  "26:2": [
+    {"input": "1", "output": "1"},
+    {"input": "2", "output": "1"},
+    {"input": "15", "output": "610"},
+    {"input": "20", "output": "6765"},
+    {"input": "19", "output": "4181"}
+  ],
+  "26:3": [
+    {"input": "10 15", "output": "1000000000000000"},
+    {"input": "-10 15", "output": "-1000000000000000"},
+    {"input": "-2 4", "output": "16"},
+    {"input": "0 0", "output": "1"},
+    {"input": "0 5", "output": "0"},
+    {"input": "1 15", "output": "1"},
+    {"input": "7 1", "output": "7"}
+  ],
+  "26:5": [
+    {"input": "", "output": "10\n3\n2\n1"}
+  ],
+  "27:1": [
+    {"input": "1\n5", "output": "No duplicates"},
+    {"input": "4\n1000000000 7 1000000000 7", "output": "Duplicate: 1000000000"},
+    {"input": "5\n3 3 3 3 3", "output": "Duplicate: 3"},
+    {"input": "5\n9 8 7 8 9", "output": "Duplicate: 8"},
+    {"input": "6\n1 2 3 4 5 1", "output": "Duplicate: 1"}
+  ],
+  "27:2": [
+    {"input": "1 1\n-1000", "output": "-1000"},
+    {"input": "5 2\n-5 -1 -3 -2 -9", "output": "-4"},
+    {"input": "6 2\n1 2 3 -10 4 5", "output": "9"},
+    {"input": "5 5\n1000 1000 1000 1000 1000", "output": "5000"},
+    {"input": "7 3\n1 -1 1 -1 1 -1 1", "output": "1"}
+  ],
+  "27:3": [
+    {"input": "1\n0", "output": "Missing: 1"},
+    {"input": "5\n0 1 2 4 5", "output": "Missing: 3"},
+    {"input": "4\n4 3 2 1", "output": "Missing: 0"},
+    {"input": "6\n5 4 3 2 1 6", "output": "Missing: 0"},
+    {"input": "4\n0 4 2 1", "output": "Missing: 3"}
+  ],
+  "27:5": [
+    {"input": "", "output": "Primes up to 30: 10"}
+  ],
+  "28:1": [
+    {"input": "X 2 Y", "output": "Invalid room type"},
+    {"input": "S 2 Y", "output": "Room charge: 4000.00\nDiscount: 0.00\nBreakfast: 600.00\nGST: 552.00\nTotal: 5152.00"},
+    {"input": "D 6 N", "output": "Room charge: 21000.00\nDiscount: 2100.00\nBreakfast: 0.00\nGST: 2268.00\nTotal: 21168.00"},
+    {"input": "L 7 Y", "output": "Room charge: 35000.00\nDiscount: 7000.00\nBreakfast: 2100.00\nGST: 3612.00\nTotal: 33712.00"},
+    {"input": "S 30 Y", "output": "Room charge: 60000.00\nDiscount: 12000.00\nBreakfast: 9000.00\nGST: 6840.00\nTotal: 63840.00"},
+    {"input": "D 3 N", "output": "Room charge: 10500.00\nDiscount: 1050.00\nBreakfast: 0.00\nGST: 1134.00\nTotal: 10584.00"}
+  ],
+  "28:2": [
+    {"input": "a", "output": "a"},
+    {"input": "aab", "output": "b"},
+    {"input": "abcabcd", "output": "d"},
+    {"input": "aabbccd", "output": "d"},
+    {"input": "abab", "output": "None"}
+  ],
+  "28:3": [
+    {"input": "1\nx 0 10000", "output": "x: order 10000\nTotal units to order: 10000"},
+    {"input": "3\na 0 0\nb 5 4\nc 9999 10000", "output": "c: order 1\nTotal units to order: 1"},
+    {"input": "3\na 0 5\nb 0 10\nc 0 20", "output": "a: order 5\nb: order 10\nc: order 20\nTotal units to order: 35"},
+    {"input": "1\nonly 10000 10000", "output": "All stocked"}
+  ],
+  "28:5": [
+    {"input": "2\npen 100 3\nbag 2500 2", "output": "Total: 5300.00\nDiscount: 795.00\nFinal: 4505.00"},
+    {"input": "2\na 1000 1\nb 1000 1", "output": "Total: 2000.00\nDiscount: 200.00\nFinal: 1800.00"},
+    {"input": "1\nx 1999 1", "output": "Total: 1999.00\nDiscount: 0.00\nFinal: 1999.00"},
+    {"input": "1\nx 4999 1", "output": "Total: 4999.00\nDiscount: 499.90\nFinal: 4499.10"}
+  ],
+  "29:1": [
+    {"input": "N\n4\n7 8 365 25", "output": "Book 1 fine: 14.00\nBook 2 fine: 19.00\nBook 3 fine: 100.00\nBook 4 fine: 100.00\nTotal fine: 233.00"},
+    {"input": "Y\n3\n0 7 8", "output": "Book 1 fine: 0.00\nBook 2 fine: 7.00\nBook 3 fine: 9.50\nTotal fine: 16.50"},
+    {"input": "Y\n2\n365 25", "output": "Book 1 fine: 50.00\nBook 2 fine: 50.00\nTotal fine: 100.00"},
+    {"input": "N\n1\n26", "output": "Book 1 fine: 100.00\nTotal fine: 100.00"}
+  ],
+  "29:2": [
+    {"input": "1", "output": "1"},
+    {"input": "15", "output": "1\n2\nFizz\n4\nBuzz\nFizz\n7\n8\nFizz\nBuzz\n11\nFizz\n13\n14\nFizzBuzz"},
+    {"input": "30", "output": "1\n2\nFizz\n4\nBuzz\nFizz\n7\n8\nFizz\nBuzz\n11\nFizz\n13\n14\nFizzBuzz\n16\n17\nFizz\n19\nBuzz\nFizz\n22\n23\nFizz\nBuzz\n26\nFizz\n28\n29\nFizzBuzz"},
+    {"input": "100", "output": "1\n2\nFizz\n4\nBuzz\nFizz\n7\n8\nFizz\nBuzz\n11\nFizz\n13\n14\nFizzBuzz\n16\n17\nFizz\n19\nBuzz\nFizz\n22\n23\nFizz\nBuzz\n26\nFizz\n28\n29\nFizzBuzz\n31\n32\nFizz\n34\nBuzz\nFizz\n37\n38\nFizz\nBuzz\n41\nFizz\n43\n44\nFizzBuzz\n46\n47\nFizz\n49\nBuzz\nFizz\n52\n53\nFizz\nBuzz\n56\nFizz\n58\n59\nFizzBuzz\n61\n62\nFizz\n64\nBuzz\nFizz\n67\n68\nFizz\nBuzz\n71\nFizz\n73\n74\nFizzBuzz\n76\n77\nFizz\n79\nBuzz\nFizz\n82\n83\nFizz\nBuzz\n86\nFizz\n88\n89\nFizzBuzz\n91\n92\nFizz\n94\nBuzz\nFizz\n97\n98\nFizz\nBuzz"}
+  ],
+  "29:3": [
+    {"input": "a", "output": "a1"},
+    {"input": "abab", "output": "a1b1a1b1"},
+    {"input": "aaaaaaaaaabbbbbbbbbbbbc", "output": "a10b12c1"},
+    {"input": "aabaa", "output": "a2b1a2"}
+  ],
+  "29:5": [
+    {"input": "4\nlevel java noon a", "output": "Palindromes: 3\nLEVEL\nNOON\nA"},
+    {"input": "3\nMadam abca ab", "output": "Palindromes: 1\nMADAM"},
+    {"input": "2\nab cd", "output": "Palindromes: 0"}
+  ],
+  "30:1": [
+    {"input": "1\nSolo 100 100 100", "output": "1. Solo total=300 avg=100.00 grade=A\nPassed: 1/1"},
+    {"input": "4\nA 85 85 85\nB 70 70 70\nC 100 100 34\nD 0 0 0", "output": "1. A total=255 avg=85.00 grade=A\n2. C total=234 avg=78.00 grade=F\n3. B total=210 avg=70.00 grade=B\n4. D total=0 avg=0.00 grade=F\nPassed: 2/4"},
+    {"input": "3\nX 60 60 60\nY 50 70 60\nZ 80 40 85", "output": "1. Z total=205 avg=68.33 grade=C\n2. X total=180 avg=60.00 grade=C\n3. Y total=180 avg=60.00 grade=C\nPassed: 3/3"},
+    {"input": "2\nP 49 50 50\nQ 100 0 100", "output": "1. Q total=200 avg=66.67 grade=F\n2. P total=149 avg=49.67 grade=D\nPassed: 1/2"}
+  ],
+  "30:2": [
+    {"input": "1\nsolo", "output": "solo"},
+    {"input": "2\nabc abc", "output": "abc"},
+    {"input": "3\nab a abc", "output": "a"},
+    {"input": "2\nabc xbc", "output": "No common prefix"},
+    {"input": "4\nsame same samer sam", "output": "sam"}
+  ],
+  "30:3": [
+    {"input": "2\nADD q 3\nREPORT", "output": "Added: q x3\nq: 3"},
+    {"input": "6\nADD b 1\nADD a 2\nADD b 3\nBORROW a\nRETURN z\nREPORT", "output": "Added: b x1\nAdded: a x2\nAdded: b x3\nBorrowed: a\nUnknown: z\na: 1\nb: 4"},
+    {"input": "6\nADD x 1\nBORROW x\nBORROW x\nRETURN x\nBORROW x\nREPORT", "output": "Added: x x1\nBorrowed: x\nUnavailable: x\nReturned: x\nBorrowed: x\nx: 0"}
+  ],
+  "30:5": [
+    {"input": "", "output": "A1 ok: 300.0\nB2 failed: Insufficient funds\nC3 not found"}
   ]
 }

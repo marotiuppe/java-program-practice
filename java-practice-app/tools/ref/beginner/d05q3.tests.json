@@ -1,0 +1,30 @@
+[
+ {
+  "input": "90 85",
+  "output": "Grade: A\nScholarship: Yes"
+ },
+ {
+  "input": "89 100",
+  "output": "Grade: B\nScholarship: No"
+ },
+ {
+  "input": "59 90",
+  "output": "Grade: D\nScholarship: No"
+ },
+ {
+  "input": "40 0",
+  "output": "Grade: D\nScholarship: No"
+ },
+ {
+  "input": "39 100",
+  "output": "Grade: F\nScholarship: No"
+ },
+ {
+  "input": "100 84",
+  "output": "Grade: A\nScholarship: No"
+ },
+ {
+  "input": "-1 50",
+  "output": "Invalid marks"
+ }
+]

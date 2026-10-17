@@ -1,0 +1,18 @@
+[
+ {
+  "input": "1 1",
+  "output": "Month 1: 1\nTotal saved: 1"
+ },
+ {
+  "input": "7 2",
+  "output": "Month 1: 7\nMonth 2: 14\nTotal saved: 14"
+ },
+ {
+  "input": "100000 60",
+  "output": "Month 1: 100000\nMonth 2: 200000\nMonth 3: 300000\nMonth 4: 400000\nMonth 5: 500000\nMonth 6: 600000\nMonth 7: 700000\nMonth 8: 800000\nMonth 9: 900000\nMonth 10: 1000000\nMonth 11: 1100000\nMonth 12: 1200000\nMonth 13: 1300000\nMonth 14: 1400000\nMonth 15: 1500000\nMonth 16: 1600000\nMonth 17: 1700000\nMonth 18: 1800000\nMonth 19: 1900000\nMonth 20: 2000000\nMonth 21: 2100000\nMonth 22: 2200000\nMonth 23: 2300000\nMonth 24: 2400000\nMonth 25: 2500000\nMonth 26: 2600000\nMonth 27: 2700000\nMonth 28: 2800000\nMonth 29: 2900000\nMonth 30: 3000000\nMonth 31: 3100000\nMonth 32: 3200000\nMonth 33: 3300000\nMonth 34: 3400000\nMonth 35: 3500000\nMonth 36: 3600000\nMonth 37: 3700000\nMonth 38: 3800000\nMonth 39: 3900000\nMonth 40: 4000000\nMonth 41: 4100000\nMonth 42: 4200000\nMonth 43: 4300000\nMonth 44: 4400000\nMonth 45: 4500000\nMonth 46: 4600000\nMonth 47: 4700000\nMonth 48: 4800000\nMonth 49: 4900000\nMonth 50: 5000000\nMonth 51: 5100000\nMonth 52: 5200000\nMonth 53: 5300000\nMonth 54: 5400000\nMonth 55: 5500000\nMonth 56: 5600000\nMonth 57: 5700000\nMonth 58: 5800000\nMonth 59: 5900000\nMonth 60: 6000000\nTotal saved: 6000000"
+ },
+ {
+  "input": "999 5",
+  "output": "Month 1: 999\nMonth 2: 1998\nMonth 3: 2997\nMonth 4: 3996\nMonth 5: 4995\nTotal saved: 4995"
+ }
+]

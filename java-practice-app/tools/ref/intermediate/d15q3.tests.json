@@ -1,0 +1,26 @@
+[
+ {
+  "input": "1\n0123456789",
+  "output": "XXXXXX6789"
+ },
+ {
+  "input": "3\n1234567890 and 9876543210.\nabc 12345678901 def 1234567\nx.y_z@my.site.org,a@b.co",
+  "output": "XXXXXX7890 and XXXXXX3210.\nabc 12345678901 def 1234567\nx***@my.site.org,a***@b.co"
+ },
+ {
+  "input": "2\nCall 1234567890\n1234567890 now",
+  "output": "Call XXXXXX7890\nXXXXXX7890 now"
+ },
+ {
+  "input": "2\nmail a.b@c.com.\nbad@x.c ok@x.co",
+  "output": "mail a***@c.com.\nbad@x.c o***@x.co"
+ },
+ {
+  "input": "2\na1234567890b\n123456789 1234567890 12345678901234567890",
+  "output": "aXXXXXX7890b\n123456789 XXXXXX7890 12345678901234567890"
+ },
+ {
+  "input": "2\nq@ex.com q@ex.com\n9999999999 8888888888",
+  "output": "q***@ex.com q***@ex.com\nXXXXXX9999 XXXXXX8888"
+ }
+]

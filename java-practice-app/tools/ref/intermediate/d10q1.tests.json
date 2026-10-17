@@ -1,0 +1,18 @@
+[
+ {
+  "input": "1\nREPORT\n",
+  "output": "(empty)"
+ },
+ {
+  "input": "8\nRECEIVE b 5\nRECEIVE a 1\nRECEIVE b 5\nSHIP b 10\nSHIP b 1\nSHIP a 1\nREPORT\nSHIP a 1\n",
+  "output": "SHIPPED b 10\nREJECTED b\nSHIPPED a 1\n(empty)\nREJECTED a"
+ },
+ {
+  "input": "5\nSHIP x 1\nRECEIVE x 2147483646\nRECEIVE y 1\nSHIP x 2147483646\nREPORT\n",
+  "output": "REJECTED x\nSHIPPED x 2147483646\ny: 1"
+ },
+ {
+  "input": "5\nRECEIVE B2 1\nRECEIVE B10 1\nRECEIVE a1 1\nRECEIVE A1 1\nREPORT\n",
+  "output": "A1: 1\nB10: 1\nB2: 1\na1: 1"
+ }
+]

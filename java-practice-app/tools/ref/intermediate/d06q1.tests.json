@@ -1,0 +1,18 @@
+[
+ {
+  "input": "1\nSolo S@x.org\n",
+  "output": "Unique customers: 1\nSolo <s@x.org>"
+ },
+ {
+  "input": "5\nA e@x.com\nB E@X.COM\nC e@x.com\nD f@x.com\nE F@x.com\n",
+  "output": "Unique customers: 2\nA <e@x.com>\nD <f@x.com>"
+ },
+ {
+  "input": "4\nA Mixed@Case.Com\nB mixed@case.com\nC MIXED@CASE.COM\nD mixed@case.co\n",
+  "output": "Unique customers: 2\nA <mixed@case.com>\nD <mixed@case.co>"
+ },
+ {
+  "input": "3\nA x@y\nB y@x\nC X@Y\n",
+  "output": "Unique customers: 2\nA <x@y>\nB <y@x>"
+ }
+]

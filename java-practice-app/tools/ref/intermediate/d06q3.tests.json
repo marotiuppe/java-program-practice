@@ -1,0 +1,14 @@
+[
+ {
+  "input": "6\nINR 0.05 - INR 0.10\nUSD 0.5 + USD 0.05\nEUR 7.5 == EUR 7.50\nEUR 7.05 == EUR 7.5\nJPY 999999999.99 + JPY 999999999.99\nINR 0 - INR 0\n",
+  "output": "INR -0.05\nUSD 0.55\ntrue\nfalse\nJPY 1999999999.98\nINR 0.00"
+ },
+ {
+  "input": "3\nINR 1 - INR 0.99\nINR 0.1 + INR 0.2\nUSD 1 - EUR 1\n",
+  "output": "INR 0.01\nINR 0.30\nCurrency mismatch"
+ },
+ {
+  "input": "3\nUSD 3.00 == USD 3\nUSD 12 - USD 100.5\nGBP 0.07 == GBP 0.7\n",
+  "output": "true\nUSD -88.50\nfalse"
+ }
+]

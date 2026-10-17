@@ -1,0 +1,26 @@
+[
+ {
+  "input": "Zed 100 100\n4\nW 1\nD 50\nW 50\nW 0\n",
+  "output": "REJECTED 100\nOK 150\nOK 100\nREJECTED 100\nFinal balance: 100"
+ },
+ {
+  "input": "Amy 2147483647 0\n3\nW 2147483647\nW 1\nD 5\n",
+  "output": "OK 0\nREJECTED 0\nOK 5\nFinal balance: 5"
+ },
+ {
+  "input": "Lee 500 500\n3\nW 1\nD 0\nD 10\n",
+  "output": "REJECTED 500\nREJECTED 500\nOK 510\nFinal balance: 510"
+ },
+ {
+  "input": "Q 10 5\n1\nW 5\n",
+  "output": "OK 5\nFinal balance: 5"
+ },
+ {
+  "input": "Big 1000000000 1000000000\n4\nD 1000000000\nW 1500000000\nW 1000000000\nW 1\n",
+  "output": "OK 2000000000\nREJECTED 2000000000\nOK 1000000000\nREJECTED 1000000000\nFinal balance: 1000000000"
+ },
+ {
+  "input": "Neg 5 0\n3\nW 6\nD -1\nW 5\n",
+  "output": "REJECTED 5\nREJECTED 5\nOK 0\nFinal balance: 0"
+ }
+]

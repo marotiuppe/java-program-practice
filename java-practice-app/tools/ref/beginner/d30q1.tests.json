@@ -1,0 +1,18 @@
+[
+ {
+  "input": "1\nSolo 100 100 100",
+  "output": "1. Solo total=300 avg=100.00 grade=A\nPassed: 1/1"
+ },
+ {
+  "input": "4\nA 85 85 85\nB 70 70 70\nC 100 100 34\nD 0 0 0",
+  "output": "1. A total=255 avg=85.00 grade=A\n2. C total=234 avg=78.00 grade=F\n3. B total=210 avg=70.00 grade=B\n4. D total=0 avg=0.00 grade=F\nPassed: 2/4"
+ },
+ {
+  "input": "3\nX 60 60 60\nY 50 70 60\nZ 80 40 85",
+  "output": "1. Z total=205 avg=68.33 grade=C\n2. X total=180 avg=60.00 grade=C\n3. Y total=180 avg=60.00 grade=C\nPassed: 3/3"
+ },
+ {
+  "input": "2\nP 49 50 50\nQ 100 0 100",
+  "output": "1. Q total=200 avg=66.67 grade=F\n2. P total=149 avg=49.67 grade=D\nPassed: 1/2"
+ }
+]

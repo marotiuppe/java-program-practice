@@ -1,0 +1,22 @@
+[
+ {
+  "input": "2\n\n   ",
+  "output": "INVOICE\n-------\n-------\nTOTAL: 0"
+ },
+ {
+  "input": "1\nabc,0,5",
+  "output": "INVOICE\n-------\nabc      x0  @     5 =      0\n-------\nTOTAL: 0"
+ },
+ {
+  "input": "3\nlongname,10,99999\nz,99,1\nab,5,0",
+  "output": "INVOICE\n-------\nlongname x10 @ 99999 = 999990\nz        x99 @     1 =     99\nab       x5  @     0 =      0\n-------\nTOTAL: 1000089"
+ },
+ {
+  "input": "1\nitem,100,1000000",
+  "output": "INVOICE\n-------\nitem     x100 @ 1000000 = 100000000\n-------\nTOTAL: 100000000"
+ },
+ {
+  "input": "5\na,1,1\n\nb,2,2\n\nc,3,3",
+  "output": "INVOICE\n-------\na        x1  @     1 =      1\nb        x2  @     2 =      4\nc        x3  @     3 =      9\n-------\nTOTAL: 14"
+ }
+]

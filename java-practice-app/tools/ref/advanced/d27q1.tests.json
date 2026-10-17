@@ -1,0 +1,22 @@
+[
+ {
+  "input": "1\n5 1\n0",
+  "output": "Total: 5"
+ },
+ {
+  "input": "2\n1000000 1000\n999999 1000\n3\nPERCENT 33\nBULK 2000 10\nFLAT 5",
+  "output": "After PERCENT 33: 1339999330\nAfter BULK 2000 10: 1205999397\nAfter FLAT 5: 1205999392\nTotal: 1205999392"
+ },
+ {
+  "input": "3\n7 1\n7 1\n7 1\n4\nPERCENT 15\nBULK 3 100\nFLAT 1\nPERCENT 100",
+  "output": "After PERCENT 15: 18\nAfter BULK 3 100: 0\nAfter FLAT 1: 0\nAfter PERCENT 100: 0\nTotal: 0"
+ },
+ {
+  "input": "2\n10 2\n5 2\n3\nBULK 5 10\nBULK 4 10\nPERCENT 99",
+  "output": "After BULK 5 10: 30\nAfter BULK 4 10: 27\nAfter PERCENT 99: 1\nTotal: 1"
+ },
+ {
+  "input": "1\n99 1\n3\nPERCENT 1\nPERCENT 1\nFLAT 98",
+  "output": "After PERCENT 1: 99\nAfter PERCENT 1: 99\nAfter FLAT 98: 1\nTotal: 1"
+ }
+]

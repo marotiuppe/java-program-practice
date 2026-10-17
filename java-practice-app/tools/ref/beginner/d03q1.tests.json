@@ -1,0 +1,26 @@
+[
+ {
+  "input": "0",
+  "output": "500 notes: 0\n100 notes: 0"
+ },
+ {
+  "input": "100",
+  "output": "500 notes: 0\n100 notes: 1"
+ },
+ {
+  "input": "500",
+  "output": "500 notes: 1\n100 notes: 0"
+ },
+ {
+  "input": "99900",
+  "output": "500 notes: 199\n100 notes: 4"
+ },
+ {
+  "input": "100000",
+  "output": "500 notes: 200\n100 notes: 0"
+ },
+ {
+  "input": "900",
+  "output": "500 notes: 1\n100 notes: 4"
+ }
+]

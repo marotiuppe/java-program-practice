@@ -1,0 +1,26 @@
+[
+ {
+  "input": "0",
+  "output": "Allowed: 1 to 6"
+ },
+ {
+  "input": "1",
+  "output": "Booked 1 tickets"
+ },
+ {
+  "input": "6",
+  "output": "Booked 6 tickets"
+ },
+ {
+  "input": "7",
+  "output": "Allowed: 1 to 6"
+ },
+ {
+  "input": "-2",
+  "output": "Allowed: 1 to 6"
+ },
+ {
+  "input": "1e2",
+  "output": "Invalid number"
+ }
+]

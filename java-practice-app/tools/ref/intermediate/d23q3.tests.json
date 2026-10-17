@@ -1,0 +1,18 @@
+[
+ {
+  "input": "6\n# a=1\nk=\nmode=a=b=c\n  spaced  =  v  \nno equals here\nk2 = 5\n6\na 7\nk\nmode\nspaced\nk2\nno",
+  "output": "7\n\na=b=c\nv\n5\nMISSING"
+ },
+ {
+  "input": "4\nx=1\nx=2\n   \n#x=3\n2\nx\ny z",
+  "output": "2\nz"
+ },
+ {
+  "input": "1\nonly=one\n3\nonly\nonly d\nother d",
+  "output": "one\none\nd"
+ },
+ {
+  "input": "3\n  # indented comment=5\nkey==double\nkey2=  \n3\nkey\nkey2\nkey",
+  "output": "=double\n\n=double"
+ }
+]

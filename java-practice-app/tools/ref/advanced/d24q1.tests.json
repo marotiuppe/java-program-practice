@@ -1,0 +1,22 @@
+[
+ {
+  "input": "1\nCARD 1",
+  "output": "CARD 1 fee=100\nTotal fees: 100"
+ },
+ {
+  "input": "3\nUPI 1000000000000\nCARD 1000000000000\nCASH 1000000000000",
+  "output": "UPI 1000000000000 fee=5000000000\nCARD 1000000000000 fee=20000000000\nCASH 1000000000000 fee=50\nTotal fees: 25000000050"
+ },
+ {
+  "input": "4\nCARD 4999\nCARD 5000\nCARD 5099\nCARD 5100",
+  "output": "CARD 4999 fee=100\nCARD 5000 fee=100\nCARD 5099 fee=101\nCARD 5100 fee=102\nTotal fees: 403"
+ },
+ {
+  "input": "3\nUPI 100001\nUPI 199\nUPI 100000",
+  "output": "UPI 100001 fee=500\nUPI 199 fee=0\nUPI 100000 fee=0\nTotal fees: 500"
+ },
+ {
+  "input": "2\nCASH 1\nCASH 2",
+  "output": "CASH 1 fee=50\nCASH 2 fee=50\nTotal fees: 100"
+ }
+]

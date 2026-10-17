@@ -1,0 +1,22 @@
+[
+ {
+  "input": "circle 2",
+  "output": "Area: 12.57"
+ },
+ {
+  "input": "rectangle 2.5 4",
+  "output": "Area: 10.00"
+ },
+ {
+  "input": "circle 0.5",
+  "output": "Area: 0.79"
+ },
+ {
+  "input": "rectangle 100 100",
+  "output": "Area: 10000.00"
+ },
+ {
+  "input": "rectangle 1 1",
+  "output": "Area: 1.00"
+ }
+]
