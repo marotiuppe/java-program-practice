@@ -19,4 +19,27 @@
     {% else %}New here? <a href="/signup">Create an account</a> &middot; <a href="/forgot">Forgot password?</a>{% endif %}
   </p>
 </section>
+<div class="auth-extras">
+  <section class="card" aria-labelledby="top10-h">
+    <h2 id="top10-h">Top 10 this week</h2>
+    {% if board_top %}
+    <ol class="board">
+      {% for r in board_top %}
+      <li><span class="rk">{{ ['🥇', '🥈', '🥉'][loop.index0] if loop.index <= 3 else loop.index }}</span><span class="nm">{{ r.h }}</span><span class="pt">{{ r.n }} solved</span></li>
+      {% endfor %}
+    </ol>
+    {% else %}
+    <p class="muted">Nobody is on the board yet. Sign up, switch the leaderboard on in your account and be the first.</p>
+    {% endif %}
+    <p class="muted small">Learners who chose to be listed. Resets every Monday.</p>
+  </section>
+  {% if news %}
+  <section class="card" aria-labelledby="news-h">
+    <h2 id="news-h">What&rsquo;s new</h2>
+    <ul class="news-list">
+      {% for n in news %}<li><b>{{ n.title }}:</b> {{ n.text }}</li>{% endfor %}
+    </ul>
+  </section>
+  {% endif %}
+</div>
 {% endblock %}

@@ -116,6 +116,11 @@ with TestClient(app, follow_redirects=False) as c:
     tok3 = c.post("/api/share/card", json={"kind": "progress"}).json()["url"].rsplit("/", 1)[1]
     check("name can be hidden", "@smoke" not in c.get(f"/s/{tok3}").text.lower().replace("smoke@example.com", ""))
     c.post("/account/name", data={"username": ""})
+    check("leaderboard page", c.get("/leaderboard").status_code == 200)
+    c.post("/account/leaderboard", data={"on": "1", "back": "/leaderboard"})
+    check("joined learner is listed", "(you)" in c.get("/leaderboard").text or "Solve a question" in c.get("/leaderboard").text)
+    c.post("/account/leaderboard", data={"back": "/leaderboard"})
+    check("left learner is not listed", "(you)" not in c.get("/leaderboard").text)
     check("share images render", c.get(f"/s/{tok}/og.png").headers.get("content-type") == "image/png"
           and c.get(f"/s/{tok}/card.png").status_code == 200)
     check("forged share link is refused", c.get("/s/forged/og.png").status_code == 404)

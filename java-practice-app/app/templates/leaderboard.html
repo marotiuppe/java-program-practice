@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% block title %}Leaderboard{% endblock %}
+{% block content %}
+<h1>Leaderboard</h1>
+<p class="muted">Top learners by questions solved. The weekly board resets every Monday, so newcomers can win.</p>
+<nav class="board-tabs" aria-label="Period and level">
+  <a href="/leaderboard?period=week{{ '&level=' ~ level if level }}"{% if period == 'week' %} class="on" aria-current="true"{% endif %}>This week</a>
+  <a href="/leaderboard?period=all{{ '&level=' ~ level if level }}"{% if period == 'all' %} class="on" aria-current="true"{% endif %}>All time</a>
+  <a href="/leaderboard?period={{ period }}"{% if not level %} class="on" aria-current="true"{% endif %}>All levels</a>
+  {% for key, label in levels %}<a href="/leaderboard?period={{ period }}&level={{ key }}"{% if level == key %} class="on" aria-current="true"{% endif %}>{{ label }}</a>{% endfor %}
+</nav>
+<div class="card">
+  {% if top %}
+  <ol class="board">
+    {% for r in top %}
+    <li{% if r.me %} class="me"{% endif %}><span class="rk">{{ ['🥇', '🥈', '🥉'][r.rank - 1] if r.rank <= 3 else r.rank }}</span><span class="nm">{{ r.handle }}{% if r.me %} (you){% endif %}</span><span class="pt">{{ r.n }} solved</span></li>
+    {% endfor %}
+    {% if me %}
+    <li class="me"><span class="rk">{{ me.rank }}</span><span class="nm">{{ me.handle }} (you)</span><span class="pt">{{ me.n }} solved</span></li>
+    {% endif %}
+  </ol>
+  {% else %}
+  <p class="muted">Nobody is on the board yet. Join and solve a question to be the first.</p>
+  {% endif %}
+</div>
+{% if on %}
+<div class="card">
+  <p>You are on the leaderboard as <b>{{ my_handle }}</b>{% if not me_in_top and not me %}. Solve a question {{ 'this week' if period == 'week' else '' }} to get ranked{% endif %}. <a href="/account">Change your name</a></p>
+  <form method="post" action="/account/leaderboard"><input type="hidden" name="back" value="/leaderboard"><button>Leave the leaderboard</button></form>
+</div>
+{% else %}
+<div class="card">
+  <p><b>You are not on the board.</b> Join to appear in the top 10 as <b>{{ my_handle }}</b>. Anyone visiting the site, including the login page, sees that name and your solved count, nothing else. You can leave any time.</p>
+  <form method="post" action="/account/leaderboard"><input type="hidden" name="on" value="1"><input type="hidden" name="back" value="/leaderboard"><button class="primary">Join the leaderboard</button></form>
+</div>
+{% endif %}
+{% endblock %}

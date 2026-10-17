@@ -233,7 +233,28 @@ def is_admin(user) -> bool:
     return bool(user) and bool(user["email_verified"]) and user["email"].lower() in ADMIN_EMAILS
 
 
+_news_cache = {"mtime": None, "items": []}
+
+
+def whats_new(limit: int = 6) -> list:
+    """Entries of static/whats-new.json (newest first), re-read when the file changes."""
+    path = os.path.join(HERE, "static", "whats-new.json")
+    try:
+        mtime = os.path.getmtime(path)
+        if _news_cache["mtime"] != mtime:
+            _news_cache["items"] = [n for n in json.load(open(path, encoding="utf-8"))
+                                    if isinstance(n, dict) and n.get("title") and n.get("text")]
+            _news_cache["mtime"] = mtime
+    except (OSError, ValueError):
+        return []
+    return _news_cache["items"][:limit]
+
+
 def render(request: Request, name: str, status_code: int = 200, **ctx):
+    if name == "auth.html":  # visitors who are not logged in see the weekly top 10 and what is new
+        ctx.setdefault("news", whats_new())
+        ctx.setdefault("board_top", [{"h": r["handle"], "n": r["n"]}
+                                      for r in _board_rows("", stats.week_start_epoch())[:10]])
     return templates.TemplateResponse(
         request, name,
         {"user": (u := current_user(request)), "is_admin": is_admin(u), "site_url": base_url(request), **ctx},
@@ -488,7 +509,8 @@ async def account_page(request: Request):
         return RedirectResponse("/login", status_code=303)
     return render(request, "account.html", error=None, saved=bool(request.query_params.get("saved")),
                   reminders_on=bool(user["reminders"]), hints_on=bool(user["hints_on"]), mail_ready=mailer.configured(), verified=bool(user["email_verified"]),
-                  card_name=card_handle(user), name_value=user["display_name"], name_hidden=bool(user["card_name_off"]))
+                  card_name=card_handle(user), name_value=user["display_name"], name_hidden=bool(user["card_name_off"]),
+                  board_on=bool(user["leaderboard"]))
 
 
 @app.get("/account/export")
@@ -537,9 +559,37 @@ async def account_name(request: Request, username: str = Form(""), hide: str = F
         return render(request, "account.html", status_code=400, error=None, name_error="Use letters, numbers, dots, dashes and underscores.",
                       saved=False, reminders_on=bool(user["reminders"]), hints_on=bool(user["hints_on"]),
                       mail_ready=mailer.configured(), verified=bool(user["email_verified"]),
-                      card_name=card_handle(user), name_value=username, name_hidden=bool(user["card_name_off"]))
+                      card_name=card_handle(user), name_value=username, name_hidden=bool(user["card_name_off"]),
+                      board_on=bool(user["leaderboard"]))
     db.set_display_name(user["id"], name, bool(hide))
     return RedirectResponse("/account?saved=1", status_code=303)
+
+
+@app.post("/account/leaderboard")
+async def account_leaderboard(request: Request, on: str = Form(""), back: str = Form("")):
+    user = current_user(request)
+    if not user:
+        return RedirectResponse("/login", status_code=303)
+    db.set_leaderboard(user["id"], bool(on))
+    _board_cache.clear()
+    dest = back if back in ("/leaderboard", "/dashboard") else "/account?saved=1"
+    return RedirectResponse(dest, status_code=303)
+
+
+@app.get("/leaderboard")
+def leaderboard_page(request: Request, period: str = "week", level: str = ""):
+    user = current_user(request)
+    if not user:
+        return RedirectResponse("/login", status_code=303)
+    period = "all" if period == "all" else "week"
+    level = level if level in content.CONTENT else ""
+    rows = _board_rows(level, stats.week_start_epoch() if period == "week" else 0)
+    ranked = [{"rank": i + 1, "handle": r["handle"], "n": r["n"], "me": r["uid"] == user["id"]} for i, r in enumerate(rows)]
+    me = next((r for r in ranked if r["me"]), None)
+    return render(request, "leaderboard.html", top=ranked[:10], me=me if me and me["rank"] > 10 else None,
+                  me_in_top=bool(me and me["rank"] <= 10), period=period, level=level,
+                  levels=[(k, v["label"]) for k, v in content.CONTENT.items()], on=bool(user["leaderboard"]),
+                  my_handle=card_handle(user) or "Anonymous learner", total=len(ranked))
 
 
 @app.post("/account/hints")
@@ -682,6 +732,7 @@ async def dashboard(request: Request):
         repair = None
     solved_epochs = db.get_solved_epochs(user["id"])
     day_start = stats.today_start_epoch()
+    board = _board_summary(user)
     return render(
         request,
         "dashboard.html",
@@ -696,6 +747,11 @@ async def dashboard(request: Request):
         level_label=content.CONTENT[level]["label"],
         total_solved=total,
         streak=streak,
+        board=board,
+        snapshot={"k": _snap_key(user), "level": content.CONTENT[level]["label"], "streak": streak["current"],
+                  "board": board,
+                  "longest": streak["longest"], "solved": total, "next": _next_unsolved(level, solved_set),
+                  "solved_today": sum(1 for t in solved_epochs if t >= day_start), "goal": user["daily_goal"]},
     )
 
 
@@ -735,7 +791,9 @@ async def profile(request: Request):
         {lv: len(info["days"]) for lv, info in content.CONTENT.items()},
         streak["longest"], db.has_event(user["id"], "first_run", ""),
     )
-    return render(request, "profile.html", streak=streak, **result)
+    return render(request, "profile.html", streak=streak, **result, snapshot={
+        "k": _snap_key(user), "xp": result["learner"]["xp"], "learner": result["learner"]["level"],
+        "badges": sum(1 for b in result["badges"] if b["earned"])})
 
 
 def _review_due_from_rows(user, rows) -> int:
@@ -887,6 +945,37 @@ STREAK_MILESTONES = (3, 7, 14, 30, 60, 100)
 SHARE_KINDS = ("day", "goal", "streak", "level", "progress")
 SHARE_CARD_USER = (60, 3600)  # card requests per learner per hour
 SHARE_IMAGE_IP = (200, 600)   # image renders per IP per 10 minutes (previews are fetched by a few crawlers)
+
+
+_board_cache = {}
+BOARD_TTL = int(os.environ.get("BOARD_TTL", "60"))  # seconds; one shared query, so compute it at most once a minute
+
+
+def _board_rows(level: str, since: int):
+    """Ranked leaderboard rows [{uid, handle, n}], cached briefly."""
+    key = (level, since)
+    hit = _board_cache.get(key)
+    if hit and time.monotonic() - hit[0] < BOARD_TTL:
+        return hit[1]
+    rows = [{"uid": r["id"], "n": int(r["n"]),
+             "handle": "Anonymous learner" if r["card_name_off"] else (card_handle(r) or "Anonymous learner")}
+            for r in db.leaderboard_rows(since, level)]
+    if len(_board_cache) > 50:
+        _board_cache.clear()
+    _board_cache[key] = (time.monotonic(), rows)
+    return rows
+
+
+def _board_summary(user) -> dict:
+    """This week's top 10 and where this learner stands (shown on the dashboard, saved for the waiting screen)."""
+    rows = _board_rows("", stats.week_start_epoch())
+    me = next(({"rank": i + 1, "n": r["n"]} for i, r in enumerate(rows) if r["uid"] == user["id"]), None)
+    return {"top": [{"h": r["handle"], "n": r["n"]} for r in rows[:10]], "me": me, "on": bool(user["leaderboard"])}
+
+
+def _snap_key(user) -> str:
+    """Opaque per-account tag so a progress summary saved on this device is never mixed between accounts."""
+    return hashlib.sha256(f"snapshot:{user['id']}".encode()).hexdigest()[:10]
 
 
 def _level_days_done(user_id: int, level: str) -> int:

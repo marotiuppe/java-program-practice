@@ -16,6 +16,7 @@
     if (lc) { title = lc.level + ' level complete!'; kind = 'level'; }
     else if (dc) { title = 'Day ' + dc.day + ' complete!'; kind = 'day'; day = dc.day; }
     else if (sm) { title = sm.days + '-day streak!'; kind = 'streak'; }
+    try { localStorage.setItem('jp_last', JSON.stringify({ title: title, t: Date.now() })); } catch (e) { /* ignore */ }
     const lines = [];
     if (lc) lines.push('You solved every question in this level. Excellent work!');
     if (dc) lines.push('You solved all 5 questions of Day ' + dc.day + '.');

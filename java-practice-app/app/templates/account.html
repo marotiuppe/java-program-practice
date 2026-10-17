@@ -17,6 +17,14 @@
   </form>
 </div>
 <div class="card">
+  <h2>Weekly leaderboard</h2>
+  <p class="muted">Off by default. When on, you appear in the top 10 by questions solved this week (it resets every Monday), shown with the name from the section above. Anyone visiting the site, including the login page, can see that name and your count, nothing else.</p>
+  <form method="post" action="/account/leaderboard">
+    <label class="check"><input type="checkbox" name="on" value="1" {{ 'checked' if board_on }}> Show me on the leaderboard</label>
+    <button>Save</button>
+  </form>
+</div>
+<div class="card">
   <h2>Email reminders</h2>
   {% if saved %}<p class="notice">Saved.</p>{% endif %}
   {% if not mail_ready %}

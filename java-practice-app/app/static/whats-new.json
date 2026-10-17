@@ -1,0 +1,26 @@
+[
+  {
+    "title": "Weekly leaderboard",
+    "text": "See the top 10 learners this week. Opt in from your account to join; it resets every Monday."
+  },
+  {
+    "title": "Share your wins",
+    "text": "Finish a day or hit a streak and get a card you can send to friends, with a QR code to join."
+  },
+  {
+    "title": "Hints, if you want them",
+    "text": "Turn on optional hints in your account and get unstuck without spoiling the answer."
+  },
+  {
+    "title": "Review queue",
+    "text": "Questions you struggled with come back after 1, 3, 7 and 21 days, so they stick."
+  },
+  {
+    "title": "Streak freezes",
+    "text": "Earn a freeze every 7 practice days. A missed day will not wipe your streak."
+  },
+  {
+    "title": "Every question tested",
+    "text": "All Beginner, Intermediate and Advanced coding questions are checked against hidden tests."
+  }
+]

@@ -32,6 +32,12 @@
   <div class="stat"><b>{{ streak.freezes }}/2</b><span>streak freezes{% if streak.next_freeze_in %} &middot; next in {{ streak.next_freeze_in }} day{{ '' if streak.next_freeze_in == 1 else 's' }}{% endif %}</span></div>
   <div class="stat"><b>{{ streak.total }}</b><span>days practiced</span></div>
 </div>
+<div class="card board-teaser">
+  {% if board.on and board.me %}<b>You are #{{ board.me.rank }} this week</b> with {{ board.me.n }} solved. <a href="/leaderboard">See the top 10</a>
+  {% elif board.on %}<b>You are on the weekly leaderboard.</b> Solve a question to get on this week&rsquo;s board. <a href="/leaderboard">See the top 10</a>
+  {% else %}<b>Weekly top 10.</b> Want to see how you compare? <a href="/leaderboard">See the leaderboard</a> or
+    <form method="post" action="/account/leaderboard" class="inline"><input type="hidden" name="on" value="1"><input type="hidden" name="back" value="/dashboard"><button class="link">join it</button></form>{% endif %}
+</div>
 <div class="share-links">
   <button type="button" data-share-kind="progress">Share my progress</button>
   {% if streak.current >= 2 %}<button type="button" data-share-kind="streak">Share my {{ streak.current }}-day streak</button>{% endif %}
@@ -64,4 +70,5 @@
     </a>
   {% endfor %}
 </div>
+<script type="application/json" id="jp-snapshot">{{ snapshot | tojson }}</script>
 {% endblock %}

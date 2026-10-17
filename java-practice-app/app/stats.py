@@ -49,6 +49,12 @@ def today_start_epoch() -> int:
     return int(datetime.combine(today(), datetime.min.time(), tzinfo=_tz()).timestamp())
 
 
+def week_start_epoch() -> int:
+    """Unix time of Monday 00:00 (APP_TIMEZONE) of the current week; the weekly leaderboard resets then."""
+    monday = today() - timedelta(days=today().weekday())
+    return int(datetime.combine(monday, datetime.min.time(), tzinfo=_tz()).timestamp())
+
+
 def compute(date_strings, today_date=None) -> dict:
     """current: consecutive days ending today (or yesterday, so the streak is not lost until the day ends);
     longest: best run ever; total: number of active days."""

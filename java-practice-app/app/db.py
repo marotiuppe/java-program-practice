@@ -178,6 +178,7 @@ MIGRATIONS = [
     ("progress", "solved_at", "BIGINT"),
     ("users", "display_name", "TEXT NOT NULL DEFAULT ''"),
     ("users", "card_name_off", "INTEGER NOT NULL DEFAULT 0"),
+    ("users", "leaderboard", "INTEGER NOT NULL DEFAULT 0"),
 ]
 
 
@@ -629,6 +630,25 @@ def list_reminder_users():
 def set_display_name(user_id: int, name: str, hidden: bool) -> None:
     with connect() as c:
         _x(c, "UPDATE users SET display_name = ?, card_name_off = ? WHERE id = ?", (name, 1 if hidden else 0, user_id))
+
+
+def set_leaderboard(user_id: int, on: bool) -> None:
+    with connect() as c:
+        _x(c, "UPDATE users SET leaderboard = ? WHERE id = ?", (1 if on else 0, user_id))
+
+
+def leaderboard_rows(since_epoch: int, level: str = ""):
+    """Learners who opted in, ranked by questions solved since `since_epoch` (ties: whoever got there first)."""
+    sql = ("SELECT u.id, u.email, u.display_name, u.card_name_off, COUNT(*) AS n, MAX(p.solved_at) AS last "
+           "FROM progress p JOIN users u ON u.id = p.user_id "
+           "WHERE p.status = 'solved' AND p.solved_at >= ? AND u.leaderboard = 1")
+    params = [since_epoch]
+    if level:
+        sql += " AND p.level = ?"
+        params.append(level)
+    sql += " GROUP BY u.id, u.email, u.display_name, u.card_name_off ORDER BY n DESC, last ASC, u.id ASC"
+    with connect() as c:
+        return _x(c, sql, tuple(params)).fetchall()
 
 
 def set_hints_on(user_id: int, on: bool) -> None:

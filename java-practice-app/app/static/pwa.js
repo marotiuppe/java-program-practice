@@ -6,14 +6,28 @@
     if (tz) document.cookie = 'tz=' + encodeURIComponent(tz) + '; path=/; max-age=31536000; samesite=lax';
   } catch (e) { /* cookie stays unset: server falls back to its default zone */ }
 
+  // Keep a small summary of the learner's progress on this device (pages put it in #jp-snapshot) so the
+  // "waking up the server" screen can show it while the server starts. Never leaves the device.
+  try {
+    const node = document.getElementById('jp-snapshot');
+    if (node) {
+      const fresh = JSON.parse(node.textContent);
+      const old = JSON.parse(localStorage.getItem('jp_snapshot') || 'null');
+      const merged = old && old.k === fresh.k ? Object.assign({}, old, fresh) : fresh;
+      merged.t = Date.now();
+      localStorage.setItem('jp_snapshot', JSON.stringify(merged));
+    }
+  } catch (e) { /* storage unavailable: the waiting screen simply shows less */ }
+
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
       navigator.serviceWorker.register('/sw.js').catch(() => {});
     });
     // Drop cached pages (they contain the user's email and code) when logging out.
     document.addEventListener('submit', (e) => {
-      if (e.target.matches && e.target.matches('form[action="/logout"]') && navigator.serviceWorker.controller) {
-        navigator.serviceWorker.controller.postMessage('clear-pages');
+      if (e.target.matches && e.target.matches('form[action="/logout"]')) {
+        try { localStorage.removeItem('jp_snapshot'); localStorage.removeItem('jp_last'); } catch (err) { /* ignore */ }
+        if (navigator.serviceWorker.controller) navigator.serviceWorker.controller.postMessage('clear-pages');
       }
     });
   }
