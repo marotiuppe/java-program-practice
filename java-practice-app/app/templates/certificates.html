@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block title %}Certificates{% endblock %}
+{% block content %}
+<h1>Your certificates</h1>
+<p class="muted">Finish every day of a level to claim a certificate of completion. Each one gets a public page and ID that anyone can use to check it, a PDF and image to download, and an &ldquo;Add to LinkedIn&rdquo; button. It certifies that you completed the practice plan; it is not an accredited qualification.</p>
+{% if error %}<p class="error">{{ error }}</p>{% endif %}
+{% for it in items %}
+<div class="card cert-card" id="{{ it.key }}">
+  <h2>{{ it.label }} level</h2>
+  {% if it.cert %}
+    <p>&#127942; Issued to <b>{{ it.cert.name }}</b>. <a class="btn-continue" href="/cert/{{ it.cert.id }}">Open certificate</a></p>
+    <form method="post" action="/certificate/{{ it.key }}/delete" class="inline" onsubmit="return confirm('Delete this certificate? Its public page stops working. You can claim a new one later.')"><button class="link">Delete this certificate</button></form>
+  {% elif it.complete %}
+    <p>You finished all {{ it.total }} days. Choose the name to print on the certificate.</p>
+    <form method="post" action="/certificate/{{ it.key }}">
+      <label>Name on certificate <input type="text" name="name" maxlength="50" required value="{{ suggest }}" autocomplete="name" placeholder="e.g. Maroti Uppe"></label>
+      <p class="muted small">Use your real name if you want to share it. 2 to 50 letters (A to Z, accents, spaces, dots, dashes). Anyone with the link can see it.</p>
+      <button class="primary">Get my certificate</button>
+    </form>
+  {% else %}
+    <p class="muted">{{ it.done }} of {{ it.total }} days finished.</p>
+    <div class="meter"><i style="width:{{ (it.done * 100 / it.total) | round(1) }}%"></i></div>
+  {% endif %}
+</div>
+{% endfor %}
+{% endblock %}

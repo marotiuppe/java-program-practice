@@ -61,6 +61,11 @@
       dash.href = '/dashboard';
       row.appendChild(dash);
     }
+    if (lc) {
+      const cert = el('a', '', 'Get your certificate');
+      cert.href = '/certificate';
+      row.appendChild(cert);
+    }
     const shareSlot = el('div');
     box.appendChild(shareSlot);
     box.appendChild(row);

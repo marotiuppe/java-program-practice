@@ -42,7 +42,7 @@
   <a class="btn-continue" href="/invite">Invite a friend: you both get a streak freeze</a>
   <button type="button" data-share-kind="progress">Share my progress</button>
   {% if streak.current >= 2 %}<button type="button" data-share-kind="streak">Share my {{ streak.current }}-day streak</button>{% endif %}
-  {% if days | selectattr('state', 'equalto', 'done') | list | length == days | length %}<button type="button" data-share-kind="level">Share level complete</button>{% endif %}
+  {% if days | selectattr('state', 'equalto', 'done') | list | length == days | length %}<a class="btn-continue" href="/certificate">Get your certificate</a><button type="button" data-share-kind="level">Share level complete</button>{% endif %}
 </div>
 {% if repair %}
 <form method="post" action="/streak/repair" class="repair">

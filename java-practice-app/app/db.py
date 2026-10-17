@@ -54,6 +54,16 @@ CREATE TABLE IF NOT EXISTS events (
     created_at INTEGER NOT NULL
 );
 CREATE INDEX IF NOT EXISTS events_name_idx ON events (name, created_at);
+CREATE TABLE IF NOT EXISTS certificates (
+    id TEXT PRIMARY KEY,
+    user_id INTEGER NOT NULL,
+    level TEXT NOT NULL,
+    name TEXT NOT NULL,
+    solved INTEGER NOT NULL,
+    days INTEGER NOT NULL,
+    issued_at INTEGER NOT NULL
+);
+CREATE UNIQUE INDEX IF NOT EXISTS certificates_user_level_idx ON certificates (user_id, level);
 CREATE TABLE IF NOT EXISTS feedback (
     user_id INTEGER NOT NULL,
     level TEXT NOT NULL,
@@ -126,6 +136,16 @@ SCHEMA_PG = [
         created_at BIGINT NOT NULL
     )""",
     "CREATE INDEX IF NOT EXISTS events_name_idx ON events (name, created_at)",
+    """CREATE TABLE IF NOT EXISTS certificates (
+        id TEXT PRIMARY KEY,
+        user_id BIGINT NOT NULL,
+        level TEXT NOT NULL,
+        name TEXT NOT NULL,
+        solved INTEGER NOT NULL,
+        days INTEGER NOT NULL,
+        issued_at BIGINT NOT NULL
+    )""",
+    "CREATE UNIQUE INDEX IF NOT EXISTS certificates_user_level_idx ON certificates (user_id, level)",
     """CREATE TABLE IF NOT EXISTS feedback (
         user_id BIGINT NOT NULL,
         level TEXT NOT NULL,
@@ -585,7 +605,7 @@ def consume_token(raw: str, purpose: str):
 
 
 # ---- privacy: export and delete everything we hold about a user ----
-USER_TABLES = ["progress", "activity", "events", "reviews", "reports", "feedback", "auth_tokens"]
+USER_TABLES = ["progress", "activity", "events", "reviews", "reports", "feedback", "auth_tokens", "certificates"]
 
 
 def export_user(user_id: int) -> dict:
@@ -605,6 +625,7 @@ def export_user(user_id: int) -> dict:
             "feedback": rows("SELECT level, day, qnum, rating, difficulty, updated_at FROM feedback WHERE user_id = ?"),
             "reports": rows("SELECT level, day, qnum, category, note, code, resolved, created_at FROM reports "
                             "WHERE user_id = ? ORDER BY id"),
+            "certificates": rows("SELECT id, level, name, solved, days, issued_at FROM certificates WHERE user_id = ?"),
         }
 
 
@@ -708,6 +729,41 @@ def user_by_handle(handle: str):
         return None
     with connect() as c:
         return _x(c, "SELECT * FROM users WHERE handle = ? AND profile_public = 1", (handle,)).fetchone()
+
+
+CERT_ALPHABET = "ABCDEFGHJKMNPQRSTUVWXYZ23456789"  # no look-alike characters
+
+
+def create_certificate(user_id: int, level: str, name: str, solved: int, days: int):
+    """Issue a certificate (one per learner and level). Returns its id, or None if one already exists."""
+    for _ in range(10):
+        cid = "".join(secrets.choice(CERT_ALPHABET) for _ in range(12))
+        try:
+            with connect() as c:
+                _x(c, "INSERT INTO certificates (id, user_id, level, name, solved, days, issued_at) VALUES (?, ?, ?, ?, ?, ?, ?)",
+                   (cid, user_id, level, name, solved, days, int(time.time())))
+            return cid
+        except IntegrityError:
+            with connect() as c:
+                if _x(c, "SELECT 1 FROM certificates WHERE user_id = ? AND level = ?", (user_id, level)).fetchone():
+                    return None
+    return None
+
+
+def get_certificate(cid: str):
+    with connect() as c:
+        return _x(c, "SELECT * FROM certificates WHERE id = ?", (cid,)).fetchone()
+
+
+def certificates_of(user_id: int) -> dict:
+    """{level: certificate row} for one learner."""
+    with connect() as c:
+        return {r["level"]: r for r in _x(c, "SELECT * FROM certificates WHERE user_id = ?", (user_id,)).fetchall()}
+
+
+def delete_certificate(user_id: int, level: str) -> None:
+    with connect() as c:
+        _x(c, "DELETE FROM certificates WHERE user_id = ? AND level = ?", (user_id, level))
 
 
 def set_leaderboard(user_id: int, on: bool) -> None:

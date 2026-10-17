@@ -159,5 +159,19 @@ with TestClient(app, follow_redirects=False) as c:
     check("progress survives re-login", "saved code" in c.get("/day/1/q/1").text)
     check("data export", c.get("/account/export").status_code == 200)
 
+    # certificates (roadmap 4.3): locked until a level is finished, then claimable and publicly verifiable
+    check("certificates page", c.get("/certificate").status_code == 200)
+    check("cannot claim an unfinished level", c.post("/certificate/beginner", data={"name": "Smoke Tester"}).headers["location"].startswith("/certificate?error="))
+    for d_, day_ in content.CONTENT["beginner"]["days"].items():
+        for q_ in day_["questions"]:
+            db.save_progress(uid, "beginner", d_, q_, "x", "solved", True)
+    cr = c.post("/certificate/beginner", data={"name": "Smoke Tester"})
+    cert_url = cr.headers["location"]
+    check("claim after finishing the level", cr.status_code == 303 and cert_url.startswith("/cert/"), cert_url)
+    check("public certificate page and files", anon.get(cert_url).status_code == 200 and anon.get(cert_url + ".png").headers["content-type"] == "image/png"
+          and anon.get(cert_url + ".pdf").content[:5] == b"%PDF-")
+    c.post("/certificate/beginner/delete")
+    check("deleted certificate disappears", anon.get(cert_url).status_code == 404)
+
 print("\nFAILED: " + ", ".join(failures) if failures else "\nAll smoke checks passed.")
 sys.exit(1 if failures else 0)

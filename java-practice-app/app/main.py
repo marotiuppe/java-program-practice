@@ -743,6 +743,101 @@ async def public_profile_card(request: Request, handle: str):
     return await _profile_image(request, handle, "card")
 
 
+@app.get("/certificate")
+def certificates_page(request: Request):
+    user = current_user(request)
+    if not user:
+        return RedirectResponse("/login", status_code=303)
+    issued = db.certificates_of(user["id"])
+    items = []
+    for key, info in content.CONTENT.items():
+        total = len(info["days"])
+        done = _level_days_done(user["id"], key)
+        row = issued.get(key)
+        items.append({"key": key, "label": info["label"], "done": done, "total": total, "complete": done >= total,
+                      "cert": row})
+    return render(request, "certificates.html", items=items, error=request.query_params.get("error"),
+                  suggest=clean_cert_name(user["display_name"]))
+
+
+@app.post("/certificate/{level}")
+def certificate_claim(request: Request, level: str, name: str = Form("")):
+    user = current_user(request)
+    if not user:
+        return RedirectResponse("/login", status_code=303)
+    if level not in content.CONTENT:
+        return RedirectResponse("/certificate", status_code=303)
+    if ratelimit.hit(f"cert:{user['id']}", *CERT_USER):
+        return RedirectResponse("/certificate?error=Too+many+tries.+Please+wait+a+while.", status_code=303)
+    total = len(content.CONTENT[level]["days"])
+    if _level_days_done(user["id"], level) < total:
+        return RedirectResponse("/certificate?error=Finish+every+day+of+the+level+first.", status_code=303)
+    clean = clean_cert_name(name)
+    if not clean:
+        return RedirectResponse("/certificate?error=Use+2+to+50+letters+(A-Z%2C+accents%2C+spaces%2C+dots%2C+dashes).", status_code=303)
+    existing = db.certificates_of(user["id"]).get(level)
+    cid = existing["id"] if existing else db.create_certificate(
+        user["id"], level, clean, sum(len(d["questions"]) for d in content.CONTENT[level]["days"].values()), total)
+    db.log_event(user["id"], "certificate_issued", level, once=True)
+    return RedirectResponse(f"/cert/{cid}" if cid else "/certificate", status_code=303)
+
+
+@app.post("/certificate/{level}/delete")
+def certificate_delete(request: Request, level: str):
+    user = current_user(request)
+    if not user:
+        return RedirectResponse("/login", status_code=303)
+    db.delete_certificate(user["id"], level)
+    return RedirectResponse("/certificate", status_code=303)
+
+
+async def _cert_file(request: Request, raw_id: str, kind: str, media: str, filename: str = ""):
+    if ratelimit.hit(f"certimg:{client_ip(request)}", *CERT_IP):
+        return Response("Too many requests", status_code=429)
+    cid = _norm_cert_id(raw_id)
+    row = db.get_certificate(cid) if cid else None
+    if row is None:
+        return Response("Not found", status_code=404)
+    c = _cert_dict(row)
+    data = await asyncio.to_thread(sharecard.certificate_cached, kind, c["id"], c["name"], c["level"], c["solved"],
+                                   c["days"], c["issued"], base_url(request))
+    headers = {"Cache-Control": "public, max-age=3600"}
+    if filename:
+        headers["Content-Disposition"] = f'attachment; filename="{filename}"'
+    return Response(data, media_type=media, headers=headers)
+
+
+@app.get("/cert/{cid}.png")
+async def cert_png(request: Request, cid: str, download: int = 0):
+    return await _cert_file(request, cid, "png", "image/png", f"java-practice-certificate-{cid.lower()}.png" if download else "")
+
+
+@app.get("/cert/{cid}.pdf")
+async def cert_pdf(request: Request, cid: str):
+    return await _cert_file(request, cid, "pdf", "application/pdf", f"java-practice-certificate-{cid.lower()}.pdf")
+
+
+@app.get("/cert/{cid}/og.png")
+async def cert_og(request: Request, cid: str):
+    return await _cert_file(request, cid, "og", "image/png")
+
+
+@app.get("/cert/{cid}")
+def cert_page(request: Request, cid: str):
+    if ratelimit.hit(f"certpage:{client_ip(request)}", *CERT_IP):
+        return Response("Too many requests", status_code=429)
+    norm = _norm_cert_id(cid)
+    row = db.get_certificate(norm) if norm else None
+    if row is None:
+        return render(request, "message.html", status_code=404, title="Certificate not found",
+                      text="No certificate has this ID. Check the ID or the link you were given.", href="/", link="Go to Java Practice")
+    c = _cert_dict(row)
+    page_url = f"{base_url(request)}/cert/{c['id']}"
+    me = current_user(request)
+    return render(request, "cert_public.html", c=c, display_id=sharecard.cert_display_id(c["id"]), page_url=page_url,
+                  linkedin=_linkedin_url(c, page_url), mine=bool(me and me["id"] == row["user_id"]), level_key=row["level"])
+
+
 @app.get("/join/{code}")
 async def join_link(code: str):
     """Personal invite link: the ref cookie is set by the middleware on the page it redirects to."""
@@ -1157,6 +1252,41 @@ def _board_summary(user) -> dict:
     rows = _board_rows("", stats.week_start_epoch())
     me = next(({"rank": i + 1, "n": r["n"]} for i, r in enumerate(rows) if r["uid"] == user["id"]), None)
     return {"top": [{"h": r["handle"], "n": r["n"]} for r in rows[:10]], "me": me, "on": bool(user["leaderboard"])}
+
+
+CERT_USER = (10, 3600)   # certificate claims per learner per hour
+CERT_IP = (200, 600)     # certificate page and image views per IP per 10 minutes
+CERT_NAME_RE = re.compile(r"^[A-Za-z\u00C0-\u024F][A-Za-z\u00C0-\u024F .,'\u2019-]{1,49}$")
+
+
+def clean_cert_name(text: str) -> str:
+    """The name printed on a certificate: 2-50 Latin letters, spaces, dots, apostrophes and dashes ("" if unusable)."""
+    text = re.sub(r"\s+", " ", (text or "").strip())
+    return text if CERT_NAME_RE.match(text) and sum(ch.isalpha() for ch in text) >= 2 else ""
+
+
+def _norm_cert_id(raw: str) -> str:
+    """JP-ABCD-EFGH-JKLM, abcdefghjklm and ABCDEFGHJKLM all mean the same certificate."""
+    cid = re.sub(r"[^A-Za-z0-9]", "", raw or "").upper()
+    cid = cid[2:] if cid.startswith("JP") and len(cid) == 14 else cid
+    return cid if re.fullmatch(r"[A-Z2-9]{12}", cid) else ""
+
+
+def _cert_dict(row) -> dict:
+    zone = stats._load_zone(os.environ.get("APP_TIMEZONE", "Asia/Kolkata")) or None
+    when = datetime.fromtimestamp(row["issued_at"], zone)
+    lvl = content.CONTENT.get(row["level"])
+    return {"id": row["id"], "name": row["name"], "level": lvl["label"] if lvl else row["level"].title(),
+            "solved": int(row["solved"]), "days": int(row["days"]), "issued": f"{when.day} {when.strftime('%B %Y')}",
+            "issued_year": when.year, "issued_month": when.month}
+
+
+def _linkedin_url(cert: dict, page_url: str) -> str:
+    from urllib.parse import quote
+    q = {"startTask": "CERTIFICATION_NAME", "name": f"Java Practice: {cert['level']} level (30-day plan)",
+         "organizationName": "Java Practice", "issueYear": cert["issued_year"], "issueMonth": cert["issued_month"],
+         "certUrl": page_url, "certId": cert["id"]}
+    return "https://www.linkedin.com/profile/add?" + "&".join(f"{k}={quote(str(v), safe='')}" for k, v in q.items())
 
 
 def _snap_key(user) -> str:

@@ -62,12 +62,15 @@ class _Canvas:
 
     S = 2
 
-    def __init__(self, w: int, h: int):
+    def __init__(self, w: int, h: int, plain=None):
         self.w, self.h = w, h
-        corners = Image.new("RGB", (2, 2))
-        mid = tuple((a + b) // 2 for a, b in zip(INDIGO, PURPLE))
-        corners.putdata([INDIGO, mid, mid, PURPLE])
-        self.im = corners.resize((w * self.S, h * self.S), Image.BICUBIC)
+        if plain:
+            self.im = Image.new("RGB", (w * self.S, h * self.S), plain)
+        else:
+            corners = Image.new("RGB", (2, 2))
+            mid = tuple((a + b) // 2 for a, b in zip(INDIGO, PURPLE))
+            corners.putdata([INDIGO, mid, mid, PURPLE])
+            self.im = corners.resize((w * self.S, h * self.S), Image.BICUBIC)
         self.d = ImageDraw.Draw(self.im, "RGBA")
 
     def _s(self, *v):
@@ -101,6 +104,9 @@ class _Canvas:
 
     def width(self, text, weight, size):
         return self.d.textlength(text, font=_font(weight, size * self.S)) / self.S
+
+    def image(self):
+        return self.im.resize((self.w, self.h), Image.LANCZOS)
 
     def png(self) -> bytes:
         out = self.im.resize((self.w, self.h), Image.LANCZOS)
@@ -305,3 +311,96 @@ def render_cached(token: str, kind: str, site: str):
     if card is None:
         return None
     return render_card(card, site) if kind == "card" else render_og(card, site)
+
+
+# ---------------------------------------------------------------- certificates (roadmap 4.3)
+CERT_W, CERT_H = 1600, 1131  # A4 landscape proportions
+CREAM = (255, 253, 248)
+GOLD = (217, 160, 20)
+MUTED = (88, 97, 116)
+
+
+def cert_display_id(cid: str) -> str:
+    """JP-ABCD-EFGH-JKLM from the 12-character id."""
+    return "JP-" + "-".join(cid[i:i + 4] for i in range(0, 12, 4))
+
+
+def _spaced(c: _Canvas, x: float, y: float, text: str, weight: str, size: int, fill, gap: float):
+    """Centred text with extra letter spacing (small caps look)."""
+    widths = [c.width(ch, weight, size) for ch in text]
+    total = sum(widths) + gap * (len(text) - 1)
+    cx = x - total / 2
+    for ch, w in zip(text, widths):
+        c.text(cx, y, ch, weight, size, fill, anchor="ls")
+        cx += w + gap
+
+
+def render_certificate(cert: dict, site: str) -> "Image.Image":
+    """cert: id, name, level (label), solved, days, issued (e.g. "17 October 2026")."""
+    W, H = CERT_W, CERT_H
+    c = _Canvas(W, H, plain=CREAM)
+    # brand band
+    band = Image.new("RGB", (2, 2))
+    mid = tuple((a + b) // 2 for a, b in zip(INDIGO, PURPLE))
+    band.putdata([INDIGO, mid, mid, PURPLE])
+    c.im.paste(band.resize((W * c.S, 190 * c.S), Image.BICUBIC), (0, 0))
+    _brand(c, 90, 62, 1.4)
+    _spaced(c, W - 330, 118, "CERTIFICATE OF COMPLETION", "Bold", 26, WHITE, 3)
+    c.d.rectangle([(0, 190 * c.S), (W * c.S, 198 * c.S)], fill=GOLD)
+    # frame
+    c.d.rounded_rectangle([(40 * c.S, 230 * c.S), ((W - 40) * c.S, (H - 40) * c.S)], radius=24 * c.S,
+                          outline=(222, 226, 240), width=3 * c.S)
+    c.text(W / 2, 330, "This certifies that", "Medium", 34, MUTED)
+    c.text(W / 2, 460, cert["name"], "Bold", 104, INK, max_w=W - 260)
+    c.d.rectangle([((W / 2 - 330) * c.S, 492 * c.S), ((W / 2 + 330) * c.S, 495 * c.S)], fill=GOLD)
+    c.text(W / 2, 566, "has successfully completed the", "Medium", 34, MUTED)
+    c.text(W / 2, 674, f"{cert['level']} level", "Bold", 84, INDIGO, max_w=W - 260)
+    c.text(W / 2, 742, "of the 30-day Java Practice plan", "Medium", 34, MUTED)
+    # stats
+    for i, (v, label) in enumerate([(str(cert["solved"]), "questions solved"), (str(cert["days"]), "days completed")]):
+        x = W / 2 + (-170 if i == 0 else 170)
+        c.text(x, 842, v, "Bold", 58, INK)
+        c.text(x, 884, label, "Medium", 26, MUTED)
+    # footer: date left, verification right
+    url = f"{site.rstrip('/')}/cert/{cert['id']}"
+    c.text(110, H - 180, "ISSUED", "Bold", 22, MUTED, anchor="ls")
+    c.text(110, H - 138, cert["issued"], "Bold", 38, INK, anchor="ls")
+    c.text(110, H - 96, "Certificate of completion of a self-paced practice plan.", "Medium", 20, MUTED, anchor="ls")
+    c.text(110, H - 68, "Not an accredited qualification.", "Medium", 20, MUTED, anchor="ls")
+    qs = 190
+    qx, qy = W - 110 - qs, H - 70 - qs
+    _qr(c, url, qx, qy, qs)
+    c.d.rounded_rectangle([qx * c.S, qy * c.S, (qx + qs) * c.S, (qy + qs) * c.S], radius=14 * c.S,
+                          outline=(220, 224, 240), width=2 * c.S)
+    c.text(qx - 30, H - 180, "VERIFY", "Bold", 22, MUTED, anchor="rs")
+    c.text(qx - 30, H - 138, cert_display_id(cert["id"]), "Bold", 38, INK, anchor="rs")
+    c.text(qx - 30, H - 96, _host(site) + "/cert/" + cert["id"], "Medium", 20, MUTED, anchor="rs", max_w=520)
+    return c.image()
+
+
+def certificate_png(cert: dict, site: str) -> bytes:
+    buf = io.BytesIO()
+    render_certificate(cert, site).save(buf, "PNG", optimize=True)
+    return buf.getvalue()
+
+
+def certificate_pdf(cert: dict, site: str) -> bytes:
+    buf = io.BytesIO()
+    render_certificate(cert, site).save(buf, "PDF", resolution=150.0, title=f"Java Practice certificate: {cert['name']}")
+    return buf.getvalue()
+
+
+def certificate_og(cert: dict, site: str) -> bytes:
+    """1200x630 link preview: the certificate on the brand background."""
+    c = _Canvas(1200, 630)
+    _decor(c, [(-100, -80, 330), (1130, 150, 250), (1010, 640, 200)])
+    img = render_certificate(cert, site).resize((792, 560), Image.LANCZOS)
+    c.d.rounded_rectangle([(204 * c.S, 40 * c.S), (996 * c.S, 612 * c.S)], radius=18 * c.S, fill=(0, 0, 0, 60))
+    c.im.paste(img.resize((792 * c.S, 560 * c.S), Image.LANCZOS), (204 * c.S, 36 * c.S))
+    return c.png()
+
+
+@functools.lru_cache(maxsize=32)
+def certificate_cached(kind: str, cid: str, name: str, level: str, solved: int, days: int, issued: str, site: str) -> bytes:
+    cert = {"id": cid, "name": name, "level": level, "solved": solved, "days": days, "issued": issued}
+    return {"png": certificate_png, "pdf": certificate_pdf, "og": certificate_og}[kind](cert, site)

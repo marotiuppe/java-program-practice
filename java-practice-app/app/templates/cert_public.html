@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% block title %}Certificate: {{ c.name }}, {{ c.level }} level{% endblock %}
+{% block description %}{{ c.name }} completed the {{ c.level }} level of the 30-day Java Practice plan ({{ c.solved }} questions, {{ c.days }} days), issued {{ c.issued }}. Certificate {{ display_id }}.{% endblock %}
+{% block og_image %}<meta property="og:image" content="{{ site_url }}/cert/{{ c.id }}/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:image" content="{{ site_url }}/cert/{{ c.id }}/og.png">{% endblock %}
+{% block head_extra %}<meta name="robots" content="noindex">{% endblock %}
+{% block content %}
+<section class="cert-page">
+  <h1 class="sr-only">Certificate of completion: {{ c.name }}, {{ c.level }} level</h1>
+  <p class="cert-ok">&#10003; Genuine certificate. It was issued by Java Practice and is still valid.</p>
+  <img class="cert-img" src="/cert/{{ c.id }}.png" width="800" height="566" alt="Certificate of completion: {{ c.name }} completed the {{ c.level }} level of the 30-day Java Practice plan, {{ c.solved }} questions solved in {{ c.days }} days, issued {{ c.issued }}. Certificate {{ display_id }}.">
+  <dl class="cert-facts">
+    <div><dt>Awarded to</dt><dd>{{ c.name }}</dd></div>
+    <div><dt>Completed</dt><dd>{{ c.level }} level, {{ c.solved }} questions in {{ c.days }} days</dd></div>
+    <div><dt>Issued</dt><dd>{{ c.issued }}</dd></div>
+    <div><dt>Certificate ID</dt><dd>{{ display_id }}</dd></div>
+  </dl>
+  <p class="muted small">A certificate of completion of a self-paced practice plan. It is not an accredited qualification.</p>
+  <p class="share-links">
+    <a class="btn-continue" href="/cert/{{ c.id }}.png?download=1">Download image</a>
+    <a class="btn-continue" href="/cert/{{ c.id }}.pdf">Download PDF</a>
+    <a class="btn-continue" href="{{ linkedin }}" target="_blank" rel="noopener noreferrer">Add to LinkedIn</a>
+    <button type="button" id="cert-share">Share link</button>
+  </p>
+  <p class="muted small" id="cert-note" role="status"></p>
+  {% if mine %}
+  <p class="muted small">This is your certificate. <a href="/certificate#{{ level_key }}">Manage it</a>.</p>
+  {% else %}
+  <div class="card"><p><b>Want one of your own?</b> Learn Java in 30 days: five questions a day, an editor that runs your code, free.</p>
+    <p><a class="btn-continue" href="/signup?utm_source=certificate">Start the challenge</a></p></div>
+  {% endif %}
+</section>
+<script>
+(function () {
+  var b = document.getElementById('cert-share'), note = document.getElementById('cert-note'), url = {{ page_url | tojson }};
+  b.addEventListener('click', function () {
+    if (navigator.share) { navigator.share({ title: document.title, url: url }).catch(function () {}); return; }
+    if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(url).then(function () { note.textContent = 'Link copied.'; });
+    else note.textContent = url;
+  });
+})();
+</script>
+{% endblock %}
