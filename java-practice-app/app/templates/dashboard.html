@@ -1,67 +1,83 @@
 {% extends "base.html" %}
 {% block title %}Dashboard{% endblock %}
 {% block content %}
-<h1>{{ level_label }} — 30-day plan</h1>
-<div class="overall"><span class="muted">{{ total_solved }} of 150 questions solved</span>
-  <div class="meter"><i style="width:{{ (total_solved * 100 / 150) | round(1) }}%"></i></div></div>
-{% if next_q %}
-<div class="continue">
-  <a class="btn-continue" href="/day/{{ next_q.day }}/q/{{ next_q.q }}">{{ 'Continue' if started else 'Start' }}: Day {{ next_q.day }} · Question {{ next_q.q }} &rarr;</a>
-</div>
-{% else %}
-<p class="muted">You have solved every question in this level. Well done!</p>
-{% endif %}
-{% set pct = [solved_today / daily_goal, 1] | min %}
-<div class="goal-card">
-  <svg class="ring" viewBox="0 0 80 80" role="img" aria-label="{{ solved_today }} of {{ daily_goal }} solved today">
-    <circle cx="40" cy="40" r="34" class="ring-bg"/>
-    <circle cx="40" cy="40" r="34" class="ring-fg" stroke-dasharray="{{ (213.63 * pct) | round(1) }} 213.63" transform="rotate(-90 40 40)"/>
-    <text x="40" y="46" text-anchor="middle" class="ring-text">{{ solved_today }}/{{ daily_goal }}</text>
-  </svg>
-  <div>
-    <b>{% if solved_today >= daily_goal %}Daily goal reached!{% else %}Today&rsquo;s goal{% endif %}</b><br>
-    <span class="muted">{{ solved_today }} of {{ daily_goal }} solved today &middot; <a href="/goal">change goal</a></span>
+<div class="dash">
+  <div class="dash-main">
+    <section class="dash-hero" aria-label="Your plan">
+      <h1>{{ level_label }} — 30-day plan</h1>
+      <div class="overall"><span class="muted">{{ total_solved }} of 150 questions solved</span>
+        <div class="meter"><i style="width:{{ (total_solved * 100 / 150) | round(1) }}%"></i></div></div>
+      <div class="hero-row">
+        {% if next_q %}
+        <a class="btn-continue" href="/day/{{ next_q.day }}/q/{{ next_q.q }}">{{ 'Continue' if started else 'Start' }}: Day {{ next_q.day }} · Question {{ next_q.q }} &rarr;</a>
+        {% else %}
+        <p class="muted">You have solved every question in this level. Well done!</p>
+        {% endif %}
+        {% set pct = [solved_today / daily_goal, 1] | min %}
+        <div class="goal-card">
+          <svg class="ring" viewBox="0 0 80 80" role="img" aria-label="{{ solved_today }} of {{ daily_goal }} solved today">
+            <circle cx="40" cy="40" r="34" class="ring-bg"/>
+            <circle cx="40" cy="40" r="34" class="ring-fg" stroke-dasharray="{{ (213.63 * pct) | round(1) }} 213.63" transform="rotate(-90 40 40)"/>
+            <text x="40" y="46" text-anchor="middle" class="ring-text">{{ solved_today }}/{{ daily_goal }}</text>
+          </svg>
+          <div>
+            <b>{% if solved_today >= daily_goal %}Daily goal reached!{% else %}Today&rsquo;s goal{% endif %}</b><br>
+            <span class="muted">{{ solved_today }} of {{ daily_goal }} solved today &middot; <a href="/goal">change goal</a></span>
+          </div>
+        </div>
+      </div>
+      {% if review_due %}
+      <p class="review-note"><a href="/review">{{ review_due }} question{{ '' if review_due == 1 else 's' }} ready to review</a> &mdash; a quick refresher helps it stick.</p>
+      {% endif %}
+    </section>
+
+    <section class="dash-days" aria-labelledby="days-h">
+      <h2 id="days-h">Your 30 days</h2>
+      <div class="grid">
+        {% for d in days %}
+          <a class="day {{ d.state }}{{ ' next' if next_q and next_q.day == d.n }}" href="/day/{{ d.n }}">
+            <span class="num">Day {{ d.n }}{% if next_q and next_q.day == d.n %} <span class="up-next">Up next</span>{% endif %}</span>
+            <span class="ttl">{{ d.title }}</span>
+            <div class="meter"><i style="width:{{ d.solved * 20 }}%"></i></div>
+            <span class="cnt">{{ d.solved }}/5 solved</span>
+          </a>
+        {% endfor %}
+      </div>
+    </section>
   </div>
-</div>
-{% if review_due %}
-<p class="review-note"><a href="/review">{{ review_due }} question{{ '' if review_due == 1 else 's' }} ready to review</a> &mdash; a quick refresher helps it stick.</p>
-{% endif %}
-<div class="stats">
-  <div class="stat"><b>{{ streak.current }}</b><span>day streak{% if streak.current and not streak.today %} (practice today to keep it){% endif %}</span></div>
-  <div class="stat"><b>{{ streak.longest }}</b><span>longest streak{% if streak.longest and streak.longest == streak.current %} &#127942;{% endif %}</span></div>
-  <div class="stat"><b>{{ streak.freezes }}</b><span>streak freezes{% if streak.next_freeze_in %} &middot; next in {{ streak.next_freeze_in }} day{{ '' if streak.next_freeze_in == 1 else 's' }}{% endif %}</span></div>
-  <div class="stat"><b>{{ streak.total }}</b><span>days practiced</span></div>
-</div>
-<div class="card board-teaser">
-  {% if board.on and board.me %}<b>You are #{{ board.me.rank }} this week</b> with {{ board.me.n }} solved. <a href="/leaderboard">See the top 10</a>
-  {% elif board.on %}<b>You are on the weekly leaderboard.</b> Solve a question to get on this week&rsquo;s board. <a href="/leaderboard">See the top 10</a>
-  {% else %}<b>Weekly top 10.</b> Want to see how you compare? <a href="/leaderboard">See the leaderboard</a> or
-    <form method="post" action="/account/leaderboard" class="inline"><input type="hidden" name="on" value="1"><input type="hidden" name="back" value="/dashboard"><button class="link">join it</button></form>{% endif %}
-</div>
-<div class="share-links">
-  <a class="btn-continue" href="/interview">Mock interview: 3 questions, {{ interview_minutes }} minutes</a>
-  <a class="btn-continue" href="/invite">Invite a friend: you both get a streak freeze</a>
-  <button type="button" data-share-kind="progress">Share my progress</button>
-  {% if streak.current >= 2 %}<button type="button" data-share-kind="streak">Share my {{ streak.current }}-day streak</button>{% endif %}
-  {% if days | selectattr('state', 'equalto', 'done') | list | length == days | length %}<a class="btn-continue" href="/certificate">Get your certificate</a><button type="button" data-share-kind="level">Share level complete</button>{% endif %}
-</div>
-{% if repair %}
-<form method="post" action="/streak/repair" class="repair">
-  You missed yesterday. Repair it (once a month) to get back to a {{ repair }}-day streak.
-  <button class="primary">Repair streak</button>
-</form>
-{% endif %}
-<p class="muted small">A freeze is earned every 7 practice days (keep up to 2) and saves your streak automatically on a day you miss.</p>
-{% include "_heat.html" %}
-<div class="grid">
-  {% for d in days %}
-    <a class="day {{ d.state }}" href="/day/{{ d.n }}">
-      <span class="num">Day {{ d.n }}</span>
-      <span class="ttl">{{ d.title }}</span>
-      <div class="meter"><i style="width:{{ d.solved * 20 }}%"></i></div>
-      <span class="cnt">{{ d.solved }}/5 solved</span>
-    </a>
-  {% endfor %}
+
+  <aside class="dash-side" aria-label="Your stats and shortcuts">
+    <div class="dash-stats stats">
+      <div class="stat"><b>{{ streak.current }}</b><span>day streak{% if streak.current and not streak.today %} (practice today to keep it){% endif %}</span></div>
+      <div class="stat"><b>{{ streak.longest }}</b><span>longest streak{% if streak.longest and streak.longest == streak.current %} &#127942;{% endif %}</span></div>
+      <div class="stat"><b>{{ streak.freezes }}</b><span>streak freezes{% if streak.next_freeze_in %} &middot; next in {{ streak.next_freeze_in }} day{{ '' if streak.next_freeze_in == 1 else 's' }}{% endif %}</span></div>
+      <div class="stat"><b>{{ streak.total }}</b><span>days practiced</span></div>
+    </div>
+    {% if repair %}
+    <form method="post" action="/streak/repair" class="repair">
+      You missed yesterday. Repair it (once a month) to get back to a {{ repair }}-day streak.
+      <button class="primary">Repair streak</button>
+    </form>
+    {% endif %}
+    <div class="card board-teaser dash-board">
+      {% if board.on and board.me %}<b>You are #{{ board.me.rank }} this week</b> with {{ board.me.n }} solved. <a href="/leaderboard">See the top 10</a>
+      {% elif board.on %}<b>You are on the weekly leaderboard.</b> Solve a question to get on this week&rsquo;s board. <a href="/leaderboard">See the top 10</a>
+      {% else %}<b>Weekly top 10.</b> Want to see how you compare? <a href="/leaderboard">See the leaderboard</a> or
+        <form method="post" action="/account/leaderboard" class="inline"><input type="hidden" name="on" value="1"><input type="hidden" name="back" value="/dashboard"><button class="link">join it</button></form>{% endif %}
+    </div>
+    <div class="dash-actions share-links">
+      <a class="btn-continue" href="/interview">Mock interview: 3 questions, {{ interview_minutes }} minutes</a>
+      <a class="btn-continue" href="/invite">Invite a friend: you both get a streak freeze</a>
+      <button type="button" data-share-kind="progress">Share my progress</button>
+      {% if streak.current >= 2 %}<button type="button" data-share-kind="streak">Share my {{ streak.current }}-day streak</button>{% endif %}
+      {% if days | selectattr('state', 'equalto', 'done') | list | length == days | length %}<a class="btn-continue" href="/certificate">Get your certificate</a><button type="button" data-share-kind="level">Share level complete</button>{% endif %}
+    </div>
+    <div class="card dash-heat">
+      <h2>Practice calendar</h2>
+      {% include "_heat.html" %}
+      <p class="muted small">A freeze is earned every 7 practice days (keep up to 2) and saves your streak automatically on a day you miss.</p>
+    </div>
+  </aside>
 </div>
 <script type="application/json" id="jp-snapshot">{{ snapshot | tojson }}</script>
 {% endblock %}

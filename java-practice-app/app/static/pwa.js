@@ -45,7 +45,7 @@
       if (!menu.contains(e.target) && !toggle.contains(e.target)) setOpen(false);
     });
     document.addEventListener('keydown', (e) => { if (e.key === 'Escape') { setOpen(false); toggle.focus(); } });
-    window.matchMedia('(min-width: 761px)').addEventListener('change', () => setOpen(false));
+    window.matchMedia('(min-width: 1021px)').addEventListener('change', () => setOpen(false));
   }
   let deferred = null;
   const btn = document.getElementById('install-app');

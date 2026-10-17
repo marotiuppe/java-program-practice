@@ -284,7 +284,7 @@ details.card summary{cursor:pointer}
 /* ---- header: current page + hamburger menu on phones ---- */
 .top nav a.active{background:var(--accent-soft);color:var(--accent);font-weight:600}
 .nav-toggle{display:none}
-@media (max-width:760px){
+@media (max-width:1020px){
   .top.has-menu .nav-toggle{display:inline-flex;flex-direction:column;justify-content:center;gap:5px;width:44px;height:44px;padding:0 11px;margin-left:auto}
   .nav-toggle span{display:block;height:2px;background:var(--fg);border-radius:2px;transition:transform .2s,opacity .2s}
   .nav-toggle[aria-expanded=true] span:nth-child(1){transform:translateY(7px) rotate(45deg)}
@@ -379,6 +379,39 @@ main:focus{outline:none}
 .iv-big b{font-size:64px;line-height:1;color:var(--accent)}.iv-big span{font-size:22px;color:var(--muted)}
 .iv-item-head{display:flex;justify-content:space-between;gap:10px;align-items:baseline;margin-bottom:6px}
 .iv-pct{font-weight:700}.iv-pct.good{color:var(--ok)}.iv-pct.part{color:var(--warn)}.iv-pct.zero{color:var(--err)}
+/* ---- learner dashboard: plan on the left, stats and shortcuts in a side panel ---- */
+.dash{display:flex;flex-direction:column;gap:16px}
+.dash-main,.dash-side{display:contents}  /* on phones everything is one column, ordered below */
+.dash-hero{order:1}.dash-stats{order:2}.dash .repair{order:2}.dash-days{order:3}.dash-board{order:4}.dash-actions{order:5}.dash-heat{order:6}
+.dash-hero h1{margin:0 0 6px}
+.dash-hero .overall{max-width:none;margin:4px 0 16px}
+.hero-row{display:flex;align-items:center;gap:20px 28px;flex-wrap:wrap}
+.hero-row .goal-card{margin:0}
+.dash-days h2,.dash-heat h2{margin:0 0 10px;font-size:18px}
+.dash-days .grid{grid-template-columns:repeat(auto-fill,minmax(190px,1fr))}
+.dash .stats{margin:0;grid-template-columns:repeat(2,minmax(0,1fr))}
+.dash .stat{padding:10px 12px}.dash .stat b{font-size:24px}
+.dash .board-teaser{margin:0}
+.dash .dash-actions{display:grid;gap:8px;margin:0}
+.dash-actions .btn-continue,.dash-actions button{display:block;width:100%;box-sizing:border-box;text-align:left;padding:11px 16px;min-height:44px}
+.dash-actions button{background:var(--card)}
+.dash-heat{margin:0}
+.dash-heat .heat{margin:4px 0 8px;gap:3px;overflow:visible}
+.dash-heat .heat-col{flex:1;gap:3px}
+.dash-heat .heat-cell{width:100%;height:auto;aspect-ratio:1}
+.dash .repair{margin:0}
+.day.next{border-color:var(--accent);box-shadow:0 0 0 2px color-mix(in srgb,var(--accent) 28%,transparent),var(--shadow)}
+.up-next{display:inline-block;margin-left:6px;padding:1px 8px;border-radius:99px;background:var(--accent);color:var(--accent-fg);font-size:11px;font-weight:600;vertical-align:middle}
+@media (max-width:560px){.dash-days .grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.dash-days .day{padding:12px}}
+@media (min-width:860px){
+  .dash{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:24px;align-items:start}
+  .dash-main{display:block}
+  .dash-side{display:flex;flex-direction:column;gap:14px}
+  .dash-hero,.dash-stats,.dash .repair,.dash-board,.dash-actions,.dash-days,.dash-heat{order:0}
+  .dash-days{margin-top:24px}
+}
+@media (min-width:1100px){.dash{grid-template-columns:minmax(0,1fr) 340px;gap:28px}}
+@media (min-width:860px) and (min-height:900px){.dash-side{position:sticky;top:76px}}
 .board-teaser{padding:12px 16px}
 .board{list-style:none;margin:0;padding:0}
 .board li{display:flex;align-items:center;gap:12px;padding:10px 12px;border-bottom:1px solid var(--line)}
