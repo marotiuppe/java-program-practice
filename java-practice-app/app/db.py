@@ -182,6 +182,8 @@ MIGRATIONS = [
     ("users", "freeze_bonus", "TEXT NOT NULL DEFAULT ''"),
     ("users", "ref_code", "TEXT NOT NULL DEFAULT ''"),
     ("users", "referred_by", "INTEGER"),
+    ("users", "handle", "TEXT NOT NULL DEFAULT ''"),
+    ("users", "profile_public", "INTEGER NOT NULL DEFAULT 0"),
 ]
 
 
@@ -195,6 +197,8 @@ def _migrate(c) -> None:
                 c.execute(f"ALTER TABLE {table} ADD COLUMN {column} {ddl}")
     # Rows solved before solved_at existed: use their last update time as the best available estimate.
     c.execute("UPDATE progress SET solved_at = updated_at WHERE status = 'solved' AND solved_at IS NULL")
+    # a public profile handle belongs to one learner (empty means "none chosen")
+    c.execute("CREATE UNIQUE INDEX IF NOT EXISTS users_handle_idx ON users (handle) WHERE handle != ''")
 
 
 def init() -> None:
@@ -688,6 +692,24 @@ def referral_stats(user_id: int) -> dict:
     return {"joined": int(joined), "activated": int(earned)}
 
 
+def set_public_profile(user_id: int, handle: str, on: bool) -> bool:
+    """Choose the public profile handle and switch the page on or off. False when another learner has the handle."""
+    try:
+        with connect() as c:
+            _x(c, "UPDATE users SET handle = ?, profile_public = ? WHERE id = ?", (handle, 1 if on else 0, user_id))
+        return True
+    except IntegrityError:
+        return False
+
+
+def user_by_handle(handle: str):
+    """The learner behind a public profile, or None (also None when the page is switched off)."""
+    if not handle:
+        return None
+    with connect() as c:
+        return _x(c, "SELECT * FROM users WHERE handle = ? AND profile_public = 1", (handle,)).fetchone()
+
+
 def set_leaderboard(user_id: int, on: bool) -> None:
     with connect() as c:
         _x(c, "UPDATE users SET leaderboard = ? WHERE id = ?", (1 if on else 0, user_id))
@@ -695,14 +717,14 @@ def set_leaderboard(user_id: int, on: bool) -> None:
 
 def leaderboard_rows(since_epoch: int, level: str = ""):
     """Learners who opted in, ranked by questions solved since `since_epoch` (ties: whoever got there first)."""
-    sql = ("SELECT u.id, u.email, u.display_name, u.card_name_off, COUNT(*) AS n, MAX(p.solved_at) AS last "
+    sql = ("SELECT u.id, u.email, u.display_name, u.card_name_off, u.handle, u.profile_public, COUNT(*) AS n, MAX(p.solved_at) AS last "
            "FROM progress p JOIN users u ON u.id = p.user_id "
            "WHERE p.status = 'solved' AND p.solved_at >= ? AND u.leaderboard = 1")
     params = [since_epoch]
     if level:
         sql += " AND p.level = ?"
         params.append(level)
-    sql += " GROUP BY u.id, u.email, u.display_name, u.card_name_off ORDER BY n DESC, last ASC, u.id ASC"
+    sql += " GROUP BY u.id, u.email, u.display_name, u.card_name_off, u.handle, u.profile_public ORDER BY n DESC, last ASC, u.id ASC"
     with connect() as c:
         return _x(c, sql, tuple(params)).fetchall()
 

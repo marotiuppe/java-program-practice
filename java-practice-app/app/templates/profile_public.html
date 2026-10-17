@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% block title %}@{{ p.handle }} on Java Practice{% endblock %}
+{% block description %}@{{ p.handle }}: {{ p.streak.current }}-day streak, {{ p.solved }} questions solved, {{ p.earned }} badges. Practise Java 5 questions a day, free.{% endblock %}
+{% block og_image %}<meta property="og:image" content="{{ site_url }}/u/{{ p.handle }}/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:image" content="{{ site_url }}/u/{{ p.handle }}/og.png">{% endblock %}
+{% block head_extra %}<meta name="robots" content="noindex">{% endblock %}
+{% block content %}
+<section class="pp">
+  <div class="pp-head">
+    <span class="pp-avatar" aria-hidden="true">{{ p.handle[:1] | upper }}</span>
+    <div>
+      <h1>@{{ p.handle }}</h1>
+      <p class="muted">Learning Java since {{ p.joined }}{% if p.level %} &middot; {{ p.level }} level{% endif %} &middot; learner level {{ p.learner.level }}</p>
+    </div>
+  </div>
+  <div class="stats">
+    <div class="stat"><b>{{ p.streak.current }}</b><span>day streak</span></div>
+    <div class="stat"><b>{{ p.streak.longest }}</b><span>longest streak</span></div>
+    <div class="stat"><b>{{ p.solved }}</b><span>questions solved</span></div>
+    <div class="stat"><b>{{ p.earned }}/{{ p.badges | length }}</b><span>badges earned</span></div>
+  </div>
+  {% if p.levels_done %}<p class="pp-levels">{% for l in p.levels_done %}<span class="pp-chip">&#127942; {{ l }} level complete</span>{% endfor %}</p>{% endif %}
+  <h2>Practice calendar</h2>
+  {% include "_heat.html" %}
+  <h2>Badges</h2>
+  <p class="pp-badges">
+    {% for b in p.badges %}{% if b.earned %}<span class="pp-chip" title="{{ b.how }}">&#127941; {{ b.title }}</span>{% endif %}{% endfor %}
+    {% if not p.earned %}<span class="muted">No badges yet.</span>{% endif %}
+  </p>
+  <div class="card pp-cta">
+    {% if me %}
+    <p><b>This is how others see your profile.</b> <a href="/account">Change it</a></p>
+    {% else %}
+    <p><b>Learn Java in 30 days, free.</b> Five questions a day, an editor that runs your code, streaks and a leaderboard.</p>
+    <p><a class="btn-continue" href="/signup?{{ 'ref=' ~ p.ref ~ '&' if p.ref }}utm_source=profile">Start the challenge</a></p>
+    {% endif %}
+    <p><button type="button" id="pp-share">Share this profile</button> <span class="muted small" id="pp-note" role="status"></span></p>
+  </div>
+</section>
+<script>
+(function () {
+  var b = document.getElementById('pp-share'), note = document.getElementById('pp-note'), url = location.href;
+  b.addEventListener('click', function () {
+    if (navigator.share) { navigator.share({ title: document.title, url: url }).catch(function () {}); return; }
+    if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(url).then(function () { note.textContent = 'Link copied.'; });
+    else note.textContent = url;
+  });
+})();
+</script>
+{% endblock %}

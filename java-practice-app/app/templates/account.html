@@ -17,6 +17,17 @@
   </form>
 </div>
 <div class="card">
+  <h2>Public profile</h2>
+  <p class="muted">Off by default. When on, anyone with the link <b>/u/your-handle</b> can see your streak, questions solved, level, earned badges, completed levels and practice calendar. Never your email address.</p>
+  {% if profile_error %}<p class="error">{{ profile_error }}</p>{% endif %}
+  <form method="post" action="/account/profile">
+    <label>Handle <input type="text" name="handle" maxlength="25" value="{{ profile_handle or profile_suggest }}" autocapitalize="none" spellcheck="false" placeholder="e.g. marotiuppe"></label>
+    <label class="check"><input type="checkbox" name="on" value="1" {{ 'checked' if profile_on }}> Make my profile public</label>
+    <button>Save</button>
+  </form>
+  {% if profile_on and profile_handle %}<p class="muted small">Your page: <a href="/u/{{ profile_handle }}">{{ site_url }}/u/{{ profile_handle }}</a></p>{% endif %}
+</div>
+<div class="card">
   <h2>Weekly leaderboard</h2>
   <p class="muted">Off by default. When on, you appear in the top 10 by questions solved this week (it resets every Monday), shown with the name from the section above. Anyone visiting the site, including the login page, can see that name and your count, nothing else.</p>
   <form method="post" action="/account/leaderboard">

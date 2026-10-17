@@ -45,6 +45,15 @@ templates.env.filters["ts"] = lambda t: datetime.fromtimestamp(t, stats.zone()).
 EMAIL_RE = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
 HANDLE_BAD = re.compile(r"[^A-Za-z0-9._-]")
 REF_RE = re.compile(r"^[a-z0-9]{6,12}$")
+PROFILE_HANDLE_RE = re.compile(r"^[a-z0-9][a-z0-9._-]{2,23}$")
+RESERVED_HANDLES = {"admin", "administrator", "api", "root", "support", "help", "staff", "moderator", "system", "static",
+                    "java", "javapractice", "official", "team", "null", "undefined", "me", "you", "anonymous"}
+
+
+def clean_profile_handle(text: str) -> str:
+    """A public-profile handle: 3-24 characters, lower case letters, digits, dot, dash, underscore. "" if unusable."""
+    text = (text or "").strip().lstrip("@").lower()
+    return text if PROFILE_HANDLE_RE.match(text) and text not in RESERVED_HANDLES else ""
 REFERRAL_CAP = 20  # freezes one learner can earn by inviting; stops farming with throwaway accounts
 
 
@@ -548,7 +557,9 @@ async def account_page(request: Request):
     return render(request, "account.html", error=None, saved=bool(request.query_params.get("saved")),
                   reminders_on=bool(user["reminders"]), hints_on=bool(user["hints_on"]), mail_ready=mailer.configured(), verified=bool(user["email_verified"]),
                   card_name=card_handle(user), name_value=user["display_name"], name_hidden=bool(user["card_name_off"]),
-                  board_on=bool(user["leaderboard"]))
+                  board_on=bool(user["leaderboard"]), profile_on=bool(user["profile_public"]),
+                  profile_handle=user["handle"], profile_error=None,
+                  profile_suggest=clean_profile_handle(user["display_name"] or user["email"].split("@")[0].split("+")[0]))
 
 
 @app.get("/account/export")
@@ -598,8 +609,35 @@ async def account_name(request: Request, username: str = Form(""), hide: str = F
                       saved=False, reminders_on=bool(user["reminders"]), hints_on=bool(user["hints_on"]),
                       mail_ready=mailer.configured(), verified=bool(user["email_verified"]),
                       card_name=card_handle(user), name_value=username, name_hidden=bool(user["card_name_off"]),
-                      board_on=bool(user["leaderboard"]))
+                      board_on=bool(user["leaderboard"]), profile_on=bool(user["profile_public"]),
+                      profile_handle=user["handle"], profile_error=None, profile_suggest="")
     db.set_display_name(user["id"], name, bool(hide))
+    return RedirectResponse("/account?saved=1", status_code=303)
+
+
+@app.post("/account/profile")
+async def account_profile(request: Request, on: str = Form(""), handle: str = Form("")):
+    user = current_user(request)
+    if not user:
+        return RedirectResponse("/login", status_code=303)
+    clean = clean_profile_handle(handle)
+    error = None
+    if on and not clean:
+        error = "Pick a handle of 3 to 24 letters, numbers, dots, dashes or underscores (some words are reserved)."
+    elif not on and handle.strip() and not clean:
+        error = "That handle cannot be used: 3 to 24 letters, numbers, dots, dashes or underscores."
+    if not error:
+        keep = clean or user["handle"]
+        if not db.set_public_profile(user["id"], keep, bool(on)):
+            error = "That handle is already taken. Try another."
+    if error:
+        user = current_user(request)
+        return render(request, "account.html", status_code=400, error=None, saved=False, reminders_on=bool(user["reminders"]),
+                      hints_on=bool(user["hints_on"]), mail_ready=mailer.configured(), verified=bool(user["email_verified"]),
+                      card_name=card_handle(user), name_value=user["display_name"], name_hidden=bool(user["card_name_off"]),
+                      board_on=bool(user["leaderboard"]), profile_on=bool(user["profile_public"]),
+                      profile_handle=handle.strip().lstrip("@"), profile_error=error, profile_suggest="")
+    _public_cache.clear()
     return RedirectResponse("/account?saved=1", status_code=303)
 
 
@@ -612,6 +650,97 @@ async def account_leaderboard(request: Request, on: str = Form(""), back: str = 
     _board_cache.clear()
     dest = back if back in ("/leaderboard", "/dashboard") else "/account?saved=1"
     return RedirectResponse(dest, status_code=303)
+
+
+_public_cache = {}
+PUBLIC_PROFILE_TTL = int(os.environ.get("PUBLIC_PROFILE_TTL", "60"))
+PROFILE_IP = (120, 600)  # public profile views per IP per 10 minutes
+
+
+def _public_profile(user) -> dict:
+    """Everything a public profile shows. Built only from progress, never from email or private settings."""
+    key = user["id"]
+    hit = _public_cache.get(key)
+    if hit and time.monotonic() - hit[0] < PUBLIC_PROFILE_TTL:
+        return hit[1]
+    stats.set_request_timezone(user["tz"])
+    uid = user["id"]
+    active = db.get_active_dates(uid)
+    streak = stats.streak_for(user, active)
+    rows = db.get_all_progress(uid)
+    days_per_level = {lv: len(info["days"]) for lv, info in content.CONTENT.items()}
+    result = badges.compute(rows, _kind_of, days_per_level, streak["longest"], db.has_event(uid, "first_run", ""))
+    solved_by_day = {}
+    for lv, d, qn, status in rows:
+        if status == "solved":
+            solved_by_day.setdefault((lv, d), set()).add(qn)
+    levels_done = [content.CONTENT[lv]["label"] for lv in content.CONTENT
+                   if all(len(solved_by_day.get((lv, d), ())) >= len(day["questions"])
+                          for d, day in content.CONTENT[lv]["days"].items())]
+    solved = sum(len(v) for v in solved_by_day.values())
+    data = {
+        "handle": user["handle"],
+        "joined": datetime.fromtimestamp(user["created_at"], stats.zone()).strftime("%B %Y"),
+        "level": content.CONTENT[user["level"]]["label"] if user["level"] in content.CONTENT else "",
+        "learner": result["learner"], "streak": streak, "solved": solved, "levels_done": levels_done,
+        "badges": result["badges"], "earned": sum(1 for b in result["badges"] if b["earned"]),
+        "heatmap": _heatmap(db.get_solved_epochs(uid), set(active), set(map(str, streak["frozen"]))),
+        "ref": user["ref_code"],
+    }
+    if len(_public_cache) > 200:
+        _public_cache.clear()
+    _public_cache[key] = (time.monotonic(), data)
+    return data
+
+
+def _profile_card(p: dict) -> dict:
+    stats_tiles = [[str(p["streak"]["current"]), "day streak"], [str(p["solved"]), "questions solved"],
+                   [f"{p['earned']}/{len(p['badges'])}", "badges"]]
+    card = {"i": "trophy" if p["levels_done"] else "star", "t": "@" + p["handle"],
+            "s": (p["level"] + " · " if p["level"] else "") + f"learner level {p['learner']['level']}",
+            "st": stats_tiles, "p": None}
+    if p["ref"]:
+        card["r"] = p["ref"]
+    return card
+
+
+def _public_user_or_404(request: Request, handle: str):
+    if ratelimit.hit(f"profile:{client_ip(request)}", *PROFILE_IP):
+        return None, Response("Too many requests", status_code=429)
+    user = db.user_by_handle(handle.lower())
+    if user is None:
+        return None, render(request, "message.html", status_code=404, title="Profile not found",
+                            text="There is no public profile with that name.", href="/", link="Go to Java Practice")
+    return user, None
+
+
+@app.get("/u/{handle}")
+def public_profile(request: Request, handle: str):
+    user, bad = _public_user_or_404(request, handle)
+    if bad:
+        return bad
+    p = _public_profile(user)
+    return render(request, "profile_public.html", p=p, streak=p["streak"], heatmap=p["heatmap"],
+                  me=bool(current_user(request) and current_user(request)["id"] == user["id"]))
+
+
+async def _profile_image(request: Request, handle: str, kind: str):
+    user, bad = _public_user_or_404(request, handle)
+    if bad:
+        return bad
+    token = sharecard.make_token(_profile_card(_public_profile(user)))
+    png = await asyncio.to_thread(sharecard.render_cached, token, kind, base_url(request))
+    return Response(png, media_type="image/png", headers={"Cache-Control": "public, max-age=3600"})
+
+
+@app.get("/u/{handle}/og.png")
+async def public_profile_og(request: Request, handle: str):
+    return await _profile_image(request, handle, "og")
+
+
+@app.get("/u/{handle}/card.png")
+async def public_profile_card(request: Request, handle: str):
+    return await _profile_image(request, handle, "card")
 
 
 @app.get("/join/{code}")
@@ -640,7 +769,8 @@ def leaderboard_page(request: Request, period: str = "week", level: str = ""):
     period = "all" if period == "all" else "week"
     level = level if level in content.CONTENT else ""
     rows = _board_rows(level, stats.week_start_epoch() if period == "week" else 0)
-    ranked = [{"rank": i + 1, "handle": r["handle"], "n": r["n"], "me": r["uid"] == user["id"]} for i, r in enumerate(rows)]
+    ranked = [{"rank": i + 1, "handle": r["handle"], "n": r["n"], "me": r["uid"] == user["id"], "profile": r["profile"]}
+              for i, r in enumerate(rows)]
     me = next((r for r in ranked if r["me"]), None)
     return render(request, "leaderboard.html", top=ranked[:10], me=me if me and me["rank"] > 10 else None,
                   me_in_top=bool(me and me["rank"] <= 10), period=period, level=level,
@@ -1013,7 +1143,7 @@ def _board_rows(level: str, since: int):
     hit = _board_cache.get(key)
     if hit and time.monotonic() - hit[0] < BOARD_TTL:
         return hit[1]
-    rows = [{"uid": r["id"], "n": int(r["n"]),
+    rows = [{"uid": r["id"], "n": int(r["n"]), "profile": r["handle"] if r["profile_public"] and r["handle"] else "",
              "handle": "Anonymous learner" if r["card_name_off"] else (card_handle(r) or "Anonymous learner")}
             for r in db.leaderboard_rows(since, level)]
     if len(_board_cache) > 50:

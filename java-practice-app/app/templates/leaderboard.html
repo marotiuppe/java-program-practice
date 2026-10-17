@@ -13,7 +13,7 @@
   {% if top %}
   <ol class="board">
     {% for r in top %}
-    <li{% if r.me %} class="me"{% endif %}><span class="rk">{{ ['🥇', '🥈', '🥉'][r.rank - 1] if r.rank <= 3 else r.rank }}</span><span class="nm">{{ r.handle }}{% if r.me %} (you){% endif %}</span><span class="pt">{{ r.n }} solved</span></li>
+    <li{% if r.me %} class="me"{% endif %}><span class="rk">{{ ['🥇', '🥈', '🥉'][r.rank - 1] if r.rank <= 3 else r.rank }}</span><span class="nm">{% if r.profile and not r.me %}<a href="/u/{{ r.profile }}">{{ r.handle }}</a>{% else %}{{ r.handle }}{% endif %}{% if r.me %} (you){% endif %}</span><span class="pt">{{ r.n }} solved</span></li>
     {% endfor %}
     {% if me %}
     <li class="me"><span class="rk">{{ me.rank }}</span><span class="nm">{{ me.handle }} (you)</span><span class="pt">{{ me.n }} solved</span></li>

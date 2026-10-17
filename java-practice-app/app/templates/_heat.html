@@ -1,0 +1,10 @@
+<p class="sr-only">Practice calendar: {{ streak.total }} practice day{{ '' if streak.total == 1 else 's' }} in total; the grid below shows the last {{ heatmap | length }} weeks.</p>
+<div class="heat" role="img" aria-label="Practice calendar for the last {{ heatmap | length }} weeks">
+  {% for week in heatmap %}
+  <div class="heat-col">
+    {% for c in week %}
+      {% if c %}<i class="heat-cell h{{ c.level }}{{ ' frozen' if c.frozen }}" title="{{ c.date }}: {{ c.n }} solved{{ ' (freeze used)' if c.frozen }}"></i>{% else %}<i class="heat-cell blank"></i>{% endif %}
+    {% endfor %}
+  </div>
+  {% endfor %}
+</div>

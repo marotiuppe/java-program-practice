@@ -139,6 +139,15 @@ with TestClient(app, follow_redirects=False) as c:
     check("first solve rewards both with a freeze", bool(fb and fb.get("referral")) and db.get_user(uid)["freeze_bonus"] != ""
           and db.get_user(fid["id"])["freeze_bonus"] != "", fb)
     check("share card" + " carries the invite code", "r" in __import__("app.sharecard", fromlist=["x"]).read_token(tok))
+    # public profile (roadmap 4.1)
+    anon = TestClient(app, follow_redirects=False)
+    check("profile is private by default", anon.get("/u/smoketest").status_code == 404)
+    c.post("/account/profile", data={"handle": "SmokeTest", "on": "1"})
+    pp = anon.get("/u/smoketest")
+    check("public profile after opting in", pp.status_code == 200 and "@smoketest" in pp.text and "smoke@example.com" not in pp.text)
+    check("profile preview image renders", anon.get("/u/smoketest/og.png").headers.get("content-type") == "image/png")
+    c.post("/account/profile", data={"handle": "smoketest"})
+    check("profile can be switched off", anon.get("/u/smoketest").status_code == 404)
     check("share images render", c.get(f"/s/{tok}/og.png").headers.get("content-type") == "image/png"
           and c.get(f"/s/{tok}/card.png").status_code == 200)
     check("forged share link is refused", c.get("/s/forged/og.png").status_code == 404)
