@@ -1,10 +1,17 @@
 {% extends "base.html" %}
 {% block title %}{{ 'Sign up' if mode == 'signup' else 'Log in' }}{% endblock %}
 {% block content %}
+<div class="auth-layout">
 <section class="card narrow auth-card">
   <img class="auth-logo" src="{{ static('logo.svg') }}" width="56" height="56" alt="">
   <h1>{{ 'Create account' if mode == 'signup' else 'Log in' }}</h1>
   <p class="muted tag">30 days of Java, from beginner to advanced.</p>
+  {% if counts %}<p class="auth-counts"><b>{{ counts.learners }}</b> learners &middot; <b>{{ counts.solved }}</b> questions solved</p>{% endif %}
+  <ul class="auth-perks">
+    <li>Free: five questions a day</li>
+    <li>Your code runs in the browser, no setup</li>
+    <li>Streaks, review and optional hints keep you going</li>
+  </ul>
   {% if notice %}<p class="notice">{{ notice }}</p>{% endif %}
   {% if error %}<p class="error">{{ error }}</p>{% endif %}
   <form method="post" action="/{{ mode }}">
@@ -14,13 +21,13 @@
     <label>Password <input type="password" name="password" required minlength="8" autocomplete="{{ 'new-password' if mode == 'signup' else 'current-password' }}"></label>
     <button class="primary">{{ 'Sign up' if mode == 'signup' else 'Log in' }}</button>
   </form>
+  {% if mode == 'signup' %}<p class="muted small auth-consent">By signing up you agree to how we use your data on the <a href="/privacy">privacy page</a>. We only use your email for your account and the reminders you turn on.</p>{% endif %}
   <p class="muted">
     {% if mode == 'signup' %}Already have an account? <a href="/login">Log in</a>
     {% else %}New here? <a href="/signup">Create an account</a> &middot; <a href="/forgot">Forgot password?</a>{% endif %}
   </p>
 </section>
-<div class="auth-extras">
-  <section class="card" aria-labelledby="top10-h">
+  <section class="card board-card" aria-labelledby="top10-h">
     <h2 id="top10-h">Top 10 this week</h2>
     {% if board_top %}
     <ol class="board">
@@ -34,7 +41,7 @@
     <p class="muted small">Learners who chose to be listed. Resets every Monday.</p>
   </section>
   {% if news %}
-  <section class="card" aria-labelledby="news-h">
+  <section class="card news-card" aria-labelledby="news-h">
     <h2 id="news-h">What&rsquo;s new</h2>
     <ul class="news-list">
       {% for n in news %}<li><b>{{ n.title }}:</b> {{ n.text }}</li>{% endfor %}
@@ -42,4 +49,5 @@
   </section>
   {% endif %}
 </div>
+<script src="{{ static('auth.js') }}" defer></script>
 {% endblock %}

@@ -632,6 +632,14 @@ def set_display_name(user_id: int, name: str, hidden: bool) -> None:
         _x(c, "UPDATE users SET display_name = ?, card_name_off = ? WHERE id = ?", (name, 1 if hidden else 0, user_id))
 
 
+def public_counts():
+    """(learners, questions solved) across the whole site."""
+    with connect() as c:
+        users = _x(c, "SELECT COUNT(*) AS n FROM users").fetchone()["n"]
+        solved = _x(c, "SELECT COUNT(*) AS n FROM progress WHERE status = 'solved'").fetchone()["n"]
+    return int(users), int(solved)
+
+
 def set_leaderboard(user_id: int, on: bool) -> None:
     with connect() as c:
         _x(c, "UPDATE users SET leaderboard = ? WHERE id = ?", (1 if on else 0, user_id))

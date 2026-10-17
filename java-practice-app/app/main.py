@@ -233,6 +233,24 @@ def is_admin(user) -> bool:
     return bool(user) and bool(user["email_verified"]) and user["email"].lower() in ADMIN_EMAILS
 
 
+PUBLIC_COUNT_MIN = int(os.environ.get("PUBLIC_COUNT_MIN", "10"))  # show site totals only once they are not embarrassing
+_counts_cache = {"t": None, "v": None}
+
+
+def public_counts():
+    """{"learners": "1,240", "solved": "38,000"} for the login and signup pages, refreshed every 5 minutes,
+    or None while there are fewer than PUBLIC_COUNT_MIN learners."""
+    now = time.monotonic()
+    if _counts_cache["t"] is None or now - _counts_cache["t"] > 300:
+        try:
+            users, solved = db.public_counts()
+            _counts_cache["v"] = ({"learners": f"{users:,}", "solved": f"{solved:,}"} if users >= PUBLIC_COUNT_MIN else None)
+        except Exception:
+            _counts_cache["v"] = None
+        _counts_cache["t"] = now
+    return _counts_cache["v"]
+
+
 _news_cache = {"mtime": None, "items": []}
 
 
@@ -253,6 +271,7 @@ def whats_new(limit: int = 6) -> list:
 def render(request: Request, name: str, status_code: int = 200, **ctx):
     if name == "auth.html":  # visitors who are not logged in see the weekly top 10 and what is new
         ctx.setdefault("news", whats_new())
+        ctx.setdefault("counts", public_counts())
         ctx.setdefault("board_top", [{"h": r["handle"], "n": r["n"]}
                                       for r in _board_rows("", stats.week_start_epoch())[:10]])
     return templates.TemplateResponse(
