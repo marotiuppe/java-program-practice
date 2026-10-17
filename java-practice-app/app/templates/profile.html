@@ -13,7 +13,7 @@
   <div class="stat"><b>{{ streak.longest }}</b><span>longest streak</span></div>
   <div class="stat"><b>{{ badges | selectattr('earned') | list | length }}/{{ badges | length }}</b><span>badges earned</span></div>
 </div>
-<p class="share-actions"><button type="button" data-share-kind="progress">Share my progress</button></p>
+<p class="share-links"><button type="button" data-share-kind="progress">Share my progress</button></p>
 <h2>Badges</h2>
 <div class="badge-shelf">
   {% for b in badges %}

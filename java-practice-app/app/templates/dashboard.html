@@ -32,7 +32,7 @@
   <div class="stat"><b>{{ streak.freezes }}/2</b><span>streak freezes{% if streak.next_freeze_in %} &middot; next in {{ streak.next_freeze_in }} day{{ '' if streak.next_freeze_in == 1 else 's' }}{% endif %}</span></div>
   <div class="stat"><b>{{ streak.total }}</b><span>days practiced</span></div>
 </div>
-<div class="share-actions">
+<div class="share-links">
   <button type="button" data-share-kind="progress">Share my progress</button>
   {% if streak.current >= 2 %}<button type="button" data-share-kind="streak">Share my {{ streak.current }}-day streak</button>{% endif %}
   {% if days | selectattr('state', 'equalto', 'done') | list | length == days | length %}<button type="button" data-share-kind="level">Share level complete</button>{% endif %}

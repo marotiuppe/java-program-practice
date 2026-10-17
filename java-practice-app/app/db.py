@@ -176,6 +176,8 @@ MIGRATIONS = [
     ("progress", "hint_level", "INTEGER NOT NULL DEFAULT 0"),
     ("users", "tz", "TEXT NOT NULL DEFAULT ''"),
     ("progress", "solved_at", "BIGINT"),
+    ("users", "display_name", "TEXT NOT NULL DEFAULT ''"),
+    ("users", "card_name_off", "INTEGER NOT NULL DEFAULT 0"),
 ]
 
 
@@ -264,14 +266,14 @@ def verify_password(password: str, stored: str) -> bool:
         return False
 
 
-def create_user(email: str, password: str, verified: bool = True):
+def create_user(email: str, password: str, verified: bool = True, display_name: str = ""):
     try:
         with connect() as c:
             cur = _x(
                 c,
-                "INSERT INTO users (email, pw_hash, created_at, email_verified) VALUES (?, ?, ?, ?)"
+                "INSERT INTO users (email, pw_hash, created_at, email_verified, display_name) VALUES (?, ?, ?, ?, ?)"
                 + (" RETURNING id" if PG else ""),
-                (email, hash_password(password), int(time.time()), 1 if verified else 0),
+                (email, hash_password(password), int(time.time()), 1 if verified else 0, display_name),
             )
             return cur.fetchone()["id"] if PG else cur.lastrowid
     except IntegrityError:
@@ -624,6 +626,11 @@ def list_reminder_users():
 
 
 # ---- hints (opt-in) ----
+def set_display_name(user_id: int, name: str, hidden: bool) -> None:
+    with connect() as c:
+        _x(c, "UPDATE users SET display_name = ?, card_name_off = ? WHERE id = ?", (name, 1 if hidden else 0, user_id))
+
+
 def set_hints_on(user_id: int, on: bool) -> None:
     with connect() as c:
         _x(c, "UPDATE users SET hints_on = ? WHERE id = ?", (1 if on else 0, user_id))

@@ -43,6 +43,22 @@ templates.env.globals["static"] = static_url
 templates.env.filters["ts"] = lambda t: datetime.fromtimestamp(t, stats.zone()).strftime("%Y-%m-%d %H:%M") if t else ""
 
 EMAIL_RE = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
+HANDLE_BAD = re.compile(r"[^A-Za-z0-9._-]")
+
+
+def clean_handle(text: str) -> str:
+    """A username safe to print on a card: letters, digits, dot, dash, underscore; no leading @ or symbol; 24 chars."""
+    text = HANDLE_BAD.sub("", (text or "").strip().lstrip("@"))
+    return text.lstrip("._-")[:24]
+
+
+def card_handle(user) -> str:
+    """"@name" shown on shareable cards: the username the learner chose, else the part of their email before
+    the @ (marotiuppe@gmail.com -> @marotiuppe). Empty when they turned names off."""
+    if user["card_name_off"]:
+        return ""
+    name = clean_handle(user["display_name"]) or clean_handle(user["email"].split("@")[0].split("+")[0])
+    return "@" + name if name else "" 
 ADMIN_EMAILS = {e.strip().lower() for e in os.environ.get("ADMIN_EMAILS", "").split(",") if e.strip()}
 REPORT_CATEGORIES = {"wrong_sample", "unclear", "broken_code", "other"}
 STATUSES = {"todo", "attempted", "solved"}
@@ -338,7 +354,8 @@ async def signup_page(request: Request):
 
 
 @app.post("/signup")
-async def signup(request: Request, background: BackgroundTasks, email: str = Form(...), password: str = Form(...)):
+async def signup(request: Request, background: BackgroundTasks, email: str = Form(...), password: str = Form(...),
+                 username: str = Form("")):
     email = email.strip().lower()
     wait = ratelimit.hit(f"signup:{client_ip(request)}", *SIGNUP_IP)
     if wait:
@@ -348,7 +365,11 @@ async def signup(request: Request, background: BackgroundTasks, email: str = For
         return render(request, "auth.html", mode="signup", error="Enter a valid email address.")
     if len(password) < 8:
         return render(request, "auth.html", mode="signup", error="Password must be at least 8 characters.")
-    uid = db.create_user(email, password, verified=not mailer.configured())
+    name = clean_handle(username)
+    if username.strip() and not name:
+        return render(request, "auth.html", mode="signup",
+                      error="A username can use letters, numbers, dots, dashes and underscores.")
+    uid = db.create_user(email, password, verified=not mailer.configured(), display_name=name)
     if uid is None:
         return render(request, "auth.html", mode="signup", error="That email is already registered.")
     _login_session(request, db.get_user(uid))
@@ -466,7 +487,8 @@ async def account_page(request: Request):
     if not user:
         return RedirectResponse("/login", status_code=303)
     return render(request, "account.html", error=None, saved=bool(request.query_params.get("saved")),
-                  reminders_on=bool(user["reminders"]), hints_on=bool(user["hints_on"]), mail_ready=mailer.configured(), verified=bool(user["email_verified"]))
+                  reminders_on=bool(user["reminders"]), hints_on=bool(user["hints_on"]), mail_ready=mailer.configured(), verified=bool(user["email_verified"]),
+                  card_name=card_handle(user), name_value=user["display_name"], name_hidden=bool(user["card_name_off"]))
 
 
 @app.get("/account/export")
@@ -503,6 +525,21 @@ async def account_delete(request: Request, password: str = Form(...)):
     forget_user(request)
     return render(request, "message.html", title="Account deleted",
                   text="Your account and all of its data have been permanently deleted.", href="/signup", link="Create a new account")
+
+
+@app.post("/account/name")
+async def account_name(request: Request, username: str = Form(""), hide: str = Form("")):
+    user = current_user(request)
+    if not user:
+        return RedirectResponse("/login", status_code=303)
+    name = clean_handle(username)
+    if username.strip() and not name:
+        return render(request, "account.html", status_code=400, error=None, name_error="Use letters, numbers, dots, dashes and underscores.",
+                      saved=False, reminders_on=bool(user["reminders"]), hints_on=bool(user["hints_on"]),
+                      mail_ready=mailer.configured(), verified=bool(user["email_verified"]),
+                      card_name=card_handle(user), name_value=username, name_hidden=bool(user["card_name_off"]))
+    db.set_display_name(user["id"], name, bool(hide))
+    return RedirectResponse("/account?saved=1", status_code=303)
 
 
 @app.post("/account/hints")
@@ -877,33 +914,34 @@ def _share_card(user, kind: str, day):
     if kind == "day":
         if not isinstance(day, int) or day not in lvl["days"] or db.count_solved_in_day(user["id"], level, day) < 5:
             return None
-        return {"i": "check", "t": f"Day {day} complete!", "s": f"{lvl['label']} · {total_days}-day Java plan",
+        return {"i": "check", "t": f"I completed Day {day}!", "s": f"{lvl['label']} · {lvl['days'][day]['title']}",
                 "st": (streak_tile + solved_tile + [[f"{days_done}/{total_days}", "days done"]])[:3], "p": progress}
     if kind == "goal":
         today = db.count_solved_since(user["id"], stats.today_start_epoch())
         if today < 1:
             return None
-        title = "Daily goal reached!" if today >= user["daily_goal"] else f"{today} solved today!"
+        title = "I hit my daily goal!" if today >= user["daily_goal"] else f"I solved {today} today!"
         return {"i": "target", "t": title, "s": lvl["label"],
                 "st": (streak_tile + [[str(today), "solved today"]] + solved_tile)[:3], "p": None}
     if kind == "streak":
         if streak["current"] < 1:
             return None
-        return {"i": "flame", "t": f"{streak['current']}-day streak!", "s": f"{lvl['label']} · practising every day",
+        return {"i": "flame", "t": f"I'm on a {streak['current']}-day streak!", "s": f"{lvl['label']} · Java, every day",
                 "st": [[str(streak["longest"]), "longest streak"]] + solved_tile, "p": None}
     if kind == "level":
         if days_done < total_days:
             return None
         total_q = sum(len(d["questions"]) for d in lvl["days"].values())
-        return {"i": "trophy", "t": f"{lvl['label']} level complete!", "s": f"All {total_q} questions solved",
+        return {"i": "trophy", "t": f"I completed the {lvl['label']} level!", "s": f"All {total_q} questions solved",
                 "st": (solved_tile + [[f"{total_days}", "days done"]] + streak_tile)[:3], "p": [1, f"{total_days} of {total_days} days finished"]}
-    return {"i": "star", "t": "My Java progress", "s": lvl["label"],
+    return {"i": "star", "t": "I'm learning Java!", "s": f"{lvl['label']} · 30-day challenge",
             "st": (streak_tile + solved_tile + [[f"{days_done}/{total_days}", "days done"]])[:3], "p": progress}
 
 
 def _share_text(card: dict) -> str:
     stats_line = " · ".join(f"{v} {l}" for v, l in card["st"])
-    return f"{card['t']} {stats_line}. I'm learning Java with a free 30-day practice plan. Join me:"
+    return (f"{card['t']} {stats_line} on the free 30-day Java challenge. Think you can beat it? "
+            "Join me: #Java #LearnToCode")
 
 
 @app.post("/api/share/card")
@@ -924,13 +962,12 @@ async def api_share_card(request: Request):
     card = _share_card(user, kind, day if isinstance(day, int) and not isinstance(day, bool) else None)
     if card is None:
         return JSONResponse({"error": "You have not reached that milestone yet."}, status_code=400)
+    handle = card_handle(user)
+    if handle:
+        card["u"] = handle
     token = sharecard.make_token(card)
     return {"url": f"{base_url(request)}/s/{token}", "card_url": f"/s/{token}/card.png", "text": _share_text(card),
-            "title": card["t"]}
-
-
-def _host(request: Request) -> str:
-    return re.sub(r"^https?://", "", base_url(request))
+            "title": card["t"], "who": handle}
 
 
 @app.get("/s/{token}")
@@ -940,13 +977,14 @@ async def share_page(request: Request, token: str):
         return render(request, "message.html", status_code=404, title="Card not found",
                       text="This share link is not valid.", href="/", link="Go to Java Practice")
     desc = f"{card.get('s', '')} · " + ", ".join(f"{v} {l}" for v, l in card["st"])
-    return render(request, "share.html", card=card, token=token, desc=desc.strip(" ·,"))
+    return render(request, "share.html", card=card, token=token, desc=desc.strip(" ·,"),
+                  challenge=sharecard.CHALLENGE.get(card["i"], "Join me!"))
 
 
 async def _share_image(request: Request, token: str, kind: str):
     if ratelimit.hit(f"shareimg:{client_ip(request)}", *SHARE_IMAGE_IP):
         return Response("Too many requests", status_code=429)
-    png = await asyncio.to_thread(sharecard.render_cached, token, kind, _host(request))
+    png = await asyncio.to_thread(sharecard.render_cached, token, kind, base_url(request))
     if png is None:
         return Response("Not found", status_code=404)
     return Response(png, media_type="image/png", headers={"Cache-Control": "public, max-age=86400"})

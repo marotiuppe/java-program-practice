@@ -108,6 +108,14 @@ with TestClient(app, follow_redirects=False) as c:
     tok = r.json()["url"].rsplit("/", 1)[1]
     pg = c.get(f"/s/{tok}")
     check("share page has an og:image", pg.status_code == 200 and f"/s/{tok}/og.png" in pg.text, pg.status_code)
+    check("share page names the learner from the email", "@smoke" in pg.text, pg.text[:0])
+    c.post("/account/name", data={"username": "@Smoke Tester!"})
+    tok2 = c.post("/api/share/card", json={"kind": "progress"}).json()["url"].rsplit("/", 1)[1]
+    check("chosen username is used", "@SmokeTester" in c.get(f"/s/{tok2}").text)
+    c.post("/account/name", data={"username": "", "hide": "1"})
+    tok3 = c.post("/api/share/card", json={"kind": "progress"}).json()["url"].rsplit("/", 1)[1]
+    check("name can be hidden", "@smoke" not in c.get(f"/s/{tok3}").text.lower().replace("smoke@example.com", ""))
+    c.post("/account/name", data={"username": ""})
     check("share images render", c.get(f"/s/{tok}/og.png").headers.get("content-type") == "image/png"
           and c.get(f"/s/{tok}/card.png").status_code == 200)
     check("forged share link is refused", c.get("/s/forged/og.png").status_code == 404)

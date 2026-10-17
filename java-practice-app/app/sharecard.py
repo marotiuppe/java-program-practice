@@ -40,6 +40,8 @@ def read_token(token: str):
         return None
     if not isinstance(card, dict) or card.get("i") not in ICONS or not isinstance(card.get("t"), str):
         return None
+    if "u" in card and not (isinstance(card["u"], str) and len(card["u"]) <= 25):
+        return None
     stats = card.get("st")
     if not isinstance(stats, list) or len(stats) > 3 or not all(
             isinstance(x, list) and len(x) == 2 and all(isinstance(v, str) for v in x) for x in stats):
@@ -192,51 +194,110 @@ def _tiles(c: _Canvas, stats, x0, y, total_w, h, gap, value_size, label_size):
         c.text(x + tw / 2, y + h * 0.82, label, "Medium", label_size, (255, 255, 255, 225), max_w=tw - 24)
 
 
-def render_card(card: dict, host: str) -> bytes:
+CHALLENGE = {"check": "Can you beat it?", "flame": "Can you beat my streak?", "target": "Can you beat it?",
+             "trophy": "Ready to start yours?", "star": "Start your own streak"}
+
+
+def _avatar_row(c: _Canvas, cx: float, cy: float, who: str, max_w: float):
+    """Round initial badge followed by the learner's @name, centred as a pair on (cx, cy)."""
+    r = 36
+    size = c.fit(who, "Bold", 42, max_w - 2 * r - 40)
+    total = 2 * r + 20 + c.width(who, "Bold", size)
+    x0 = cx - total / 2
+    c.circle(x0 + r, cy, r, WHITE)
+    initial = (who.lstrip("@")[:1] or "?").upper()
+    c.text(x0 + r, cy + 15, initial, "Bold", 44, INDIGO)
+    c.text(x0 + 2 * r + 20, cy + size * 0.36, who, "Bold", size, WHITE, anchor="ls")
+
+
+def _qr(c: _Canvas, url: str, x: float, y: float, size: float):
+    """Black-on-white QR code for `url` in a white square at (x, y), `size` px wide, with a one-module quiet zone."""
+    import segno
+    m = segno.make(url, error="m", micro=False).matrix
+    n = len(m) + 2
+    cell = size / n
+    c.rrect(x, y, size, size, 14, WHITE)
+    for r, row in enumerate(m):
+        for q, v in enumerate(row):
+            if v:
+                c.d.rectangle([(x + (q + 1) * cell) * c.S, (y + (r + 1) * cell) * c.S,
+                               (x + (q + 2) * cell) * c.S - 1, (y + (r + 2) * cell) * c.S - 1], fill=INK)
+
+
+def _host(site: str) -> str:
+    return site.replace("https://", "").replace("http://", "").rstrip("/")
+
+
+def render_card(card: dict, site: str) -> bytes:
     W, H = 1080, 1350
+    host = _host(site)
     c = _Canvas(W, H)
     _decor(c, [(-120, -100, 420), (1000, 330, 260), (120, 1180, 220), (930, 1250, 170)])
-    _brand(c, W / 2 - 190, 70, 1.5)
-    _icon(c, card["i"], W / 2, 330, 250)
-    c.text(W / 2, 600, card["t"], "Bold", 92, WHITE, max_w=W - 120)
+    _brand(c, 70, 62, 1.25)
+    chip = "30-DAY JAVA CHALLENGE"
+    cw = c.width(chip, "Bold", 24) + 44
+    c.rrect(W - 70 - cw, 78, cw, 52, 26, (255, 255, 255, 56))
+    c.text(W - 70 - cw / 2, 113, chip, "Bold", 24, WHITE)
+    who = card.get("u")
+    prog = card.get("p")
+    sh = 0 if prog else 40  # no progress bar: spread the middle out so the card stays balanced
+    if who:
+        _avatar_row(c, W / 2, 232 + sh / 2, who, W - 160)
+    _icon(c, card["i"], W / 2, (420 if who else 360) + sh, 210)
+    c.text(W / 2, 640 + sh + 10, card["t"], "Bold", 90, WHITE, max_w=W - 110)
     if card.get("s"):
-        c.text(W / 2, 668, card["s"], "Medium", 40, (255, 255, 255, 225), max_w=W - 160)
+        c.text(W / 2, 698 + sh + 10, card["s"], "Medium", 36, (255, 255, 255, 225), max_w=W - 140)
     stats = card.get("st") or []
     if stats:
-        _tiles(c, stats, 90, 730, W - 180, 210, 30, 76, 28)
-    prog = card.get("p")
+        _tiles(c, stats, 90, 748 + sh + 14, W - 180, 190 if not prog else 180, 30, 70, 26)
     if prog:
-        bx, bw, by = 150, W - 300, 990
-        c.rrect(bx, by, bw, 26, 13, (255, 255, 255, 64))
-        c.rrect(bx, by, max(26, bw * max(0, min(1, float(prog[0])))), 26, 13, AMBER)
-        c.text(W / 2, by + 74, str(prog[1]), "Medium", 30, (255, 255, 255, 225), max_w=W - 200)
-    c.rrect(80, 1100, W - 160, 190, 40, WHITE)
-    c.text(W / 2, 1177, "Learn Java, 5 questions a day", "Bold", 44, INK, max_w=W - 220)
-    c.text(W / 2, 1239, f"Join me free at {host}", "Bold", 38, INDIGO, max_w=W - 220)
+        bx, bw, by = 150, W - 300, 962
+        c.rrect(bx, by, bw, 22, 11, (255, 255, 255, 64))
+        c.rrect(bx, by, max(22, bw * max(0, min(1, float(prog[0])))), 22, 11, AMBER)
+        c.text(W / 2, by + 62, str(prog[1]), "Medium", 28, (255, 255, 255, 225), max_w=W - 200)
+    # call to action: invite, with a QR code for screenshots that cannot carry a link
+    py, ph = 1075, 225
+    c.rrect(60, py, W - 120, ph, 40, WHITE)
+    qs = 170
+    _qr(c, f"{site.rstrip('/')}/?utm_source=share_card", W - 60 - 30 - qs, py + (ph - qs) / 2, qs)
+    c.d.rounded_rectangle([(W - 60 - 30 - qs) * c.S, (py + (ph - qs) / 2) * c.S, (W - 60 - 30) * c.S, (py + (ph + qs) / 2) * c.S],
+                          radius=14 * c.S, outline=(220, 224, 240), width=2 * c.S)
+    tx, tw = 105, W - 60 - 30 - qs - 105 - 24
+    c.text(tx, py + 78, CHALLENGE.get(card["i"], "Join me!"), "Bold", 46, INK, anchor="ls", max_w=tw)
+    c.text(tx, py + 124, "Learn Java in 30 days, free.", "Medium", 30, (88, 97, 116), anchor="ls", max_w=tw)
+    c.text(tx, py + 176, host, "Bold", 32, INDIGO, anchor="ls", max_w=tw)
     return c.png()
 
 
-def render_og(card: dict, host: str) -> bytes:
+def render_og(card: dict, site: str) -> bytes:
     W, H = 1200, 630
+    host = _host(site)
     c = _Canvas(W, H)
     _decor(c, [(-100, -80, 330), (1130, 150, 250), (1010, 640, 200)])
     _brand(c, 70, 52, 1.1)
     _icon(c, card["i"], 210, 330, 230)
-    tx = 370
-    c.text(tx, 290, card["t"], "Bold", 78, WHITE, anchor="ls", max_w=W - tx - 70)
+    tx, mw = 370, W - 440
+    who = card.get("u")
+    y = 0 if who else -24
+    if who:
+        size = c.fit(who, "Bold", 32, mw - 70)
+        w, h = c.width(who, "Bold", size) + 56, size * 1.9
+        c.rrect(tx, 150, w, h, h / 2, (255, 255, 255, 56))
+        c.text(tx + 28, 150 + h / 2 + size * 0.36, who, "Bold", size, WHITE, anchor="ls")
+    c.text(tx, 318 + y, card["t"], "Bold", 70, WHITE, anchor="ls", max_w=mw)
     if card.get("s"):
-        c.text(tx, 350, card["s"], "Medium", 34, (255, 255, 255, 225), anchor="ls", max_w=W - tx - 70)
+        c.text(tx, 372 + y, card["s"], "Medium", 31, (255, 255, 255, 225), anchor="ls", max_w=mw)
     stats = card.get("st") or []
     if stats:
-        _tiles(c, stats, tx, 395, W - tx - 70, 120, 20, 48, 21)
-    c.text(70, 585, f"Join me free at {host}", "Bold", 32, WHITE, anchor="ls", max_w=W - 140)
+        _tiles(c, stats, tx, 410 + y, mw, 112, 20, 46, 20)
+    c.text(70, 585, f"{CHALLENGE.get(card['i'], 'Join me!')}  Join free at {host}", "Bold", 30, WHITE, anchor="ls", max_w=W - 140)
     return c.png()
 
 
 @functools.lru_cache(maxsize=64)
-def render_cached(token: str, kind: str, host: str):
+def render_cached(token: str, kind: str, site: str):
     """PNG bytes for a token ("card" or "og"), or None when the token is invalid. Cached per process."""
     card = read_token(token)
     if card is None:
         return None
-    return render_card(card, host) if kind == "card" else render_og(card, host)
+    return render_card(card, site) if kind == "card" else render_og(card, site)

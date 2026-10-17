@@ -26,7 +26,7 @@ main{max-width:1400px;margin:0 auto;padding:24px}
 .auth-card h1{text-align:center}.auth-card .tag{text-align:center;margin:0 0 18px}
 .auth-card button.primary{width:100%;margin-top:6px}
 label{display:block;margin:12px 0;font-weight:500}
-input[type=email],input[type=password]{display:block;width:100%;padding:10px 12px;margin-top:5px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--fg);font:inherit}
+input[type=email],input[type=password],input[type=text]{display:block;width:100%;padding:10px 12px;margin-top:5px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--fg);font:inherit}
 input:focus{outline:2px solid var(--accent);outline-offset:0;border-color:var(--accent)}
 button{font:inherit;font-weight:500;padding:8px 16px;border:1px solid var(--line);border-radius:8px;background:var(--card);color:var(--fg);cursor:pointer;transition:background .15s,border-color .15s,transform .05s}
 button:hover{border-color:var(--accent)}button:active{transform:translateY(1px)}
@@ -193,7 +193,6 @@ form.inline{display:inline}
 .celebrate-box{max-width:420px;width:100%;text-align:center;background:var(--card);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow);padding:24px}
 .celebrate-box h2{margin:4px 0 8px}
 .celebrate-card{display:block;margin:0 auto 12px;width:auto;max-width:100%;height:min(46vh,380px);aspect-ratio:4/5;object-fit:contain;border-radius:14px;background:#eef0f7;box-shadow:0 6px 18px rgba(31,36,51,.18)}
-.celebrate-box .bar{justify-content:center}
 @media (prefers-reduced-motion:no-preference){.celebrate-box{animation:pop .25s ease-out}@keyframes pop{from{transform:scale(.92);opacity:0}to{transform:none;opacity:1}}}
 .goal-card{display:flex;align-items:center;gap:14px;margin:8px 0 14px}
 .ring{width:72px;height:72px;flex:none}
@@ -326,8 +325,20 @@ main:focus{outline:none}
 /* shareable cards (roadmap 4.2) */
 .share-page{display:grid;grid-template-columns:minmax(0,320px) minmax(0,1fr);gap:28px;align-items:start;max-width:820px;margin:8px auto}
 .share-card{display:block;width:100%;height:auto;aspect-ratio:4/5;border-radius:18px;box-shadow:0 10px 30px rgba(31,36,51,.25);background:#eef0f7}
-.share-cta h1{margin-top:0}
-.share-actions{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin:6px 0 4px}
-.share-actions button{min-height:44px}
+.share-cta h1{margin:0 0 4px}
+.share-who{margin:0 0 6px;font-weight:600;color:var(--accent)}
+.share-challenge{margin:18px 0 4px}
+.share-actions{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:10px 0 6px}
+.share-actions button{min-height:44px;padding:8px 6px;white-space:nowrap}
+.share-links{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0}
+.share-links button{min-height:44px}
+.celebrate-box .bar{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:6px 0 0}
+.celebrate-box .bar>*{min-height:44px;display:inline-flex;align-items:center;justify-content:center;box-sizing:border-box}
+.celebrate-box .bar a{border:1px solid var(--line);border-radius:8px;text-decoration:none;font-weight:500;color:var(--fg);padding:8px 16px}
+.celebrate-box .bar a:hover{border-color:var(--accent);color:var(--accent)}
+.celebrate-box .bar>:only-child{grid-column:1/-1}
+.share-sheet-box .bar{display:grid;grid-template-columns:1fr;margin:6px 0 0}
+.share-sheet-box .bar button{min-height:44px}
+.celebrate-box .small,.share-sheet-box .small{min-height:1.2em;margin:8px 0 0}
 .share-sheet-box{max-width:420px;width:100%;text-align:center;background:var(--card);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow);padding:20px}
 @media (max-width:640px){.share-page{grid-template-columns:1fr}.share-card{max-width:340px;margin:0 auto}}
