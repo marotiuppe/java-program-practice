@@ -64,6 +64,18 @@ CREATE TABLE IF NOT EXISTS certificates (
     issued_at INTEGER NOT NULL
 );
 CREATE UNIQUE INDEX IF NOT EXISTS certificates_user_level_idx ON certificates (user_id, level);
+CREATE TABLE IF NOT EXISTS interviews (
+    id TEXT PRIMARY KEY,
+    user_id INTEGER NOT NULL,
+    started_at INTEGER NOT NULL,
+    deadline INTEGER NOT NULL,
+    finished_at INTEGER,
+    questions TEXT NOT NULL,
+    answers TEXT NOT NULL DEFAULT '{}',
+    score INTEGER,
+    breakdown TEXT NOT NULL DEFAULT '[]'
+);
+CREATE INDEX IF NOT EXISTS interviews_user_idx ON interviews (user_id, started_at);
 CREATE TABLE IF NOT EXISTS feedback (
     user_id INTEGER NOT NULL,
     level TEXT NOT NULL,
@@ -146,6 +158,18 @@ SCHEMA_PG = [
         issued_at BIGINT NOT NULL
     )""",
     "CREATE UNIQUE INDEX IF NOT EXISTS certificates_user_level_idx ON certificates (user_id, level)",
+    """CREATE TABLE IF NOT EXISTS interviews (
+        id TEXT PRIMARY KEY,
+        user_id BIGINT NOT NULL,
+        started_at BIGINT NOT NULL,
+        deadline BIGINT NOT NULL,
+        finished_at BIGINT,
+        questions TEXT NOT NULL,
+        answers TEXT NOT NULL DEFAULT '{}',
+        score INTEGER,
+        breakdown TEXT NOT NULL DEFAULT '[]'
+    )""",
+    "CREATE INDEX IF NOT EXISTS interviews_user_idx ON interviews (user_id, started_at)",
     """CREATE TABLE IF NOT EXISTS feedback (
         user_id BIGINT NOT NULL,
         level TEXT NOT NULL,
@@ -605,7 +629,7 @@ def consume_token(raw: str, purpose: str):
 
 
 # ---- privacy: export and delete everything we hold about a user ----
-USER_TABLES = ["progress", "activity", "events", "reviews", "reports", "feedback", "auth_tokens", "certificates"]
+USER_TABLES = ["progress", "activity", "events", "reviews", "reports", "feedback", "auth_tokens", "certificates", "interviews"]
 
 
 def export_user(user_id: int) -> dict:
@@ -626,6 +650,8 @@ def export_user(user_id: int) -> dict:
             "reports": rows("SELECT level, day, qnum, category, note, code, resolved, created_at FROM reports "
                             "WHERE user_id = ? ORDER BY id"),
             "certificates": rows("SELECT id, level, name, solved, days, issued_at FROM certificates WHERE user_id = ?"),
+            "interviews": rows("SELECT id, started_at, deadline, finished_at, questions, answers, score, breakdown FROM interviews "
+                               "WHERE user_id = ? ORDER BY started_at"),
         }
 
 
@@ -764,6 +790,42 @@ def certificates_of(user_id: int) -> dict:
 def delete_certificate(user_id: int, level: str) -> None:
     with connect() as c:
         _x(c, "DELETE FROM certificates WHERE user_id = ? AND level = ?", (user_id, level))
+
+
+def create_interview(user_id: int, questions_json: str, deadline: int) -> str:
+    iid = "".join(secrets.choice(REF_ALPHABET) for _ in range(12))
+    with connect() as c:
+        _x(c, "INSERT INTO interviews (id, user_id, started_at, deadline, questions) VALUES (?, ?, ?, ?, ?)",
+           (iid, user_id, int(time.time()), deadline, questions_json))
+    return iid
+
+
+def get_interview(iid: str):
+    with connect() as c:
+        return _x(c, "SELECT * FROM interviews WHERE id = ?", (iid,)).fetchone()
+
+
+def save_interview_answers(iid: str, answers_json: str) -> None:
+    with connect() as c:
+        _x(c, "UPDATE interviews SET answers = ? WHERE id = ? AND finished_at IS NULL", (answers_json, iid))
+
+
+def finish_interview(iid: str, answers_json: str, score: int, breakdown_json: str) -> bool:
+    """Record the result once. False when it was already finished (another request got there first)."""
+    with connect() as c:
+        cur = _x(c, "UPDATE interviews SET finished_at = ?, answers = ?, score = ?, breakdown = ? "
+                    "WHERE id = ? AND finished_at IS NULL", (int(time.time()), answers_json, score, breakdown_json, iid))
+        return cur.rowcount == 1
+
+
+def interviews_of(user_id: int, limit: int = 10):
+    with connect() as c:
+        return _x(c, "SELECT * FROM interviews WHERE user_id = ? ORDER BY started_at DESC LIMIT ?", (user_id, limit)).fetchall()
+
+
+def count_interviews_since(user_id: int, since: int) -> int:
+    with connect() as c:
+        return int(_x(c, "SELECT COUNT(*) AS n FROM interviews WHERE user_id = ? AND started_at >= ?", (user_id, since)).fetchone()["n"])
 
 
 def set_leaderboard(user_id: int, on: bool) -> None:

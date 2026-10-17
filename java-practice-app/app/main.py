@@ -16,7 +16,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from starlette.middleware.sessions import SessionMiddleware
 
-from . import admin, badges, content, db, email_templates, grading, hints, mailer, ratelimit, reminders, sandbox, sharecard, stats
+from . import admin, badges, content, db, email_templates, grading, hints, interview, mailer, ratelimit, reminders, sandbox, sharecard, stats
 from .runner import run_java, run_java_batch, sandbox_check_started, sandbox_self_test
 
 logging.basicConfig(level=logging.INFO)
@@ -838,6 +838,192 @@ def cert_page(request: Request, cid: str):
                   linkedin=_linkedin_url(c, page_url), mine=bool(me and me["id"] == row["user_id"]), level_key=row["level"])
 
 
+# ---------------------------------------------------------------- mock interview (roadmap 3.6)
+INTERVIEW_SAVE = (200, 600)    # autosaves per learner per 10 minutes
+INTERVIEW_FINISH = (10, 600)
+
+
+def _iv_active(row, now: int) -> bool:
+    return row["finished_at"] is None and now <= row["deadline"] + interview.GRACE
+
+
+def _iv_error(request, status: int, message: str):
+    return JSONResponse({"error": message}, status_code=status)
+
+
+async def _iv_finish(row, answers):
+    """Grade and record a session (once). `answers` is the page's latest copy of everything typed, or None."""
+    refs = json.loads(row["questions"])
+    stored = json.loads(row["answers"] or "{}")
+    if isinstance(answers, dict):
+        for i in range(len(refs)):
+            if str(i) in answers:
+                stored[str(i)] = {**stored.get(str(i), {}), **interview.clean_answer(answers[str(i)])}
+    score, breakdown = await interview.grade(refs, stored)
+    if db.finish_interview(row["id"], json.dumps(stored), score, json.dumps(breakdown)):
+        db.log_event(row["user_id"], "interview_finished", f"{row['id']}:{score}", once=True)
+
+
+@app.get("/interview")
+def interview_intro(request: Request):
+    user = current_user(request)
+    if not user:
+        return RedirectResponse("/login", status_code=303)
+    days = interview.finished_days(db.get_all_progress(user["id"]))
+    avail = interview.pool(days)
+    sessions = db.interviews_of(user["id"], 10)
+    now = int(time.time())
+    done = [s for s in sessions if s["finished_at"] is not None]
+    return render(request, "interview.html", days=len(days), ready=sum(len(v) for v in avail.values()) >= 3,
+                  minutes=interview.MINUTES, limit=interview.PER_DAY_LIMIT, error=request.query_params.get("error"),
+                  active=next((s for s in sessions if _iv_active(s, now)), None),
+                  lapsed=next((s for s in sessions if s["finished_at"] is None and not _iv_active(s, now)), None),
+                  history=[{"id": s["id"], "score": s["score"], "verdict": interview.verdict(s["score"]),
+                            "when": datetime.fromtimestamp(s["started_at"], stats.zone()).strftime("%d %b %Y, %H:%M")} for s in done[:5]],
+                  best=max((s["score"] for s in done), default=None))
+
+
+@app.post("/interview/start")
+def interview_start(request: Request):
+    user = current_user(request)
+    if not user:
+        return RedirectResponse("/login", status_code=303)
+    now = int(time.time())
+    recent = db.interviews_of(user["id"], 3)
+    for s in recent:
+        if _iv_active(s, now):
+            return RedirectResponse(f"/interview/{s['id']}", status_code=303)
+    if db.count_interviews_since(user["id"], now - 86400) >= interview.PER_DAY_LIMIT:
+        return RedirectResponse(f"/interview?error=You+have+started+{interview.PER_DAY_LIMIT}+interviews+today.+Come+back+tomorrow.", status_code=303)
+    avail = interview.pool(interview.finished_days(db.get_all_progress(user["id"])))
+    seen = {(r["l"], r["d"], r["q"]) for s in recent[:2] for r in json.loads(s["questions"])}
+    refs = interview.pick(avail, seen)
+    if not refs:
+        return RedirectResponse("/interview?error=Finish+a+few+more+days+first.", status_code=303)
+    iid = db.create_interview(user["id"], json.dumps(refs), now + interview.MINUTES * 60)
+    db.log_event(user["id"], "interview_started", iid)
+    return RedirectResponse(f"/interview/{iid}", status_code=303)
+
+
+@app.get("/interview/{iid}")
+async def interview_page(request: Request, iid: str):
+    user = current_user(request)
+    if not user:
+        return RedirectResponse("/login", status_code=303)
+    row = db.get_interview(iid)
+    if row is None or row["user_id"] != user["id"]:
+        return render(request, "message.html", status_code=404, title="Interview not found",
+                      text="There is no interview with that link.", href="/interview", link="Back to mock interviews")
+    now = int(time.time())
+    if row["finished_at"] is None and not _iv_active(row, now):
+        await _iv_finish(row, None)  # time ran out: grade whatever was saved
+        row = db.get_interview(iid)
+    refs = json.loads(row["questions"])
+    if row["finished_at"] is not None:
+        breakdown = json.loads(row["breakdown"])
+        for b in breakdown:
+            b["same_level"] = b["l"] == user["level"]
+            b["kind_title"] = interview.kind_title(b["kind"])
+        done = [s for s in db.interviews_of(user["id"], 10) if s["finished_at"] is not None]
+        return render(request, "interview_result.html", row=row, score=row["score"], verdict=interview.verdict(row["score"]),
+                      breakdown=breakdown, used=max(1, round((row["finished_at"] - row["started_at"]) / 60)),
+                      minutes=interview.MINUTES, best=max((s["score"] for s in done), default=row["score"]),
+                      timed_out=row["finished_at"] > row["deadline"] + 1)
+    answers = json.loads(row["answers"] or "{}")
+    qs = []
+    for i, ref in enumerate(refs):
+        d = interview.describe(ref)
+        saved = answers.get(str(i), {})
+        d.update(i=i, kind_title=interview.kind_title(d["kind"]), code=saved.get("c", d["starter"]),
+                 answer=saved.get("a", ""), stdin=saved.get("s", ""), has_saved=bool(saved))
+        qs.append(d)
+    return render(request, "interview_live.html", iid=iid, qs=qs, deadline=row["deadline"], now=now,
+                  iv={"id": iid, "deadline": row["deadline"], "now": now, "n": len(qs), "kinds": [q["kind"] for q in qs]})
+
+
+def _iv_row_for(request: Request, iid: str):
+    """(user, row, error response). The row must belong to the caller and still be open."""
+    user = current_user(request)
+    if not user:
+        return None, None, _iv_error(request, 401, "Please log in.")
+    row = db.get_interview(iid)
+    if row is None or row["user_id"] != user["id"]:
+        return None, None, _iv_error(request, 404, "No such interview.")
+    return user, row, None
+
+
+@app.post("/api/interview/{iid}/save")
+async def interview_save(request: Request, iid: str):
+    user, row, bad = _iv_row_for(request, iid)
+    if bad:
+        return bad
+    if ratelimit.hit(f"ivsave:{user['id']}", *INTERVIEW_SAVE):
+        return _iv_error(request, 429, "Saving too often.")
+    if row["finished_at"] is not None:
+        return {"finished": True}
+    if not _iv_active(row, int(time.time())):
+        return {"expired": True}
+    try:
+        body = await request.json()
+        i = int(body["i"])
+    except (ValueError, KeyError, TypeError):
+        return _iv_error(request, 400, "Bad request.")
+    n = len(json.loads(row["questions"]))
+    if not 0 <= i < n:
+        return _iv_error(request, 400, "Bad question number.")
+    stored = json.loads(row["answers"] or "{}")
+    stored[str(i)] = {**stored.get(str(i), {}), **interview.clean_answer(body)}
+    db.save_interview_answers(iid, json.dumps(stored))
+    return {"ok": True}
+
+
+@app.post("/api/interview/{iid}/test")
+async def interview_test(request: Request, iid: str):
+    """Run the code against the sample cases printed in a coding question (no hidden tests, no progress change)."""
+    user, row, bad = _iv_row_for(request, iid)
+    if bad:
+        return bad
+    if not _throttle(user["id"], 3):
+        return JSONResponse({"stage": "busy", "ok": False, "error": "Slow down a little."}, status_code=429)
+    if (limited := _run_limited(request)):
+        return limited
+    if not _iv_active(row, int(time.time())):
+        return _iv_error(request, 409, "This interview is over.")
+    try:
+        body = await request.json()
+        i = int(body["i"])
+        q = interview.question(json.loads(row["questions"])[i])
+    except (ValueError, KeyError, TypeError, IndexError):
+        return _iv_error(request, 400, "Bad request.")
+    if not q or q["kind"] != "code" or not q["samples"]:
+        return _iv_error(request, 404, "This question has no sample cases.")
+    res = await run_java_batch(str(body.get("code", ""))[:interview.MAX_CODE], [c["input"] for c in q["samples"]])
+    if res.get("stage") != "tests":
+        return JSONResponse(_with_help(res))
+    db.touch_activity(user["id"], stats.today_str())
+    items = [{"n": n, "pass": bool(r["ok"] and grading.same(r["stdout"], case["output"])), "input": case["input"],
+              "expected": case["output"], "actual": r["stdout"], "stderr": r["stderr"], "timed_out": r["timed_out"]}
+             for n, (case, r) in enumerate(zip(q["samples"], res["results"]), start=1)]
+    return {"stage": "tests", "results": items, "all_passed": all(x["pass"] for x in items)}
+
+
+@app.post("/api/interview/{iid}/finish")
+async def interview_finish(request: Request, iid: str):
+    user, row, bad = _iv_row_for(request, iid)
+    if bad:
+        return bad
+    if ratelimit.hit(f"ivfin:{user['id']}", *INTERVIEW_FINISH):
+        return _iv_error(request, 429, "Too many tries.")
+    if row["finished_at"] is None:
+        try:
+            body = await request.json()
+        except Exception:
+            body = {}
+        late = int(time.time()) > row["deadline"] + interview.GRACE
+        await _iv_finish(row, None if late else (body.get("answers") if isinstance(body, dict) else None))
+    return {"url": f"/interview/{iid}"}
+
+
 @app.get("/join/{code}")
 async def join_link(code: str):
     """Personal invite link: the ref cookie is set by the middleware on the page it redirects to."""
@@ -1028,7 +1214,7 @@ async def dashboard(request: Request):
         level_label=content.CONTENT[level]["label"],
         total_solved=total,
         streak=streak,
-        board=board,
+        board=board, interview_minutes=interview.MINUTES,
         snapshot={"k": _snap_key(user), "level": content.CONTENT[level]["label"], "streak": streak["current"],
                   "board": board,
                   "longest": streak["longest"], "solved": total, "next": _next_unsolved(level, solved_set),
@@ -1223,7 +1409,7 @@ def _sweep_abandoned(user) -> None:
 
 
 STREAK_MILESTONES = (3, 7, 14, 30, 60, 100)
-SHARE_KINDS = ("day", "goal", "streak", "level", "progress")
+SHARE_KINDS = ("day", "goal", "streak", "level", "progress", "interview")
 SHARE_CARD_USER = (60, 3600)  # card requests per learner per hour
 SHARE_IMAGE_IP = (200, 600)   # image renders per IP per 10 minutes (previews are fetched by a few crawlers)
 
@@ -1333,6 +1519,16 @@ def _share_card(user, kind: str, day):
             return None
         return {"i": "flame", "t": f"I'm on a {streak['current']}-day streak!", "s": f"{lvl['label']} · Java, every day",
                 "st": [[str(streak["longest"]), "longest streak"]] + solved_tile, "p": None}
+    if kind == "interview":
+        done = [s for s in db.interviews_of(user["id"], 10) if s["finished_at"] is not None]
+        if not done:
+            return None
+        s = done[0]
+        mins = max(1, round((s["finished_at"] - s["started_at"]) / 60))
+        passed = sum(1 for b in json.loads(s["breakdown"]) if b.get("pct") == 100)
+        return {"i": "trophy" if s["score"] >= 85 else "target", "t": f"I scored {s['score']}/100 in a mock Java interview!",
+                "s": f"3 questions in {mins} min \u00b7 {interview.verdict(s['score'])}",
+                "st": [[str(s["score"]), "score"], [f"{passed}/3", "questions passed"], [f"{mins} min", "time used"]], "p": None}
     if kind == "level":
         if days_done < total_days:
             return None

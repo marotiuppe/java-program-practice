@@ -135,7 +135,7 @@ Goal: every question is correct, and grading is trustworthy.
 - [x] **3.3 Re-verify Predict outputs (S).** Run the 90 snippets in CI (already scripted) and fail on non-determinism. *Outcome:* no flaky "Check answer". *(Done: tools/check_predict.py runs in CI; all 90 snippets were stable.)*
 - [x] **3.4 Question feedback (S).** 👍/👎 and "too easy / too hard" per question. *Outcome:* data to tune difficulty.
 - [ ] **3.5 Difficulty review (M).** Use solve-rate and attempts (0.3) to re-order or rewrite outliers. *Outcome:* an evidence-based curve.
-- [ ] **3.6 Interview mode (M).** Timed set of 3 mixed questions from completed days, with a score and breakdown. *Outcome:* a reason to return after the 30 days.
+- [x] **3.6 Interview mode (M).** Timed set of 3 mixed questions from completed days, with a score and breakdown. *Outcome:* a reason to return after the 30 days. *(Done: /interview starts a 30-minute session (INTERVIEW_MINUTES) of 3 mixed questions (one coding, one debug, one predict) chosen only from days the learner has fully solved, avoiding the last two sessions; a plain editor with no hints or autocomplete, Run and Run samples, autosave every few seconds plus a local backup, a server-enforced deadline with auto-submit; coding and debug answers are graded on every verified check with partial credit, predict answers must match exactly; a result page with score, verdict, per-question breakdown, history and a share card; up to 5 interviews a day; included in the data export and removed with the account.)*
 
 ### Phase 4 — Social features and growth *(2–3 weeks)*
 Goal: users bring other users. Research suggests shareable proof and referrals are the cheapest channels.

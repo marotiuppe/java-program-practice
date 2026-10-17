@@ -173,5 +173,15 @@ with TestClient(app, follow_redirects=False) as c:
     c.post("/certificate/beginner/delete")
     check("deleted certificate disappears", anon.get(cert_url).status_code == 404)
 
+    # mock interview (roadmap 3.6): three mixed questions from finished days, timed, graded
+    check("interview intro", c.get("/interview").status_code == 200 and "Start a" in c.get("/interview").text)
+    iv = c.post("/interview/start")
+    iv_url = iv.headers["location"]
+    check("interview starts", iv.status_code == 303 and iv_url.startswith("/interview/"), iv_url)
+    live = c.get(iv_url)
+    check("interview page has three questions and a timer", live.status_code == 200 and live.text.count('role="tab"') == 3 and "iv-timer" in live.text)
+    fin = c.post(iv_url.replace("/interview/", "/api/interview/") + "/finish", json={"answers": {}})
+    check("interview finishes and is graded", fin.json().get("url") == iv_url and "iv-score" in c.get(iv_url).text)
+
 print("\nFAILED: " + ", ".join(failures) if failures else "\nAll smoke checks passed.")
 sys.exit(1 if failures else 0)

@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% block title %}Interview in progress{% endblock %}
+{% block content %}
+<div class="iv-bar">
+  <span><b>Mock interview</b> <span class="muted small" id="iv-saved" role="status"></span></span>
+  <span class="iv-timer" id="iv-timer" role="timer" aria-label="Time left">--:--</span>
+  <button type="button" id="iv-submit" class="primary">Submit</button>
+</div>
+<div class="sr-only" id="iv-announce" aria-live="polite"></div>
+<div class="iv-tabs" role="tablist" aria-label="Interview questions">
+  {% for q in qs %}<button type="button" role="tab" class="iv-tab{{ ' on' if loop.first }}" data-i="{{ q.i }}" aria-selected="{{ 'true' if loop.first else 'false' }}" id="iv-tab-{{ q.i }}" aria-controls="iv-q-{{ q.i }}">Q{{ q.i + 1 }} &middot; {{ q.kind_title }}</button>{% endfor %}
+</div>
+{% for q in qs %}
+<div class="iv-q" id="iv-q-{{ q.i }}" data-i="{{ q.i }}" data-kind="{{ q.kind }}" role="tabpanel" aria-labelledby="iv-tab-{{ q.i }}"{% if not loop.first %} hidden{% endif %}>
+  <section class="pane prose iv-problem">
+    <h1 class="q-title">{{ q.kind_title }}: {{ q.title }}</h1>
+    {{ q.html | safe }}
+  </section>
+  <section class="pane iv-work">
+    {% if q.kind == 'predict' %}
+    <label for="iv-a-{{ q.i }}">Your answer: exactly what the program prints, line by line</label>
+    <textarea id="iv-a-{{ q.i }}" class="iv-answer" data-i="{{ q.i }}" data-saved="{{ '1' if q.has_saved }}" rows="8" spellcheck="false" autocapitalize="off" autocomplete="off" autocorrect="off">{{ q.answer }}</textarea>
+    {% else %}
+    <label for="iv-c-{{ q.i }}">Java code{% if q.kind == 'debug' %} (fix the bugs){% endif %}</label>
+    <textarea id="iv-c-{{ q.i }}" class="iv-code" data-i="{{ q.i }}" data-saved="{{ '1' if q.has_saved }}" rows="16" spellcheck="false" autocapitalize="off" autocomplete="off" autocorrect="off" wrap="off" aria-describedby="iv-help">{{ q.code }}</textarea>
+    <label for="iv-s-{{ q.i }}">Input (stdin)</label>
+    <textarea id="iv-s-{{ q.i }}" class="iv-stdin" data-i="{{ q.i }}" data-saved="{{ '1' if q.has_saved }}" rows="2" spellcheck="false" placeholder="Program input goes here">{{ q.stdin }}</textarea>
+    <div class="bar">
+      <button type="button" class="primary iv-run" data-i="{{ q.i }}">Run (Ctrl+Enter)</button>
+      {% if q.samples %}<button type="button" class="iv-samples" data-i="{{ q.i }}">Run samples ({{ q.samples }})</button>{% endif %}
+    </div>
+    <pre class="output iv-out" id="iv-out-{{ q.i }}" aria-live="polite">Output appears here.</pre>
+    {% endif %}
+  </section>
+</div>
+{% endfor %}
+<p class="muted small" id="iv-help">Tab inserts spaces. To leave the editor press Esc, then Tab. No hints or autocomplete in an interview.</p>
+<script type="application/json" id="iv-data">{{ iv | tojson }}</script>
+<script src="{{ static('interview.js') }}"></script>
+{% endblock %}

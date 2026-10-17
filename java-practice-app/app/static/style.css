@@ -362,6 +362,23 @@ main:focus{outline:none}
 .cert-facts div{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:10px 12px}
 .cert-facts dt{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em}.cert-facts dd{margin:2px 0 0;font-weight:600}
 .cert-card h2{margin-top:0}
+.iv-bar{position:sticky;top:57px;z-index:15;display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;padding:8px 14px;margin:0 0 10px;background:var(--card);border:1px solid var(--line);border-radius:12px;box-shadow:var(--shadow)}
+.iv-timer{font:700 26px/1 ui-monospace,Consolas,monospace;color:var(--accent);min-width:90px;text-align:center}
+.iv-timer.warn{color:var(--warn)}.iv-timer.danger{color:var(--err)}
+.iv-tabs{display:flex;gap:6px;flex-wrap:wrap;margin:0 0 10px}
+.iv-tab{border-radius:99px;min-height:44px}.iv-tab.on{background:var(--accent);border-color:var(--accent);color:var(--accent-fg)}
+.iv-q{display:grid;gap:14px;grid-template-columns:minmax(0,1fr)}
+.iv-q[hidden]{display:none}
+@media (min-width:960px){.iv-q{grid-template-columns:minmax(0,1fr) minmax(0,1fr);align-items:start}}
+.iv-work label{display:block;margin:10px 0 4px;font-weight:600}
+.iv-code,.iv-stdin,.iv-answer{width:100%;box-sizing:border-box;font:14px/1.5 ui-monospace,Consolas,monospace;padding:10px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--fg);tab-size:4;resize:vertical}
+.iv-rules{margin:0 0 12px;padding-left:20px}.iv-rules li{margin:6px 0}
+.iv-history{margin:0;padding-left:20px}.iv-history li{margin:6px 0}
+.iv-score{display:flex;gap:20px;align-items:center;flex-wrap:wrap}
+.iv-score h2{margin:0 0 4px}
+.iv-big b{font-size:64px;line-height:1;color:var(--accent)}.iv-big span{font-size:22px;color:var(--muted)}
+.iv-item-head{display:flex;justify-content:space-between;gap:10px;align-items:baseline;margin-bottom:6px}
+.iv-pct{font-weight:700}.iv-pct.good{color:var(--ok)}.iv-pct.part{color:var(--warn)}.iv-pct.zero{color:var(--err)}
 .board-teaser{padding:12px 16px}
 .board{list-style:none;margin:0;padding:0}
 .board li{display:flex;align-items:center;gap:12px;padding:10px 12px;border-bottom:1px solid var(--line)}

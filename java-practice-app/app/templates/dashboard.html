@@ -39,6 +39,7 @@
     <form method="post" action="/account/leaderboard" class="inline"><input type="hidden" name="on" value="1"><input type="hidden" name="back" value="/dashboard"><button class="link">join it</button></form>{% endif %}
 </div>
 <div class="share-links">
+  <a class="btn-continue" href="/interview">Mock interview: 3 questions, {{ interview_minutes }} minutes</a>
   <a class="btn-continue" href="/invite">Invite a friend: you both get a streak freeze</a>
   <button type="button" data-share-kind="progress">Share my progress</button>
   {% if streak.current >= 2 %}<button type="button" data-share-kind="streak">Share my {{ streak.current }}-day streak</button>{% endif %}

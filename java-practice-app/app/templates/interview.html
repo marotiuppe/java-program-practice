@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% block title %}Mock interview{% endblock %}
+{% block content %}
+<h1>Mock interview</h1>
+<p class="muted">Practise under pressure, like a real screening round. You get <b>3 questions</b> (one to code, one to debug, one to predict) picked from days you have already finished, and <b>{{ minutes }} minutes</b> for all of them.</p>
+{% if error %}<p class="error">{{ error }}</p>{% endif %}
+<div class="card">
+  <ul class="iv-rules">
+    <li>The clock starts when you press Start. When it runs out your answers are submitted automatically.</li>
+    <li>No hints and no autocomplete. You can run your code and, for coding questions, the sample cases.</li>
+    <li>Coding and debug answers are graded on every check, with partial credit. Predict answers must match the output exactly.</li>
+    <li>Your answers are saved as you type, so a dropped connection will not lose your work.</li>
+    <li>You can start up to {{ limit }} interviews a day.</li>
+  </ul>
+  {% if active %}
+    <p><b>You have an interview in progress.</b></p>
+    <p><a class="btn-continue" href="/interview/{{ active.id }}">Resume interview</a></p>
+  {% elif ready %}
+    <form method="post" action="/interview/start"><button class="primary">Start a {{ minutes }}-minute interview</button></form>
+  {% else %}
+    <p class="muted">You have finished {{ days }} day{{ '' if days == 1 else 's' }} so far. Finish a few more days (all five questions of each) so there is enough to ask, then come back.</p>
+    <p><a class="btn-continue" href="/dashboard">Back to my plan</a></p>
+  {% endif %}
+  {% if lapsed %}<p class="muted small">Your last interview ran out of time. <a href="/interview/{{ lapsed.id }}">See how it went</a>.</p>{% endif %}
+</div>
+{% if history %}
+<h2>Your results{% if best is not none %} <span class="muted small">best {{ best }}/100</span>{% endif %}</h2>
+<div class="card">
+  <ol class="iv-history">
+    {% for h in history %}<li><a href="/interview/{{ h.id }}"><b>{{ h.score }}/100</b> &middot; {{ h.verdict }}</a> <span class="muted small">{{ h.when }}</span></li>{% endfor %}
+  </ol>
+</div>
+{% endif %}
+{% endblock %}

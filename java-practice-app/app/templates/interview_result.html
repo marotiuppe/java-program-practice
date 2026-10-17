@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block title %}Interview result{% endblock %}
+{% block content %}
+<h1>Interview result</h1>
+{% if timed_out %}<p class="muted">Time ran out, so your saved answers were graded.</p>{% endif %}
+<div class="card iv-score">
+  <div class="iv-big"><b>{{ score }}</b><span>/100</span></div>
+  <div>
+    <h2>{{ verdict }}</h2>
+    <p class="muted">{{ used }} of {{ minutes }} minutes used &middot; your best is {{ best }}/100</p>
+    <p class="share-links">
+      <form method="post" action="/interview/start" class="inline"><button class="primary">Try another interview</button></form>
+      <button type="button" data-share-kind="interview">Share my score</button>
+      <a class="btn-continue" href="/dashboard">Back to my plan</a>
+    </p>
+  </div>
+</div>
+<h2>Breakdown</h2>
+{% for b in breakdown %}
+<div class="card iv-item">
+  <div class="iv-item-head"><b>Q{{ b.i + 1 }} &middot; {{ b.kind_title }}: {{ b.title }}</b><span class="iv-pct {{ 'good' if b.pct == 100 else 'part' if b.pct else 'zero' }}">{{ b.pct }}%</span></div>
+  <div class="meter"><i style="width:{{ b.pct }}%"></i></div>
+  {% if b.kind == 'predict' %}
+    <p class="small">{{ 'Correct.' if b.pct == 100 else (b.note or 'Not quite.') }}</p>
+    {% if b.pct != 100 and b.expected %}<p class="small">The program prints:</p><pre class="output">{{ b.expected }}</pre>{% endif %}
+  {% else %}
+    <p class="small">{{ b.passed }} of {{ b.total }} checks passed.{% if b.note %} {{ b.note }}{% endif %}</p>
+  {% endif %}
+  {% if b.same_level %}<p class="small"><a href="/day/{{ b.d }}/q/{{ b.q }}">Practise this question again</a></p>{% endif %}
+</div>
+{% endfor %}
+{% endblock %}
