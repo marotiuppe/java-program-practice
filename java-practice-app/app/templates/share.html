@@ -19,7 +19,7 @@
     {% if user %}
     <p><a class="btn-continue" href="/dashboard">Go to my dashboard</a></p>
     {% else %}
-    <p><a class="btn-continue" href="/signup?utm_source=share_page">Start the challenge, free</a> <a href="/login" class="muted">I already have an account</a></p>
+    <p><a class="btn-continue" href="/signup?{{ 'ref=' ~ card.r ~ '&' if card.r }}utm_source=share_page">Start the challenge, free</a> <a href="/login" class="muted">I already have an account</a></p>
     {% endif %}
   </div>
 </section>

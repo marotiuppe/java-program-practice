@@ -120,11 +120,12 @@ def overview(request: Request):
            "SUM(CASE WHEN level != '' THEN 1 ELSE 0 END) AS chose, "
            "SUM(CASE WHEN created_at >= ? THEN 1 ELSE 0 END) AS new_7, "
            "SUM(CASE WHEN created_at >= ? THEN 1 ELSE 0 END) AS new_30, "
-           "SUM(CASE WHEN email_verified = 1 THEN 1 ELSE 0 END) AS verified FROM users",
+           "SUM(CASE WHEN email_verified = 1 THEN 1 ELSE 0 END) AS verified, "
+           "SUM(CASE WHEN referred_by IS NOT NULL THEN 1 ELSE 0 END) AS referred FROM users",
            (now - 7 * 86400, now - 30 * 86400))[0]
     total = int(u["total"] or 0)
     ev = {r["name"]: int(r["n"]) for r in _q(
-        "SELECT name, COUNT(DISTINCT user_id) AS n FROM events WHERE name IN ('first_run', 'day_complete') GROUP BY name")}
+        "SELECT name, COUNT(DISTINCT user_id) AS n FROM events WHERE name IN ('first_run', 'day_complete', 'referral_reward') GROUP BY name")}
     pr = _q("SELECT COUNT(DISTINCT user_id) AS users, COUNT(*) AS solves FROM progress WHERE status = 'solved'")[0]
     act = _q("SELECT COUNT(DISTINCT CASE WHEN day = ? THEN user_id END) AS dau, "
              "COUNT(DISTINCT CASE WHEN day >= ? THEN user_id END) AS wau, "
@@ -144,6 +145,8 @@ def overview(request: Request):
         "new_7": int(u["new_7"] or 0),
         "new_30": int(u["new_30"] or 0),
         "verified": int(u["verified"] or 0),
+        "referred": int(u["referred"] or 0),
+        "referral_active": ev.get("referral_reward", 0),
         "dau": int(act["dau"] or 0),
         "wau": int(act["wau"] or 0),
         "mau": int(act["mau"] or 0),
@@ -207,7 +210,7 @@ def user_detail(request: Request, uid: int):
         return JSONResponse({"error": "No such user."}, status_code=404)
     data = db.export_user(uid)
     active = db.get_active_dates(uid)
-    streak = stats.streak_v2(active)
+    streak = stats.streak_for(target, active)
     days_per_level = {lv: len(info["days"]) for lv, info in content.CONTENT.items()}
     result = badges.compute(db.get_all_progress(uid), m._kind_of, days_per_level, streak["longest"],
                             db.has_event(uid, "first_run", ""))

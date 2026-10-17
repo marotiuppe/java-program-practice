@@ -121,6 +121,24 @@ with TestClient(app, follow_redirects=False) as c:
     check("joined learner is listed", "(you)" in c.get("/leaderboard").text or "Solve a question" in c.get("/leaderboard").text)
     c.post("/account/leaderboard", data={"back": "/leaderboard"})
     check("left learner is not listed", "(you)" not in c.get("/leaderboard").text)
+    # invites (roadmap 4.4): link, banner, reward on the invitee's first solved question
+    import re as _re
+    inv = c.get("/invite")
+    mm = _re.search(r"/join/([a-z0-9]+)", inv.text)
+    check("invite page with a personal link", inv.status_code == 200 and bool(mm), inv.status_code)
+    code = mm.group(1)
+    friend = TestClient(app, follow_redirects=False)
+    check("invite link leads to signup", friend.get(f"/join/{code}").headers.get("location") == f"/signup?ref={code}")
+    check("signup page names the inviter", "invited you" in friend.get(f"/signup?ref={code}").text)
+    friend.post("/signup", data={"email": "friend-smoke@example.com", "password": "password123"})
+    fid = db.get_user_by_email("friend-smoke@example.com")
+    check("invitee is linked to the inviter", fid["referred_by"] == uid)
+    from app import main as _m, stats as _stats
+    db.save_progress(fid["id"], "beginner", 1, 1, "x", "solved", True)
+    fb = _m._solve_feedback(db.get_user(fid["id"]), 1, 1)
+    check("first solve rewards both with a freeze", bool(fb and fb.get("referral")) and db.get_user(uid)["freeze_bonus"] != ""
+          and db.get_user(fid["id"])["freeze_bonus"] != "", fb)
+    check("share card" + " carries the invite code", "r" in __import__("app.sharecard", fromlist=["x"]).read_token(tok))
     check("share images render", c.get(f"/s/{tok}/og.png").headers.get("content-type") == "image/png"
           and c.get(f"/s/{tok}/card.png").status_code == 200)
     check("forged share link is refused", c.get("/s/forged/og.png").status_code == 404)

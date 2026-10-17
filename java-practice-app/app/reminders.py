@@ -38,14 +38,14 @@ def read_unsubscribe_token(token: str):
         return None
 
 
-def choose(active: set, today: date, hour: int, solved_this_week: int):
+def choose(active: set, today: date, hour: int, solved_this_week: int, bonus=()):
     """Decide which email (if any) a user should get right now.
     Returns (kind, dedupe_key) or None. `active` is a set of date objects the user practiced."""
     if hour < REMINDER_HOUR or not active:
         return None
     last = max(active)
     gap = (today - last).days
-    streak = stats.streak_v2([d.isoformat() for d in active], today)
+    streak = stats.streak_v2([d.isoformat() for d in active], today, bonus)
     # Sunday recap for recently active learners (the ISO week makes it once a week)
     if today.weekday() == 6 and gap <= 6:
         iso = today.isocalendar()
@@ -86,7 +86,8 @@ def run_once(base_url: str, now_utc: datetime | None = None) -> int:
             active = {date.fromisoformat(d) for d in db.get_active_dates(user["id"])}
             week_start = int((local - timedelta(days=6)).replace(hour=0, minute=0, second=0, microsecond=0).timestamp())
             solved_week = db.count_solved_since(user["id"], week_start)
-            pick = choose(active, local.date(), local.hour, solved_week)
+            bonus = stats.parse_bonus(user["freeze_bonus"])
+            pick = choose(active, local.date(), local.hour, solved_week, bonus)
             if not pick:
                 continue
             kind, key = pick
@@ -95,7 +96,7 @@ def run_once(base_url: str, now_utc: datetime | None = None) -> int:
                 continue
             if not db.log_event(user["id"], "reminder_sent", f"{kind}:{key}", once=True):
                 continue
-            streak = stats.streak_v2([d.isoformat() for d in active], local.date())["current"]
+            streak = stats.streak_v2([d.isoformat() for d in active], local.date(), bonus)["current"]
             unsub = f"{base_url}/unsubscribe/{unsubscribe_token(user['id'])}"
             day_start = int(datetime.combine(local.date(), datetime.min.time(), tzinfo=zone).timestamp())
             ctx = {

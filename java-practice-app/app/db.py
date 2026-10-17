@@ -179,6 +179,9 @@ MIGRATIONS = [
     ("users", "display_name", "TEXT NOT NULL DEFAULT ''"),
     ("users", "card_name_off", "INTEGER NOT NULL DEFAULT 0"),
     ("users", "leaderboard", "INTEGER NOT NULL DEFAULT 0"),
+    ("users", "freeze_bonus", "TEXT NOT NULL DEFAULT ''"),
+    ("users", "ref_code", "TEXT NOT NULL DEFAULT ''"),
+    ("users", "referred_by", "INTEGER"),
 ]
 
 
@@ -267,14 +270,14 @@ def verify_password(password: str, stored: str) -> bool:
         return False
 
 
-def create_user(email: str, password: str, verified: bool = True, display_name: str = ""):
+def create_user(email: str, password: str, verified: bool = True, display_name: str = "", referred_by=None):
     try:
         with connect() as c:
             cur = _x(
                 c,
-                "INSERT INTO users (email, pw_hash, created_at, email_verified, display_name) VALUES (?, ?, ?, ?, ?)"
-                + (" RETURNING id" if PG else ""),
-                (email, hash_password(password), int(time.time()), 1 if verified else 0, display_name),
+                "INSERT INTO users (email, pw_hash, created_at, email_verified, display_name, referred_by) "
+                "VALUES (?, ?, ?, ?, ?, ?)" + (" RETURNING id" if PG else ""),
+                (email, hash_password(password), int(time.time()), 1 if verified else 0, display_name, referred_by),
             )
             return cur.fetchone()["id"] if PG else cur.lastrowid
     except IntegrityError:
@@ -623,7 +626,7 @@ def set_tz(user_id: int, tz: str) -> None:
 def list_reminder_users():
     """Users who opted in to reminders and have a confirmed email address."""
     with connect() as c:
-        return _x(c, "SELECT id, email, tz, level, daily_goal FROM users WHERE reminders = 1 AND email_verified = 1").fetchall()
+        return _x(c, "SELECT id, email, tz, level, daily_goal, freeze_bonus FROM users WHERE reminders = 1 AND email_verified = 1").fetchall()
 
 
 # ---- hints (opt-in) ----
@@ -638,6 +641,51 @@ def public_counts():
         users = _x(c, "SELECT COUNT(*) AS n FROM users").fetchone()["n"]
         solved = _x(c, "SELECT COUNT(*) AS n FROM progress WHERE status = 'solved'").fetchone()["n"]
     return int(users), int(solved)
+
+
+REF_ALPHABET = "abcdefghjkmnpqrstuvwxyz23456789"  # no look-alike characters (0/o, 1/l/i)
+
+
+def ensure_ref_code(user_id: int) -> str:
+    """This learner's personal invite code, created on first use."""
+    with connect() as c:
+        row = _x(c, "SELECT ref_code FROM users WHERE id = ?", (user_id,)).fetchone()
+        if row and row["ref_code"]:
+            return row["ref_code"]
+        for _ in range(20):
+            code = "".join(secrets.choice(REF_ALPHABET) for _ in range(7))
+            if _x(c, "SELECT 1 FROM users WHERE ref_code = ?", (code,)).fetchone():
+                continue
+            _x(c, "UPDATE users SET ref_code = ? WHERE id = ? AND ref_code = ''", (code, user_id))
+            return _x(c, "SELECT ref_code FROM users WHERE id = ?", (user_id,)).fetchone()["ref_code"]
+    raise RuntimeError("could not create an invite code")
+
+
+def user_by_ref_code(code: str):
+    if not code:
+        return None
+    with connect() as c:
+        return _x(c, "SELECT * FROM users WHERE ref_code = ?", (code,)).fetchone()
+
+
+def add_freeze_bonus(user_id: int, iso_date: str) -> None:
+    """Record that an invite reward added a streak freeze on this date."""
+    with connect() as c:
+        _x(c, "UPDATE users SET freeze_bonus = CASE WHEN freeze_bonus = '' THEN ? ELSE freeze_bonus || ? END WHERE id = ?",
+           (iso_date, "," + iso_date, user_id))
+
+
+def count_events(user_id: int, name: str) -> int:
+    with connect() as c:
+        return int(_x(c, "SELECT COUNT(*) AS n FROM events WHERE user_id = ? AND name = ?", (user_id, name)).fetchone()["n"])
+
+
+def referral_stats(user_id: int) -> dict:
+    """How many people joined through this learner's link, and how many of them solved a first question."""
+    with connect() as c:
+        joined = _x(c, "SELECT COUNT(*) AS n FROM users WHERE referred_by = ?", (user_id,)).fetchone()["n"]
+        earned = _x(c, "SELECT COUNT(*) AS n FROM events WHERE user_id = ? AND name = 'referral_earned'", (user_id,)).fetchone()["n"]
+    return {"joined": int(joined), "activated": int(earned)}
 
 
 def set_leaderboard(user_id: int, on: bool) -> None:

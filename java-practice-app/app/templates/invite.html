@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% block title %}Invite friends{% endblock %}
+{% block content %}
+<h1>Invite a friend</h1>
+<p class="muted">Learning is easier with company. When a friend joins with your link and solves their first question, <b>you both get a free streak freeze</b>: a missed day will not wipe your streak.</p>
+<div class="card invite-card">
+  <label for="invite-link">Your personal invite link</label>
+  <div class="invite-row">
+    <input id="invite-link" type="text" readonly value="{{ link }}">
+    <button type="button" id="invite-copy" class="primary">Copy link</button>
+    <button type="button" id="invite-share">Share</button>
+  </div>
+  <p class="muted small" id="invite-note" role="status"></p>
+</div>
+<div class="stats">
+  <div class="stat"><b>{{ stats.joined }}</b><span>joined with your link</span></div>
+  <div class="stat"><b>{{ stats.activated }}</b><span>solved a first question</span></div>
+  <div class="stat"><b>{{ freezes }}</b><span>streak freezes in your bank</span></div>
+</div>
+<div class="card">
+  <h2>How it works</h2>
+  <ol>
+    <li>Send your link to a friend, or share an achievement card: the QR code and the button on it carry your link too.</li>
+    <li>They sign up and solve their first question.</li>
+    <li>You each get a streak freeze automatically. The bank holds up to 3 (2 earned by practising, plus one from an invite).</li>
+  </ol>
+  <p class="muted small">You can earn up to {{ cap }} freezes this way. Your friend sees {% if handle %}your name ({{ handle }}){% else %}&ldquo;A friend&rdquo;{% endif %} on the signup page; change that in <a href="/account">Account</a>.</p>
+</div>
+<script>
+(function () {
+  var link = document.getElementById('invite-link'), note = document.getElementById('invite-note');
+  var text = 'I am learning Java with a free 30-day practice plan. Join me and we both get a streak freeze:';
+  document.getElementById('invite-copy').addEventListener('click', function () {
+    link.select();
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(link.value).then(function () { note.textContent = 'Link copied.'; },
+        function () { note.textContent = 'Press Ctrl+C to copy the link.'; });
+    } else { note.textContent = 'Press Ctrl+C to copy the link.'; }
+  });
+  var share = document.getElementById('invite-share');
+  if (!navigator.share) { share.hidden = true; return; }
+  share.addEventListener('click', function () {
+    navigator.share({ title: 'Java Practice', text: text, url: link.value }).catch(function () {});
+  });
+})();
+</script>
+{% endblock %}

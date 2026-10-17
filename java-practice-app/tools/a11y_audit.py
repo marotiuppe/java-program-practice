@@ -20,7 +20,7 @@ ADMIN = "audit-admin@example.com"
 
 PUBLIC = ["/", "/login", "/signup", "/forgot", "/privacy", "/plan/beginner", "/plan/beginner/day/3"]
 LEARNER = ["/dashboard", "/level", "/goal", "/day/1", "/day/1/q/1", "/day/1/q/4", "/day/1/q/5", "/profile", "/review",
-           "/account"]
+           "/account", "/invite", "/leaderboard"]
 ADMIN_PAGES = ["/admin", "/admin/users", "/admin/users/1", "/admin/reports", "/admin/questions", "/admin/activity",
                "/admin/system"]
 

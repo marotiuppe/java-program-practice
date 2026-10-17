@@ -13,6 +13,7 @@ import functools
 import io
 import json
 import os
+import re
 
 from itsdangerous import BadSignature, URLSafeSerializer
 from PIL import Image, ImageDraw, ImageFont
@@ -41,6 +42,8 @@ def read_token(token: str):
     if not isinstance(card, dict) or card.get("i") not in ICONS or not isinstance(card.get("t"), str):
         return None
     if "u" in card and not (isinstance(card["u"], str) and len(card["u"]) <= 25):
+        return None
+    if "r" in card and not (isinstance(card["r"], str) and re.fullmatch(r"[a-z0-9]{6,12}", card["r"])):
         return None
     stats = card.get("st")
     if not isinstance(stats, list) or len(stats) > 3 or not all(
@@ -259,7 +262,8 @@ def render_card(card: dict, site: str) -> bytes:
     py, ph = 1075, 225
     c.rrect(60, py, W - 120, ph, 40, WHITE)
     qs = 170
-    _qr(c, f"{site.rstrip('/')}/?utm_source=share_card", W - 60 - 30 - qs, py + (ph - qs) / 2, qs)
+    invite = f"{site.rstrip('/')}/join/{card['r']}" if card.get("r") else f"{site.rstrip('/')}/?utm_source=share_card"
+    _qr(c, invite, W - 60 - 30 - qs, py + (ph - qs) / 2, qs)
     c.d.rounded_rectangle([(W - 60 - 30 - qs) * c.S, (py + (ph - qs) / 2) * c.S, (W - 60 - 30) * c.S, (py + (ph + qs) / 2) * c.S],
                           radius=14 * c.S, outline=(220, 224, 240), width=2 * c.S)
     tx, tw = 105, W - 60 - 30 - qs - 105 - 24

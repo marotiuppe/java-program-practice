@@ -10,9 +10,9 @@
 
   window.celebrate = function (info) {
     if (document.getElementById('celebrate')) return;
-    const dc = info.day_complete, gr = info.goal_reached, lc = info.level_complete, sm = info.streak_milestone;
+    const dc = info.day_complete, gr = info.goal_reached, lc = info.level_complete, sm = info.streak_milestone, rf = info.referral;
     // the biggest moment decides the title and the card
-    let title = 'Daily goal reached!', kind = 'goal', day;
+    let title = rf && !gr && !dc && !lc && !sm ? 'Streak freeze earned!' : 'Daily goal reached!', kind = 'goal', day;
     if (lc) { title = lc.level + ' level complete!'; kind = 'level'; }
     else if (dc) { title = 'Day ' + dc.day + ' complete!'; kind = 'day'; day = dc.day; }
     else if (sm) { title = sm.days + '-day streak!'; kind = 'streak'; }
@@ -21,6 +21,7 @@
     if (lc) lines.push('You solved every question in this level. Excellent work!');
     if (dc) lines.push('You solved all 5 questions of Day ' + dc.day + '.');
     if (sm) lines.push('You have practised ' + sm.days + ' days in a row.');
+    if (rf) lines.push('Your invite worked: you and ' + rf.inviter + ' each earned a free streak freeze.');
     if (gr) lines.push('You hit your goal of ' + gr.goal + ' question' + (gr.goal === 1 ? '' : 's') + ' today.');
 
     const overlay = el('div', 'celebrate-overlay');

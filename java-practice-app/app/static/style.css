@@ -33,6 +33,9 @@ main{max-width:1400px;margin:0 auto;padding:24px}
 .auth-logo{display:block;margin:0 auto 14px;border-radius:14px}
 .auth-card h1{text-align:center}.auth-card .tag{text-align:center;margin:0 0 18px}
 .auth-card button.primary{width:100%;margin-top:6px}
+.invited-by{margin:0 0 12px;padding:10px 12px;border-radius:10px;background:var(--accent-soft);font-size:14px;text-align:center}
+.invite-row{display:flex;flex-wrap:wrap;gap:8px;margin-top:6px}.invite-row input{flex:1 1 240px;min-width:0;margin:0}
+.invite-row button{min-height:44px}
 .auth-counts{text-align:center;margin:-8px 0 10px;font-size:14px;color:var(--muted)}.auth-counts b{color:var(--accent)}
 .auth-perks{list-style:none;margin:0 0 14px;padding:0;font-size:14px;color:var(--muted)}
 .auth-perks li{padding:2px 0 2px 24px;position:relative}.auth-perks li::before{content:"\2713";position:absolute;left:4px;color:var(--ok);font-weight:700}

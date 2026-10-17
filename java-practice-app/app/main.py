@@ -44,6 +44,8 @@ templates.env.filters["ts"] = lambda t: datetime.fromtimestamp(t, stats.zone()).
 
 EMAIL_RE = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
 HANDLE_BAD = re.compile(r"[^A-Za-z0-9._-]")
+REF_RE = re.compile(r"^[a-z0-9]{6,12}$")
+REFERRAL_CAP = 20  # freezes one learner can earn by inviting; stops farming with throwaway accounts
 
 
 def clean_handle(text: str) -> str:
@@ -155,7 +157,12 @@ async def unhandled_error(request: Request, exc: Exception):
 async def user_timezone(request: Request, call_next):
     """The browser sends its timezone in a cookie; "today" and streaks then follow the learner's clock."""
     stats.set_request_timezone(request.cookies.get("tz"))
-    return await call_next(request)
+    response = await call_next(request)
+    code = request.query_params.get("ref", "").lower()
+    if REF_RE.match(code):  # someone arrived through an invite link: remember who until they sign up
+        response.set_cookie("ref", code, max_age=30 * 86400, samesite="lax", httponly=True,
+                            secure=bool(os.environ.get("RENDER")))
+    return response
 
 
 _UNSET = object()
@@ -268,8 +275,16 @@ def whats_new(limit: int = 6) -> list:
     return _news_cache["items"][:limit]
 
 
+def _inviter_from(request: Request):
+    """The learner whose invite link brought this visitor (?ref= or the cookie), or None."""
+    code = (request.query_params.get("ref") or request.cookies.get("ref") or "").lower()
+    return db.user_by_ref_code(code) if REF_RE.match(code) else None
+
+
 def render(request: Request, name: str, status_code: int = 200, **ctx):
-    if name == "auth.html":  # visitors who are not logged in see the weekly top 10 and what is new
+    if name == "auth.html":
+        inviter = _inviter_from(request)
+        ctx.setdefault("invited_by", (card_handle(inviter) or "A friend") if inviter else None)  # visitors who are not logged in see the weekly top 10 and what is new
         ctx.setdefault("news", whats_new())
         ctx.setdefault("counts", public_counts())
         ctx.setdefault("board_top", [{"h": r["handle"], "n": r["n"]}
@@ -409,11 +424,15 @@ async def signup(request: Request, background: BackgroundTasks, email: str = For
     if username.strip() and not name:
         return render(request, "auth.html", mode="signup",
                       error="A username can use letters, numbers, dots, dashes and underscores.")
-    uid = db.create_user(email, password, verified=not mailer.configured(), display_name=name)
+    inviter = _inviter_from(request)
+    uid = db.create_user(email, password, verified=not mailer.configured(), display_name=name,
+                         referred_by=inviter["id"] if inviter else None)
     if uid is None:
         return render(request, "auth.html", mode="signup", error="That email is already registered.")
     _login_session(request, db.get_user(uid))
     db.log_event(uid, "signup")
+    if inviter:
+        db.log_event(uid, "referred", str(inviter["id"]))
     if mailer.configured():
         token = db.create_token(uid, "verify", VERIFY_TTL)
         background.add_task(_send_verification, email, f"{base_url(request)}/verify/{token}", base_url(request))
@@ -595,6 +614,24 @@ async def account_leaderboard(request: Request, on: str = Form(""), back: str = 
     return RedirectResponse(dest, status_code=303)
 
 
+@app.get("/join/{code}")
+async def join_link(code: str):
+    """Personal invite link: the ref cookie is set by the middleware on the page it redirects to."""
+    code = code.lower()
+    return RedirectResponse(f"/signup?ref={code}" if REF_RE.match(code) else "/signup", status_code=303)
+
+
+@app.get("/invite")
+def invite_page(request: Request):
+    user = current_user(request)
+    if not user:
+        return RedirectResponse("/login", status_code=303)
+    code = user["ref_code"] or db.ensure_ref_code(user["id"])
+    streak = stats.streak_for(user, db.get_active_dates(user["id"]))
+    return render(request, "invite.html", link=f"{base_url(request)}/join/{code}", stats=db.referral_stats(user["id"]),
+                  freezes=streak["freezes"], cap=REFERRAL_CAP, handle=card_handle(user))
+
+
 @app.get("/leaderboard")
 def leaderboard_page(request: Request, period: str = "week", level: str = ""):
     user = current_user(request)
@@ -687,7 +724,7 @@ async def streak_repair(request: Request):
     if not user:
         return RedirectResponse("/login", status_code=303)
     active = db.get_active_dates(user["id"])
-    if _repair_streak_length(active) and db.log_event(
+    if _repair_streak_length(user, active) and db.log_event(
             user["id"], "streak_repair", stats.today_str()[:7], once=True):
         db.touch_activity(user["id"], (stats.today() - timedelta(days=1)).isoformat())
     return RedirectResponse("/dashboard", status_code=303)
@@ -745,8 +782,8 @@ async def dashboard(request: Request):
     if cookie_tz and cookie_tz != user["tz"] and stats._load_zone(cookie_tz):
         db.set_tz(user["id"], cookie_tz)
     active_dates = db.get_active_dates(user["id"])
-    streak = stats.streak_v2(active_dates)
-    repair = _repair_streak_length(active_dates)  # pure calculation; only then check the monthly limit
+    streak = stats.streak_for(user, active_dates)
+    repair = _repair_streak_length(user, active_dates)  # pure calculation; only then check the monthly limit
     if repair and db.has_event(user["id"], "streak_repair", stats.today_str()[:7]):
         repair = None
     solved_epochs = db.get_solved_epochs(user["id"])
@@ -783,15 +820,15 @@ def _next_unsolved(level: str, solved_set: set):
     return None
 
 
-def _repair_streak_length(active_dates: list):
+def _repair_streak_length(user, active_dates: list):
     """The streak length a repair would restore, or None when repairing makes no sense: yesterday was
     missed AND the day before was a practice day, so there really was a streak to save."""
     today = stats.today()
     yesterday, before = (today - timedelta(days=1)).isoformat(), (today - timedelta(days=2)).isoformat()
     if yesterday in active_dates or before not in active_dates:
         return None
-    gained = stats.streak_v2(active_dates + [yesterday])["current"]
-    return gained if gained > stats.streak_v2(active_dates)["current"] else None
+    gained = stats.streak_for(user, active_dates + [yesterday])["current"]
+    return gained if gained > stats.streak_for(user, active_dates)["current"] else None
 
 
 def _kind_of(level: str, day: int, q: int) -> str:
@@ -804,7 +841,7 @@ async def profile(request: Request):
     user = current_user(request)
     if not user:
         return RedirectResponse("/login", status_code=303)
-    streak = stats.streak_v2(db.get_active_dates(user["id"]))
+    streak = stats.streak_for(user, db.get_active_dates(user["id"]))
     result = badges.compute(
         db.get_all_progress(user["id"]), _kind_of,
         {lv: len(info["days"]) for lv, info in content.CONTENT.items()},
@@ -1013,7 +1050,7 @@ def _share_card(user, kind: str, day):
     level = user["level"]
     lvl = content.CONTENT[level]
     total_days = len(lvl["days"])
-    streak = stats.streak_v2(db.get_active_dates(user["id"]))
+    streak = stats.streak_for(user, db.get_active_dates(user["id"]))
     solved_total = db.count_solved_since(user["id"], 0)
     days_done = _level_days_done(user["id"], level)
     streak_tile = [[str(streak["current"]), "day streak"]] if streak["current"] else []
@@ -1067,12 +1104,15 @@ async def api_share_card(request: Request):
     day = body.get("day") if isinstance(body, dict) else None
     if kind not in SHARE_KINDS:
         return JSONResponse({"error": "Unknown card."}, status_code=400)
+    if user["level"] not in content.CONTENT:
+        return JSONResponse({"error": "Choose a level first."}, status_code=400)
     card = _share_card(user, kind, day if isinstance(day, int) and not isinstance(day, bool) else None)
     if card is None:
         return JSONResponse({"error": "You have not reached that milestone yet."}, status_code=400)
     handle = card_handle(user)
     if handle:
         card["u"] = handle
+    card["r"] = user["ref_code"] or db.ensure_ref_code(user["id"])  # lets the card's QR code and button invite people
     token = sharecard.make_token(card)
     return {"url": f"{base_url(request)}/s/{token}", "card_url": f"/s/{token}/card.png", "text": _share_text(card),
             "title": card["t"], "who": handle}
@@ -1085,8 +1125,12 @@ async def share_page(request: Request, token: str):
         return render(request, "message.html", status_code=404, title="Card not found",
                       text="This share link is not valid.", href="/", link="Go to Java Practice")
     desc = f"{card.get('s', '')} · " + ", ".join(f"{v} {l}" for v, l in card["st"])
-    return render(request, "share.html", card=card, token=token, desc=desc.strip(" ·,"),
+    resp = render(request, "share.html", card=card, token=token, desc=desc.strip(" ·,"),
                   challenge=sharecard.CHALLENGE.get(card["i"], "Join me!"))
+    if card.get("r"):  # remember who shared this, in case the visitor signs up later
+        resp.set_cookie("ref", card["r"], max_age=30 * 86400, samesite="lax", httponly=True,
+                        secure=bool(os.environ.get("RENDER")))
+    return resp
 
 
 async def _share_image(request: Request, token: str, kind: str):
@@ -1108,6 +1152,19 @@ async def share_og_image(request: Request, token: str):
     return await _share_image(request, token, "og")
 
 
+def _referral_reward(user):
+    """First solved question of an invited learner: both get a streak freeze (once). Returns what to celebrate."""
+    if not db.log_event(user["id"], "referral_reward", str(user["referred_by"]), once=True):
+        return None
+    today_iso = stats.today_str()
+    db.add_freeze_bonus(user["id"], today_iso)
+    inviter = db.get_user(user["referred_by"])
+    if inviter and db.count_events(inviter["id"], "referral_earned") < REFERRAL_CAP:
+        db.add_freeze_bonus(inviter["id"], today_iso)
+        db.log_event(inviter["id"], "referral_earned", str(user["id"]))
+    return {"freeze": True, "inviter": (card_handle(inviter) or "your friend") if inviter else "your friend"}
+
+
 def _solve_feedback(user, day: int, q: int):
     """Called after a question becomes solved. Returns what to celebrate (or None): the day just
     became complete, and/or today's goal was just reached. Each fires once (via the events table)."""
@@ -1121,10 +1178,14 @@ def _solve_feedback(user, day: int, q: int):
     if solved_today >= user["daily_goal"] and db.log_event(
             user["id"], "goal_reached", stats.today_str(), once=True):
         fb["goal_reached"] = {"goal": user["daily_goal"], "solved_today": solved_today}
+    if user["referred_by"]:  # a once-only flag inside makes this a single cheap lookup after the first solve
+        reward = _referral_reward(user)
+        if reward:
+            fb["referral"] = reward
     if "day_complete" in fb and _level_days_done(user["id"], user["level"]) >= len(content.CONTENT[user["level"]]["days"]) \
             and db.log_event(user["id"], "level_complete", user["level"], once=True):
         fb["level_complete"] = {"level": content.CONTENT[user["level"]]["label"]}
-    streak_now = stats.streak_v2(db.get_active_dates(user["id"]))["current"]
+    streak_now = stats.streak_for(user, db.get_active_dates(user["id"]))["current"]
     if streak_now in STREAK_MILESTONES and db.log_event(user["id"], "streak_milestone", str(streak_now), once=True):
         fb["streak_milestone"] = {"days": streak_now}
     return fb or None

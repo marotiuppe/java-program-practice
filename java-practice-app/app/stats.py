@@ -80,10 +80,35 @@ def compute(date_strings, today_date=None) -> dict:
     return {"current": current, "longest": longest, "total": len(days), "today": today_date in days}
 
 
-def streak_v2(date_strings, today_date=None) -> dict:
+MAX_EARNED_FREEZES = 2   # freezes earned by practising (one per 7 real days)
+MAX_BANKED_FREEZES = 3   # the bank can hold one more, which only an invite reward can fill
+
+
+def parse_bonus(text) -> list:
+    """Dates (as date objects) on which an invite reward added a freeze; stored as "2026-10-17,2026-10-20"."""
+    out = []
+    for part in (text or "").split(","):
+        try:
+            out.append(date.fromisoformat(part.strip()))
+        except ValueError:
+            continue
+    return out
+
+
+def streak_for(user, date_strings, today_date=None) -> dict:
+    """streak_v2 for a user row, including the freezes they earned by inviting friends (or being invited)."""
+    try:
+        bonus = parse_bonus(user["freeze_bonus"])
+    except (KeyError, IndexError, TypeError):
+        bonus = []
+    return streak_v2(date_strings, today_date, bonus)
+
+
+def streak_v2(date_strings, today_date=None, bonus=()) -> dict:
     """Streak with forgiveness, computed purely from the dates the learner was active.
 
-    - Every 7th real day of a streak earns a freeze (at most 2 banked).
+    - Every 7th real day of a streak earns a freeze (while fewer than 2 are banked).
+    - `bonus` lists dates when an invite reward added a freeze (the bank may then hold 3).
     - A missed day uses a banked freeze automatically: the streak survives but does not grow.
     - With no freeze left, a missed day resets the streak. Today never counts as missed until it is over.
     Returns current, longest, total, today (active today?), freezes (banked), frozen (dates a freeze covered)
@@ -102,11 +127,16 @@ def streak_v2(date_strings, today_date=None) -> dict:
     streak = banked = longest = 0
     frozen = []
     d = min(active)
+    bonus_on = {}
+    for b in bonus:
+        key = max(b, d)  # a reward from before the first practice day is waiting in the bank on that day
+        bonus_on[key] = bonus_on.get(key, 0) + 1
     while d <= today_date:
+        banked = min(MAX_BANKED_FREEZES, banked + bonus_on.get(d, 0))
         if d in active:
             streak += 1
-            if streak % 7 == 0:
-                banked = min(2, banked + 1)
+            if streak % 7 == 0 and banked < MAX_EARNED_FREEZES:
+                banked += 1
         elif d < today_date:
             if streak > 0 and banked > 0:
                 banked -= 1
@@ -116,5 +146,5 @@ def streak_v2(date_strings, today_date=None) -> dict:
         longest = max(longest, streak)
         d += timedelta(days=1)
     out.update(current=streak, longest=longest, freezes=banked, frozen=frozen,
-               next_freeze_in=None if banked >= 2 else 7 - streak % 7)
+               next_freeze_in=None if banked >= MAX_EARNED_FREEZES else 7 - streak % 7)
     return out
