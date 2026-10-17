@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block title %}What's new{% endblock %}
+{% block description %}New features and improvements to Java Practice, newest first.{% endblock %}
+{% block content %}
+<h1>What&rsquo;s new</h1>
+<p class="muted">Everything we have shipped, newest first. Missing something? <a href="/ideas">Suggest it or vote for it</a>.</p>
+{% for day, items in groups %}
+<section class="card changelog-day" aria-labelledby="d-{{ day }}">
+  <h2 id="d-{{ day }}">{{ day }}</h2>
+  <ul class="changelog">
+    {% for n in items %}<li><b>{{ n.title }}</b><br><span class="muted">{{ n.text }}</span></li>{% endfor %}
+  </ul>
+</section>
+{% else %}<p class="card muted">Nothing here yet.</p>{% endfor %}
+{% endblock %}

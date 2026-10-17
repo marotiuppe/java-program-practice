@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block title %}Admin: ideas{% endblock %}
+{% block content %}
+<h1>Ideas</h1>
+{% if flash %}<p class="notice">{{ flash }}</p>{% endif %}
+<p class="muted small">{% for s in statuses %}{{ s }}: <b>{{ counts.get(s, 0) }}</b>{% if not loop.last %} &middot; {% endif %}{% endfor %}. Hidden ideas disappear from the public page (use it for spam or abuse). Other statuses show as a label there.</p>
+{% for i in ideas %}
+<div class="card">
+  <p><b>{{ i.title }}</b> <span class="badge">{{ i.status }}</span> &middot; {{ i.votes }} vote{{ '' if i.votes == 1 else 's' }}
+    &middot; <span class="muted">{{ i.created_at | ts }}</span>
+    {% if i.email %}&middot; <a href="/admin/users/{{ i.user_id }}">{{ i.email }}</a>{% endif %}</p>
+  {% if i.body %}<p>{{ i.body }}</p>{% endif %}
+  <form method="post" action="/admin/ideas/{{ i.id }}/status" class="inline">
+    <label class="sr-only" for="st-{{ i.id }}">Status</label>
+    <select id="st-{{ i.id }}" name="status">{% for s in statuses %}<option{{ ' selected' if s == i.status }}>{{ s }}</option>{% endfor %}</select>
+    <button>Save</button>
+  </form>
+</div>
+{% else %}<p class="card muted">No ideas yet.</p>{% endfor %}
+{% endblock %}

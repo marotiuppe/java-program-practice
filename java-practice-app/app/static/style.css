@@ -435,3 +435,22 @@ main:focus{outline:none}
 .celebrate-box .small,.share-sheet-box .small{min-height:1.2em;margin:8px 0 0}
 .share-sheet-box{max-width:420px;width:100%;text-align:center;background:var(--card);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow);padding:20px}
 @media (max-width:640px){.share-page{grid-template-columns:1fr}.share-card{max-width:340px;margin:0 auto}}
+
+/* community: ideas, changelog, question of the week */
+.idea{display:flex;gap:16px;align-items:flex-start}
+.idea h2{margin:0 0 6px;font-size:18px}
+.idea p{margin:4px 0}
+.idea-body{flex:1;min-width:0;overflow-wrap:anywhere}
+.vote{margin:0}
+.vote button,.vote-anon{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;min-width:52px;min-height:56px;padding:6px 10px;border:1px solid var(--line);border-radius:10px;background:var(--card);color:var(--fg);text-decoration:none;font-size:13px;cursor:pointer}
+.vote button.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-fg)}
+.vote-anon:hover{border-color:var(--accent)}
+.stack input,.stack textarea{display:block;width:100%;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--fg);font:inherit;font-size:16px}
+.stack label{margin:12px 0 4px}
+.changelog{list-style:none;margin:0;padding:0}
+.changelog li{padding:10px 0;border-top:1px solid var(--line)}
+.changelog li:first-child{border-top:0}
+.qotw{margin:0}
+.qotw h2{margin:0 0 6px;font-size:16px}
+.qotw .btn-continue{display:block;margin-top:10px}
+.site-foot a+a{margin-left:14px}

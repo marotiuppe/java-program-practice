@@ -403,7 +403,7 @@ async def robots(request: Request):
 @app.get("/sitemap.xml", include_in_schema=False)
 async def sitemap(request: Request):
     root = base_url(request)
-    urls = [f"{root}/", f"{root}/privacy", f"{root}/signup"]
+    urls = [f"{root}/", f"{root}/privacy", f"{root}/signup", f"{root}/changelog", f"{root}/ideas"]
     for level, info in content.CONTENT.items():
         urls.append(f"{root}/plan/{level}")
         urls += [f"{root}/plan/{level}/day/{n}" for n in sorted(info["days"])]
@@ -1042,6 +1042,118 @@ def invite_page(request: Request):
                   freezes=streak["freezes"], cap=REFERRAL_CAP, handle=card_handle(user))
 
 
+# ---------------------------------------------------------------- community: changelog, ideas, question of the week
+_changelog_cache = {"mtime": None, "items": []}
+
+
+def changelog() -> list:
+    """Entries of content/changelog.json ({date, title, text}, newest first), re-read when the file changes."""
+    path = os.path.join(HERE, "content", "changelog.json")
+    try:
+        mtime = os.path.getmtime(path)
+        if _changelog_cache["mtime"] != mtime:
+            _changelog_cache["items"] = [n for n in json.load(open(path, encoding="utf-8"))
+                                         if isinstance(n, dict) and n.get("date") and n.get("title") and n.get("text")]
+            _changelog_cache["mtime"] = mtime
+    except (OSError, ValueError):
+        return []
+    return _changelog_cache["items"]
+
+
+@app.get("/changelog")
+async def changelog_page(request: Request):
+    groups = {}
+    for item in changelog():
+        groups.setdefault(item["date"], []).append(item)
+    return render(request, "changelog.html", groups=sorted(groups.items(), reverse=True))
+
+
+IDEA_TITLE = (5, 80)
+IDEA_BODY_MAX = 500
+IDEAS_PER_DAY = 3
+IDEA_VOTE_LIMIT = (60, 600)  # votes per user per 10 minutes
+IDEA_TABS = {"": "Open", "planned": "Planned", "building": "In progress", "done": "Done", "declined": "Not planned"}
+IDEA_LABELS = {"open": "Open", "planned": "Planned", "building": "In progress", "done": "Done", "declined": "Not planned"}
+IDEA_MESSAGES = {
+    "posted": "Thanks! Your idea is on the list and has your vote.",
+    "short": f"Give your idea a title of {IDEA_TITLE[0]} to {IDEA_TITLE[1]} characters.",
+    "long": f"Keep the details under {IDEA_BODY_MAX} characters.",
+    "limit": f"You can post {IDEAS_PER_DAY} ideas a day. Try again tomorrow, or vote for an idea that is already here.",
+    "slow": "You are voting very fast. Take a short break.",
+}
+
+
+@app.get("/ideas")
+async def ideas_page(request: Request, sort: str = "top", tab: str = ""):
+    user = current_user(request)
+    sort = "new" if sort == "new" else "top"
+    tab = tab if tab in IDEA_TABS else ""
+    ideas = db.list_ideas(user["id"] if user else None, sort, tab)
+    for i in ideas:
+        i["mine"] = bool(user and i["user_id"] == user["id"])
+        i["label"] = IDEA_LABELS.get(i["status"], "")
+    return render(request, "ideas.html", ideas=ideas, sort=sort, tab=tab, tabs=IDEA_TABS,
+                  flash=IDEA_MESSAGES.get(request.query_params.get("msg", "")), title_len=IDEA_TITLE,
+                  body_max=IDEA_BODY_MAX)
+
+
+@app.post("/ideas")
+async def ideas_post(request: Request, title: str = Form(""), body: str = Form("")):
+    user = current_user(request)
+    if not user:
+        return RedirectResponse("/login", status_code=303)
+    title, body = " ".join(title.split()), body.strip()
+    if not IDEA_TITLE[0] <= len(title) <= IDEA_TITLE[1]:
+        return RedirectResponse("/ideas?msg=short", status_code=303)
+    if len(body) > IDEA_BODY_MAX:
+        return RedirectResponse("/ideas?msg=long", status_code=303)
+    if db.count_ideas_since(user["id"], int(time.time()) - 86400) >= IDEAS_PER_DAY:
+        return RedirectResponse("/ideas?msg=limit", status_code=303)
+    db.add_idea(user["id"], title, body)
+    return RedirectResponse("/ideas?sort=new&msg=posted", status_code=303)
+
+
+@app.post("/ideas/{idea_id}/vote")
+async def ideas_vote(request: Request, idea_id: int, sort: str = Form("top"), tab: str = Form("")):
+    user = current_user(request)
+    if not user:
+        return RedirectResponse("/login", status_code=303)
+    sort = "new" if sort == "new" else "top"
+    tab = tab if tab in IDEA_TABS else ""
+    idea = db.get_idea(idea_id)
+    if not idea or idea["status"] == "hidden":
+        return RedirectResponse("/ideas", status_code=303)
+    dest = f"/ideas?sort={sort}" + (f"&tab={tab}" if tab else "")
+    if ratelimit.hit(f"ideavote:{user['id']}", *IDEA_VOTE_LIMIT):
+        return RedirectResponse(dest + "&msg=slow", status_code=303)
+    db.toggle_vote(idea_id, user["id"])
+    return RedirectResponse(f"{dest}#idea-{idea_id}", status_code=303)
+
+
+_qotw_cache = {}
+
+
+def question_of_week(level: str, solved_set: set):
+    """The week's featured coding question for a level: the same for everyone on that level, new every Monday,
+    chosen from questions that have hidden tests. None when the level has no such question."""
+    if level not in content.CONTENT:
+        return None
+    since = stats.week_start_epoch()
+    pool = [(d, q) for d, day in sorted(content.CONTENT[level]["days"].items())
+            for q, question in sorted(day["questions"].items()) if question["kind"] == "code" and question["hidden"]]
+    if not pool:
+        return None
+    pick = int(hashlib.sha256(f"{level}:{since}".encode()).hexdigest(), 16) % len(pool)
+    d, q = pool[pick]
+    hit = _qotw_cache.get((level, since))
+    if not hit or time.monotonic() - hit[0] > BOARD_TTL:
+        _qotw_cache.clear()
+        hit = _qotw_cache[(level, since)] = (time.monotonic(), db.count_solvers(level, d, q, since))
+    day = content.CONTENT[level]["days"][d]
+    return {"day": d, "q": q, "day_title": day["title"], "category": day["questions"][q]["category"],
+            "solved": (d, q) in solved_set, "solvers": hit[1]}
+
+
 @app.get("/leaderboard")
 def leaderboard_page(request: Request, period: str = "week", level: str = ""):
     user = current_user(request)
@@ -1215,6 +1327,7 @@ async def dashboard(request: Request):
         total_solved=total,
         streak=streak,
         board=board, interview_minutes=interview.MINUTES,
+        qotw=question_of_week(level, solved_set),
         snapshot={"k": _snap_key(user), "level": content.CONTENT[level]["label"], "streak": streak["current"],
                   "board": board,
                   "longest": streak["longest"], "solved": total, "next": _next_unsolved(level, solved_set),

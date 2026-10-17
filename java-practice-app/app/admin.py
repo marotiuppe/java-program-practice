@@ -28,6 +28,7 @@ MESSAGES = {
     "testfail": "The test email could not be sent. See 'Last email error' below.",
     "resolved": "Report marked resolved.",
     "reopened": "Report reopened.",
+    "idea_saved": "Idea status saved.",
 }
 
 
@@ -326,6 +327,27 @@ def report_reopen(request: Request, report_id: int):
     with db.connect() as c:
         db._x(c, "UPDATE reports SET resolved = 0 WHERE id = ?", (report_id,))
     return RedirectResponse("/admin/reports?status=resolved", status_code=303)
+
+
+# ---------------------------------------------------------------- ideas
+@router.get("/ideas")
+def ideas(request: Request):
+    user, bad = _guard(request)
+    if bad:
+        return bad
+    rows = _q("SELECT i.*, u.email, (SELECT COUNT(*) FROM idea_votes v WHERE v.idea_id = i.id) AS votes "
+              "FROM ideas i LEFT JOIN users u ON u.id = i.user_id ORDER BY votes DESC, i.id DESC LIMIT 300")
+    return _render(request, "admin_ideas.html", page="ideas", ideas=[dict(r) for r in rows],
+                   statuses=db.IDEA_STATUSES, counts=db.count_ideas_by_status())
+
+
+@router.post("/ideas/{idea_id}/status")
+def idea_status(request: Request, idea_id: int, status: str = Form("")):
+    user, bad = _guard(request)
+    if bad:
+        return bad
+    db.set_idea_status(idea_id, status)
+    return RedirectResponse("/admin/ideas?msg=idea_saved", status_code=303)
 
 
 # ---------------------------------------------------------------- question quality

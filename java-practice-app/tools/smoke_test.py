@@ -183,5 +183,29 @@ with TestClient(app, follow_redirects=False) as c:
     fin = c.post(iv_url.replace("/interview/", "/api/interview/") + "/finish", json={"answers": {}})
     check("interview finishes and is graded", fin.json().get("url") == iv_url and "iv-score" in c.get(iv_url).text)
 
+    # community (roadmap 4.9): changelog, ideas with votes, question of the week
+    check("changelog is public", anon.get("/changelog").status_code == 200 and "What" in anon.get("/changelog").text)
+    check("ideas page is public", anon.get("/ideas").status_code == 200)
+    check("anonymous cannot post or vote", anon.post("/ideas", data={"title": "A public idea here"}).headers["location"] == "/login"
+          and anon.post("/ideas/1/vote").headers["location"] == "/login")
+    check("short idea title refused", c.post("/ideas", data={"title": "no"}).headers["location"] == "/ideas?msg=short")
+    posted = c.post("/ideas", data={"title": "Dark editor theme please", "body": "Easier on the eyes at night"})
+    check("idea posted", posted.status_code == 303 and "msg=posted" in posted.headers["location"], posted.headers.get("location"))
+    page = anon.get("/ideas").text
+    check("idea listed without the author's email", "Dark editor theme please" in page and "smoke@example.com" not in page)
+    iid = db.list_ideas()[0]["id"]
+    check("author's vote counted", db.list_ideas()[0]["votes"] == 1)
+    c.post(f"/ideas/{iid}/vote", data={"sort": "top"})
+    check("vote toggles off", db.list_ideas()[0]["votes"] == 0)
+    c.post(f"/ideas/{iid}/vote", data={"sort": "top"})
+    check("vote toggles on", db.list_ideas()[0]["votes"] == 1)
+    for n in range(2):
+        c.post("/ideas", data={"title": f"Another idea number {n}"})
+    check("daily idea limit", c.post("/ideas", data={"title": "One idea too many"}).headers["location"] == "/ideas?msg=limit")
+    check("admin can hide an idea", c.post(f"/admin/ideas/{iid}/status", data={"status": "hidden"}).status_code == 303
+          and "Dark editor theme please" not in anon.get("/ideas").text and c.get("/admin/ideas").status_code == 200)
+    check("question of the week on the dashboard", "Question of the week" in c.get("/dashboard").text)
+    check("community pages in sitemap", "/changelog" in anon.get("/sitemap.xml").text and "/ideas" in anon.get("/sitemap.xml").text)
+
 print("\nFAILED: " + ", ".join(failures) if failures else "\nAll smoke checks passed.")
 sys.exit(1 if failures else 0)

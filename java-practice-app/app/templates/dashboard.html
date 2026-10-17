@@ -65,6 +65,14 @@
       {% else %}<b>Weekly top 10.</b> Want to see how you compare? <a href="/leaderboard">See the leaderboard</a> or
         <form method="post" action="/account/leaderboard" class="inline"><input type="hidden" name="on" value="1"><input type="hidden" name="back" value="/dashboard"><button class="link">join it</button></form>{% endif %}
     </div>
+    {% if qotw %}
+    <div class="card qotw">
+      <h2>Question of the week</h2>
+      <p><b>Day {{ qotw.day }} &middot; {{ qotw.day_title }}</b><br><span class="muted">{{ qotw.category }}</span></p>
+      <p class="muted small">{% if qotw.solved %}You solved it this week. Nice!{% else %}New every Monday.{% endif %}{% if qotw.solvers >= 3 %} {{ qotw.solvers }} learners solved it so far.{% endif %}</p>
+      <a class="btn-continue" href="/day/{{ qotw.day }}/q/{{ qotw.q }}">{{ 'Open it again' if qotw.solved else 'Take the challenge' }}</a>
+    </div>
+    {% endif %}
     <div class="dash-actions share-links">
       <a class="btn-continue" href="/interview">Mock interview: 3 questions, {{ interview_minutes }} minutes</a>
       <a class="btn-continue" href="/invite">Invite a friend: you both get a streak freeze</a>

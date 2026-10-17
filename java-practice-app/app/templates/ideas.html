@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% block title %}Ideas and votes{% endblock %}
+{% block description %}Suggest a feature for Java Practice and vote on what we build next.{% endblock %}
+{% block content %}
+<h1>Ideas and votes</h1>
+<p class="muted">Tell us what to build next. Vote for what you want; the most-voted ideas get built first. Ideas are shown without names. See <a href="/changelog">what we have shipped</a>.</p>
+{% if flash %}<p class="notice" role="status">{{ flash }}</p>{% endif %}
+
+<nav class="board-tabs" aria-label="Idea status">
+  {% for key, label in tabs.items() %}<a href="/ideas?sort={{ sort }}{{ '&tab=' ~ key if key }}"{% if tab == key %} class="on" aria-current="true"{% endif %}>{{ label }}</a>{% endfor %}
+</nav>
+{% if not tab %}
+<p class="tabs-inline">
+  <a href="/ideas?sort=top" class="{{ 'on' if sort == 'top' }}">Most voted</a>
+  <a href="/ideas?sort=new" class="{{ 'on' if sort == 'new' }}">Newest</a>
+</p>
+{% endif %}
+
+{% for i in ideas %}
+<div class="card idea" id="idea-{{ i.id }}">
+  {% if user %}
+  <form method="post" action="/ideas/{{ i.id }}/vote" class="vote">
+    <input type="hidden" name="sort" value="{{ sort }}"><input type="hidden" name="tab" value="{{ tab }}">
+    <button type="submit" class="{{ 'primary' if i.voted }}" aria-pressed="{{ 'true' if i.voted else 'false' }}" aria-label="{{ 'Remove your vote from' if i.voted else 'Vote for' }}: {{ i.title }}">&#9650;<b>{{ i.votes }}</b></button>
+  </form>
+  {% else %}
+  <a class="vote vote-anon" href="/login" title="Log in to vote"><span aria-hidden="true">&#9650;</span><b>{{ i.votes }}</b><span class="sr-only"> votes. Log in to vote</span></a>
+  {% endif %}
+  <div class="idea-body">
+    <h2>{{ i.title }}{% if i.status != 'open' %}<span class="badge{{ ' solved' if i.status == 'done' }}">{{ i.label }}</span>{% endif %}</h2>
+    {% if i.body %}<p>{{ i.body }}</p>{% endif %}
+    <p class="muted small">{{ i.created_at | ts }}{% if i.mine %} &middot; your idea{% endif %}</p>
+  </div>
+</div>
+{% else %}
+<p class="card muted">{% if tab %}Nothing here yet.{% else %}No ideas yet. Be the first to suggest one.{% endif %}</p>
+{% endfor %}
+
+<div class="card">
+  <h2>Suggest something</h2>
+  {% if user %}
+  <form method="post" action="/ideas" class="stack">
+    <label for="idea-title">Title</label>
+    <input id="idea-title" name="title" minlength="{{ title_len[0] }}" maxlength="{{ title_len[1] }}" required placeholder="e.g. Add a dark editor theme">
+    <label for="idea-body">Details (optional)</label>
+    <textarea id="idea-body" name="body" rows="3" maxlength="{{ body_max }}" placeholder="What would it do, and why would it help?"></textarea>
+    <p class="muted small">Don&rsquo;t include personal details. Ideas are public and shown without your name. You can post 3 a day.</p>
+    <button class="primary">Post idea</button>
+  </form>
+  {% else %}
+  <p><a href="/login">Log in</a> or <a href="/signup">sign up</a> to suggest ideas and vote.</p>
+  {% endif %}
+</div>
+{% endblock %}

@@ -35,6 +35,7 @@
       <a href="/admin"{% if path == '/admin' %} class="active" aria-current="page"{% endif %}>Overview</a>
       <a href="/admin/users"{% if path.startswith('/admin/users') %} class="active" aria-current="page"{% endif %}>Users</a>
       <a href="/admin/reports"{% if path.startswith('/admin/reports') %} class="active" aria-current="page"{% endif %}>Reports</a>
+      <a href="/admin/ideas"{% if path.startswith('/admin/ideas') %} class="active" aria-current="page"{% endif %}>Ideas</a>
       <a href="/admin/questions"{% if path.startswith('/admin/questions') %} class="active" aria-current="page"{% endif %}>Questions</a>
       <a href="/admin/activity"{% if path.startswith('/admin/activity') %} class="active" aria-current="page"{% endif %}>Activity</a>
       <a href="/admin/system"{% if path.startswith('/admin/system') %} class="active" aria-current="page"{% endif %}>System</a>
@@ -65,7 +66,7 @@
 </div>
 {% endif %}
 <main id="main" tabindex="-1">{% block content %}{% endblock %}</main>
-<footer class="site-foot"><a href="/privacy">Privacy</a></footer>
+<footer class="site-foot"><a href="/changelog">What&rsquo;s new</a><a href="/ideas">Ideas</a><a href="/privacy">Privacy</a></footer>
 <script src="{{ static('pwa.js') }}"></script>
 {% if user %}<script src="{{ static('share.js') }}" defer></script>{% endif %}
 </body>
