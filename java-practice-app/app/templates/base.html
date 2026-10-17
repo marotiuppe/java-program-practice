@@ -11,8 +11,9 @@
 <meta property="og:title" content="{{ self.title() | striptags }}">
 <meta property="og:description" content="{{ self.description() | striptags }}">
 <meta property="og:url" content="{{ site_url }}{{ request.url.path }}">
-<meta property="og:image" content="{{ site_url }}/static/og-image.png">
+{% block og_image %}<meta property="og:image" content="{{ site_url }}/static/og-image.png">{% endblock %}
 <meta name="twitter:card" content="summary_large_image">
+{% block head_extra %}{% endblock %}
 <meta name="theme-color" content="#4f46e5">
 <link rel="icon" href="{{ static('favicon.svg') }}" type="image/svg+xml">
 <link rel="manifest" href="{{ static('manifest.webmanifest') }}">
@@ -64,5 +65,6 @@
 <main id="main" tabindex="-1">{% block content %}{% endblock %}</main>
 <footer class="site-foot"><a href="/privacy">Privacy</a></footer>
 <script src="{{ static('pwa.js') }}"></script>
+{% if user %}<script src="{{ static('share.js') }}" defer></script>{% endif %}
 </body>
 </html>

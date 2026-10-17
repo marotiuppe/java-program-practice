@@ -7,3 +7,4 @@ markdown==3.7
 psycopg[binary]==3.2.3
 psycopg-pool==3.2.4
 tzdata
+pillow>=11.0,<13

@@ -16,7 +16,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from starlette.middleware.sessions import SessionMiddleware
 
-from . import admin, badges, content, db, email_templates, grading, hints, mailer, ratelimit, reminders, sandbox, stats
+from . import admin, badges, content, db, email_templates, grading, hints, mailer, ratelimit, reminders, sandbox, sharecard, stats
 from .runner import run_java, run_java_batch, sandbox_check_started, sandbox_self_test
 
 logging.basicConfig(level=logging.INFO)
@@ -846,6 +846,122 @@ def _sweep_abandoned(user) -> None:
         _queue_once(user, r["level"], r["day"], r["qnum"])
 
 
+STREAK_MILESTONES = (3, 7, 14, 30, 60, 100)
+SHARE_KINDS = ("day", "goal", "streak", "level", "progress")
+SHARE_CARD_USER = (60, 3600)  # card requests per learner per hour
+SHARE_IMAGE_IP = (200, 600)   # image renders per IP per 10 minutes (previews are fetched by a few crawlers)
+
+
+def _level_days_done(user_id: int, level: str) -> int:
+    """Days of this level where every question is solved."""
+    solved = {}
+    for lv, d, qn, status in db.get_all_progress(user_id):
+        if lv == level and status == "solved":
+            solved.setdefault(d, set()).add(qn)
+    days = content.CONTENT[level]["days"]
+    return sum(1 for n, day in days.items() if len(solved.get(n, ())) >= len(day["questions"]))
+
+
+def _share_card(user, kind: str, day):
+    """The card for one milestone, or None when the learner has not actually reached it. Built only from the
+    learner's real progress and contains no personal details."""
+    level = user["level"]
+    lvl = content.CONTENT[level]
+    total_days = len(lvl["days"])
+    streak = stats.streak_v2(db.get_active_dates(user["id"]))
+    solved_total = db.count_solved_since(user["id"], 0)
+    days_done = _level_days_done(user["id"], level)
+    streak_tile = [[str(streak["current"]), "day streak"]] if streak["current"] else []
+    solved_tile = [[str(solved_total), "question solved" if solved_total == 1 else "questions solved"]]
+    progress = [days_done / total_days, f"{days_done} of {total_days} days finished"]
+    if kind == "day":
+        if not isinstance(day, int) or day not in lvl["days"] or db.count_solved_in_day(user["id"], level, day) < 5:
+            return None
+        return {"i": "check", "t": f"Day {day} complete!", "s": f"{lvl['label']} · {total_days}-day Java plan",
+                "st": (streak_tile + solved_tile + [[f"{days_done}/{total_days}", "days done"]])[:3], "p": progress}
+    if kind == "goal":
+        today = db.count_solved_since(user["id"], stats.today_start_epoch())
+        if today < 1:
+            return None
+        title = "Daily goal reached!" if today >= user["daily_goal"] else f"{today} solved today!"
+        return {"i": "target", "t": title, "s": lvl["label"],
+                "st": (streak_tile + [[str(today), "solved today"]] + solved_tile)[:3], "p": None}
+    if kind == "streak":
+        if streak["current"] < 1:
+            return None
+        return {"i": "flame", "t": f"{streak['current']}-day streak!", "s": f"{lvl['label']} · practising every day",
+                "st": [[str(streak["longest"]), "longest streak"]] + solved_tile, "p": None}
+    if kind == "level":
+        if days_done < total_days:
+            return None
+        total_q = sum(len(d["questions"]) for d in lvl["days"].values())
+        return {"i": "trophy", "t": f"{lvl['label']} level complete!", "s": f"All {total_q} questions solved",
+                "st": (solved_tile + [[f"{total_days}", "days done"]] + streak_tile)[:3], "p": [1, f"{total_days} of {total_days} days finished"]}
+    return {"i": "star", "t": "My Java progress", "s": lvl["label"],
+            "st": (streak_tile + solved_tile + [[f"{days_done}/{total_days}", "days done"]])[:3], "p": progress}
+
+
+def _share_text(card: dict) -> str:
+    stats_line = " · ".join(f"{v} {l}" for v, l in card["st"])
+    return f"{card['t']} {stats_line}. I'm learning Java with a free 30-day practice plan. Join me:"
+
+
+@app.post("/api/share/card")
+async def api_share_card(request: Request):
+    user = current_user(request)
+    if not user:
+        return JSONResponse({"error": "Log in first."}, status_code=401)
+    if ratelimit.hit(f"sharecard:{user['id']}", *SHARE_CARD_USER):
+        return JSONResponse({"error": "Too many cards. Try again later."}, status_code=429)
+    try:
+        body = await request.json()
+    except Exception:
+        body = {}
+    kind = body.get("kind") if isinstance(body, dict) else None
+    day = body.get("day") if isinstance(body, dict) else None
+    if kind not in SHARE_KINDS:
+        return JSONResponse({"error": "Unknown card."}, status_code=400)
+    card = _share_card(user, kind, day if isinstance(day, int) and not isinstance(day, bool) else None)
+    if card is None:
+        return JSONResponse({"error": "You have not reached that milestone yet."}, status_code=400)
+    token = sharecard.make_token(card)
+    return {"url": f"{base_url(request)}/s/{token}", "card_url": f"/s/{token}/card.png", "text": _share_text(card),
+            "title": card["t"]}
+
+
+def _host(request: Request) -> str:
+    return re.sub(r"^https?://", "", base_url(request))
+
+
+@app.get("/s/{token}")
+async def share_page(request: Request, token: str):
+    card = sharecard.read_token(token)
+    if card is None:
+        return render(request, "message.html", status_code=404, title="Card not found",
+                      text="This share link is not valid.", href="/", link="Go to Java Practice")
+    desc = f"{card.get('s', '')} · " + ", ".join(f"{v} {l}" for v, l in card["st"])
+    return render(request, "share.html", card=card, token=token, desc=desc.strip(" ·,"))
+
+
+async def _share_image(request: Request, token: str, kind: str):
+    if ratelimit.hit(f"shareimg:{client_ip(request)}", *SHARE_IMAGE_IP):
+        return Response("Too many requests", status_code=429)
+    png = await asyncio.to_thread(sharecard.render_cached, token, kind, _host(request))
+    if png is None:
+        return Response("Not found", status_code=404)
+    return Response(png, media_type="image/png", headers={"Cache-Control": "public, max-age=86400"})
+
+
+@app.get("/s/{token}/card.png")
+async def share_card_image(request: Request, token: str):
+    return await _share_image(request, token, "card")
+
+
+@app.get("/s/{token}/og.png")
+async def share_og_image(request: Request, token: str):
+    return await _share_image(request, token, "og")
+
+
 def _solve_feedback(user, day: int, q: int):
     """Called after a question becomes solved. Returns what to celebrate (or None): the day just
     became complete, and/or today's goal was just reached. Each fires once (via the events table)."""
@@ -859,6 +975,12 @@ def _solve_feedback(user, day: int, q: int):
     if solved_today >= user["daily_goal"] and db.log_event(
             user["id"], "goal_reached", stats.today_str(), once=True):
         fb["goal_reached"] = {"goal": user["daily_goal"], "solved_today": solved_today}
+    if "day_complete" in fb and _level_days_done(user["id"], user["level"]) >= len(content.CONTENT[user["level"]]["days"]) \
+            and db.log_event(user["id"], "level_complete", user["level"], once=True):
+        fb["level_complete"] = {"level": content.CONTENT[user["level"]]["label"]}
+    streak_now = stats.streak_v2(db.get_active_dates(user["id"]))["current"]
+    if streak_now in STREAK_MILESTONES and db.log_event(user["id"], "streak_milestone", str(streak_now), once=True):
+        fb["streak_milestone"] = {"days": streak_now}
     return fb or None
 
 

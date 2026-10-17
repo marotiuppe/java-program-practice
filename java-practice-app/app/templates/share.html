@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block title %}{{ card.t }}{% endblock %}
+{% block description %}{{ desc }}. Join me on Java Practice: a free 30-day plan with an editor that runs your code.{% endblock %}
+{% block og_image %}<meta property="og:image" content="{{ site_url }}/s/{{ token }}/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="{{ card.t }} {{ desc }}">
+<meta name="twitter:image" content="{{ site_url }}/s/{{ token }}/og.png">{% endblock %}
+{% block head_extra %}<meta name="robots" content="noindex">{% endblock %}
+{% block content %}
+<section class="share-page">
+  <img class="share-card" src="/s/{{ token }}/card.png" width="540" height="675" alt="{{ card.t }} {{ desc }}">
+  <div class="share-cta">
+    <h1>{{ card.t }}</h1>
+    <p class="muted">{{ desc }}</p>
+    <p>Java Practice is a free 30-day plan: five questions a day, an editor that compiles and runs your code, and a streak to keep you going.</p>
+    {% if user %}
+    <p><a class="btn-continue" href="/dashboard">Go to my dashboard</a></p>
+    {% else %}
+    <p><a class="btn-continue" href="/signup">Start free</a> <a href="/login" class="muted">I already have an account</a></p>
+    {% endif %}
+  </div>
+</section>
+{% endblock %}

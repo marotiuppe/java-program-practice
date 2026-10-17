@@ -102,6 +102,17 @@ with TestClient(app, follow_redirects=False) as c:
                  "/admin/activity?event=signup", "/admin/system"]:
         check(f"admin page {path}", c.get(path).status_code == 200, c.get(path).status_code)
 
+    # shareable achievement cards (roadmap 4.2)
+    r = c.post("/api/share/card", json={"kind": "progress"})
+    check("share card issued", r.status_code == 200 and "/s/" in r.json().get("url", ""), r.text)
+    tok = r.json()["url"].rsplit("/", 1)[1]
+    pg = c.get(f"/s/{tok}")
+    check("share page has an og:image", pg.status_code == 200 and f"/s/{tok}/og.png" in pg.text, pg.status_code)
+    check("share images render", c.get(f"/s/{tok}/og.png").headers.get("content-type") == "image/png"
+          and c.get(f"/s/{tok}/card.png").status_code == 200)
+    check("forged share link is refused", c.get("/s/forged/og.png").status_code == 404)
+    check("unearned day card refused", c.post("/api/share/card", json={"kind": "level"}).status_code == 400)
+
     c.post("/logout")
     r = c.post("/login", data={"email": "smoke@example.com", "password": "password123"})
     check("log in again", r.status_code == 303, r.status_code)

@@ -11,4 +11,7 @@
       <span class="badge {{ status.get(qn, 'todo') }}">{{ status.get(qn, 'todo') }}</span>{% if qn in hint_used %}<span class="badge">hint used</span>{% endif %}</li>
   {% endfor %}
 </ol>
+{% if status.values() | select('equalto', 'solved') | list | length == day.questions | length %}
+<p><button type="button" data-share-kind="day" data-share-day="{{ day.n }}">Share Day {{ day.n }} complete</button></p>
+{% endif %}
 {% endblock %}

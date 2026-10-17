@@ -192,7 +192,7 @@ form.inline{display:inline}
 .celebrate-overlay{position:fixed;inset:0;z-index:100;display:grid;place-items:center;padding:16px;background:rgba(15,18,32,.55)}
 .celebrate-box{max-width:420px;width:100%;text-align:center;background:var(--card);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow);padding:24px}
 .celebrate-box h2{margin:4px 0 8px}
-.celebrate-emoji{font-size:44px;line-height:1}
+.celebrate-card{display:block;margin:0 auto 12px;width:auto;max-width:100%;height:min(46vh,380px);aspect-ratio:4/5;object-fit:contain;border-radius:14px;background:#eef0f7;box-shadow:0 6px 18px rgba(31,36,51,.18)}
 .celebrate-box .bar{justify-content:center}
 @media (prefers-reduced-motion:no-preference){.celebrate-box{animation:pop .25s ease-out}@keyframes pop{from{transform:scale(.92);opacity:0}to{transform:none;opacity:1}}}
 .goal-card{display:flex;align-items:center;gap:14px;margin:8px 0 14px}
@@ -322,3 +322,12 @@ main:focus{outline:none}
 .fb{padding:4px 12px;min-height:34px}
 .fb[aria-pressed=true]{background:var(--accent);border-color:var(--accent);color:var(--accent-fg)}
 @media (max-width:700px){.fb{min-height:44px}}
+
+/* shareable cards (roadmap 4.2) */
+.share-page{display:grid;grid-template-columns:minmax(0,320px) minmax(0,1fr);gap:28px;align-items:start;max-width:820px;margin:8px auto}
+.share-card{display:block;width:100%;height:auto;aspect-ratio:4/5;border-radius:18px;box-shadow:0 10px 30px rgba(31,36,51,.25);background:#eef0f7}
+.share-cta h1{margin-top:0}
+.share-actions{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin:6px 0 4px}
+.share-actions button{min-height:44px}
+.share-sheet-box{max-width:420px;width:100%;text-align:center;background:var(--card);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow);padding:20px}
+@media (max-width:640px){.share-page{grid-template-columns:1fr}.share-card{max-width:340px;margin:0 auto}}
